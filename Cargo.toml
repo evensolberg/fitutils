@@ -1,0 +1,22 @@
+[package]
+name = "fit2csv"
+version = "0.0.1"
+authors = ["evensolberg <even.solberg@gmail.com>"]
+edition = "2018"
+include = ["src/**/*", "README.md"]
+
+[dependencies]
+# Activity-related
+fitparser = "0.4"  # Fitbit
+#uom = { version = "0.31.1", default-features = false, features = ["si", "use_serde", "u16", "f64"] } # Units of Measure
+
+# System utilities
+clap =  { version = "2.3.3" }
+log = "0.4.14"
+simple_logger = "1.11.0"
+
+# Time and measurement
+chrono = "0.4.19" # Improved Time and Date
+uom = { version = "0.31.1", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0.29"
