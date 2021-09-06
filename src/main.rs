@@ -13,12 +13,12 @@ use std::error::Error;
 use std::fs::File;
 use std::collections::HashMap;
 
-// use std::time::Duration;
+use std::time::Duration;
 // use chrono::{DateTime, Local};
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
-//     length::{foot, kilometer, meter, mile},
-//     u16::Length as Length_u16,
+    length::{foot, kilometer, meter, mile},
+    u16::Length as Length_u16,
     velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
 };
 
@@ -28,9 +28,6 @@ use simple_logger::SimpleLogger;
 
 // Import all the types
 pub mod types;
-
-/// Used in calculating latitudes and longitudes.
-const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
 
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
 macro_rules! map_value {
@@ -99,25 +96,25 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.nec_lat = field_map
     .get("nec_lat")
     .and_then(map_sint32)
-    .map(|x| f64::from(x) * MULTIPLIER);
+    .map(|x| f64::from(x) * types::MULTIPLIER);
     log::debug!("nec_lat = {:?}", session.nec_lat);
 
     session.nec_lon = field_map
     .get("nec_long")
     .and_then(map_sint32)
-    .map(|x| f64::from(x) * MULTIPLIER);
+    .map(|x| f64::from(x) * types::MULTIPLIER);
     log::debug!("nec_lon = {:?}", session.nec_lon);
 
     session.swc_lat = field_map
     .get("swc_lat")
     .and_then(map_sint32)
-    .map(|x| f64::from(x) * MULTIPLIER);
+    .map(|x| f64::from(x) * types::MULTIPLIER);
     log::debug!("swc_lat = {:?}", session.swc_lat);
 
     session.swc_lon = field_map
     .get("swc_long")
     .and_then(map_sint32)
-    .map(|x| f64::from(x) * MULTIPLIER);
+    .map(|x| f64::from(x) * types::MULTIPLIER);
     log::debug!("swc_lon = {:?}", session.swc_lon);
 
     session.laps = field_map.get("num_laps").and_then(map_uint16);
@@ -128,6 +125,27 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     session.activity_detailed = field_map.get("sub_sport").and_then(map_string);
     log::debug!("activity_detailed = {:?}", session.activity_detailed);
+
+    session.ascent = field_map
+    .get("total_ascent")
+    .and_then(map_uint16)
+    .map(Length_u16::new::<meter>);
+    log::debug!("ascent = {:?}", session.ascent);
+
+    session.descent = field_map
+    .get("total_descent")
+    .and_then(map_uint16)
+    .map(Length_u16::new::<meter>);
+    log::debug!("descent = {:?}", session.descent);
+
+    session.calories = field_map.get("total_calories").and_then(map_uint16);
+    log::debug!("calories = {:?}", session.calories);
+
+    session.distance = field_map
+    .get("total_distance")
+    .and_then(map_float64)
+    .map(Length_f64::new::<meter>);
+    log::debug!("distance = {:?}", session.distance);
 }
 
 
@@ -250,6 +268,13 @@ fn run() -> Result<(), Box<dyn Error>> {
         laps: Some(0),
         activity_type: Some("".to_string()),
         activity_detailed: Some("".to_string()),
+        ascent: Some(Length_u16::new::<meter>(0)),
+        descent: Some(Length_u16::new::<meter>(0)),
+        calories: Some(0),
+        distance: Some(Length_f64::new::<meter>(0.0)),
+        // duration: types::Duration,
+        // duration_active: types::Duration,
+        // start_time: types::TimeStamp,
     };
 
     log::debug!("Parsing data.");
