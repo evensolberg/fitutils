@@ -6,38 +6,128 @@
 // See Cargo.toml for crates versions
 // Crates Usage:
 
-// Command line
-use clap::{Arg, App};
+use clap::{Arg, App};  // Command line
+use fitparser::{profile::field_types::MesgNum, FitDataField, Value}; // .FIT file manipulation
 
-// .FIT file manipulation
-use fitparser::{profile::field_types::MesgNum, FitDataField, Value};
-// use fitparser;
-
-// Files
 use std::error::Error;
 use std::fs::File;
+use std::collections::HashMap;
+
+// use std::time::Duration;
+// use chrono::{DateTime, Local};
+use uom::si::{
+    f64::{Length as Length_f64, Velocity},
+//     length::{foot, kilometer, meter, mile},
+//     u16::Length as Length_u16,
+    velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
+};
 
 // Logging
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
-// mod activity;
-// mod types;
+// Import all the types
+pub mod types;
+
+/// Used in calculating latitudes and longitudes.
+const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
+
+// Function scaffold macro to map from a value in the FIT parser to a "real" value
+macro_rules! map_value {
+    ($function_name:ident, $return_type:ident, $( $pattern:pat )|+ => $mapping:expr) => {
+        fn $function_name(v: &&fitparser::Value) -> Option<$return_type> {
+            match v {
+                $( $pattern )|+ => ::std::option::Option::Some($mapping),
+                _               => ::std::option::Option::None,
+            }
+        }
+    }
+}
+
+// Implementations
+map_value!(map_uint8, u8, Value::UInt8(x) => *x);
+map_value!(map_uint16, u16, Value::UInt16(x) => *x);
+map_value!(map_sint32, i32, Value::SInt32(x) => *x);
+map_value!(map_float64, f64, Value::Float64(x) => *x);
+map_value!(map_string, String, Value::String(x) => x.to_string());
+// map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
+
 
 /**
- * Local structs used to contain the various bits and pieces of information extracted from the header.
- * This includes such things as device manufacturer, activity, etc.
- *
- * This will then be put into each line in the resulting CSV, so that each line essentially is self-contained.
+ * Functions that make things work. This will no doubt get moved out to a module eventually.
+ * As it should.
  */
 
-/// TODO Create a Display trait for this
-struct FitHeading {
-    manufacturer: String,
-    time_created: String,
-    num_sessions: u32,
-    num_laps: u32,
-    num_records: u32,
+fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
+    let field_map: HashMap<&str, &fitparser::Value> =
+        fields.iter().map(|x| (x.name(), x.value())).collect();
+
+    log::debug!("field_map = {:?}", field_map);
+
+    log::trace!("Get cadence_avg from hashmap");
+    session.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
+    log::debug!("cadence_avg = {:?}", session.cadence_avg);
+
+    session.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
+    log::debug!("cadence_avg = {:?}", session.cadence_max);
+
+    session.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
+    log::debug!("cadence_avg = {:?}", session.heartrate_avg);
+
+    session.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
+    log::debug!("cadence_avg = {:?}", session.heartrate_max);
+
+    session.speed_avg = field_map
+        .get("enhanced_avg_speed")
+        .and_then(map_float64)
+        .map(Velocity::new::<meter_per_second>);
+    log::debug!("speed_avg = {:?}", session.speed_avg);
+
+    session.speed_max = field_map
+    .get("enhanced_max_speed")
+    .and_then(map_float64)
+    .map(Velocity::new::<meter_per_second>);
+    log::debug!("speed_max = {:?}", session.speed_max);
+
+    session.power_avg = field_map.get("avg_power").and_then(map_uint16);
+    log::debug!("power_avg = {:?}", session.power_avg);
+
+    session.power_max = field_map.get("max_power").and_then(map_uint16);
+    log::debug!("power_max = {:?}", session.power_max);
+
+    // GPS - NEC = North East Corner, SWC = South West Corner
+    session.nec_lat = field_map
+    .get("nec_lat")
+    .and_then(map_sint32)
+    .map(|x| f64::from(x) * MULTIPLIER);
+    log::debug!("nec_lat = {:?}", session.nec_lat);
+
+    session.nec_lon = field_map
+    .get("nec_long")
+    .and_then(map_sint32)
+    .map(|x| f64::from(x) * MULTIPLIER);
+    log::debug!("nec_lon = {:?}", session.nec_lon);
+
+    session.swc_lat = field_map
+    .get("swc_lat")
+    .and_then(map_sint32)
+    .map(|x| f64::from(x) * MULTIPLIER);
+    log::debug!("swc_lat = {:?}", session.swc_lat);
+
+    session.swc_lon = field_map
+    .get("swc_long")
+    .and_then(map_sint32)
+    .map(|x| f64::from(x) * MULTIPLIER);
+    log::debug!("swc_lon = {:?}", session.swc_lon);
+
+    session.laps = field_map.get("num_laps").and_then(map_uint16);
+    log::debug!("laps = {:?}", session.laps);
+
+    session.activity_type = field_map.get("sport").and_then(map_string);
+    log::debug!("activity_type = {:?}", session.activity_type);
+
+    session.activity_detailed = field_map.get("sub_sport").and_then(map_string);
+    log::debug!("activity_detailed = {:?}", session.activity_detailed);
 }
 
 
@@ -133,7 +223,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let time_created = header_fields[3].value().to_string();
 
     log::trace!("Trying to assign the header_struct.");
-    let mut header_struct = FitHeading {
+    let mut header_struct = types::FitHeading {
         manufacturer,
         time_created,
         num_sessions: 0,
@@ -144,18 +234,35 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Manufacturer: {}", header_struct.manufacturer);
     println!("Time created: {}", header_struct.time_created);
 
-    // let mut num_sessions = 0;
-    // let mut num_records = 0;
-    // let mut num_laps = 0;
+    let mut my_session = types::Session {
+        cadence_avg: Some(0),
+        cadence_max: Some(0),
+        heartrate_avg: Some(0),
+        heartrate_max: Some(0),
+        speed_avg: Some(Velocity::new::<meter_per_second>(0.0)),
+        speed_max: Some(Velocity::new::<meter_per_second>(0.0)),
+        power_avg: Some(0),
+        power_max: Some(0),
+        nec_lat: Some(0.0),
+        nec_lon: Some(0.0),
+        swc_lat: Some(0.0),
+        swc_lon: Some(0.0),
+        laps: Some(0),
+        activity_type: Some("".to_string()),
+        activity_detailed: Some("".to_string()),
+    };
 
     log::debug!("Parsing data.");
     for data in file {
         // for each FitDataRecord
         match data.kind() {
             // Figure out what kind it is and count accordingly
-            MesgNum::Session => header_struct.num_sessions += 1,
-            MesgNum::Record => header_struct.num_records += 1,
-            MesgNum::Lap => header_struct.num_laps += 1,
+            MesgNum::Session => {
+                                    parse_session(data.fields(), &mut my_session);
+                                    header_struct.num_sessions += 1;
+                                },
+            MesgNum::Record  => header_struct.num_records += 1,
+            MesgNum::Lap     => header_struct.num_laps += 1,
             _ => (),
         }
     }
