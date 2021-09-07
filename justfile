@@ -16,15 +16,15 @@ alias b := build
 @default: check
 
 # Check if it builds at all
-@check:
+@check: format
     cargo lcheck  --color 'always'
 
 # Only compiles the project
-@build:
+@build: format
    cargo lbuild --color 'always'
 
 # Cleans and builds again
-@rebuild:
+@rebuild: format
     cargo clean
     cargo lbuild --color 'always'
 
@@ -35,15 +35,14 @@ alias b := build
     -rm graph.png
 
 # Documents the project, builds and installs the release version, and cleans up
-@release:
+@release: format
     cargo lbuild --release  --color 'always'
     cargo strip
     cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
     cargo clean
 
 # Documents the project
-@doc:
-    cargo fmt -- --emit=files
+@doc: format
     cargo doc --no-deps
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
@@ -51,18 +50,22 @@ alias b := build
     cargo outdated
 
 # Documents the project and all dependencies
-@docs:
-    cargo fmt -- --emit=files
+@docs: format
     cargo doc
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     tokei
+
+# Formats the project source files
+@format:
+    cargo fmt -- --emit=files
+
 # Tests the project
 @test:
     cargo test
 
 # Checks the project for inefficiencies and bloat
-@inspect: doc lint
+@inspect: format doc lint
     cargo geiger
     cargo audit
     cargo bloat

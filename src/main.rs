@@ -6,20 +6,22 @@
 // See Cargo.toml for crates versions
 // Crates Usage:
 
-use clap::{Arg, App};  // Command line
+use clap::{App, Arg}; // Command line
 use fitparser::{profile::field_types::MesgNum, FitDataField, Value}; // .FIT file manipulation
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::collections::HashMap;
 
-use std::time::Duration;
+// use std::time::Duration;
 // use chrono::{DateTime, Local};
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
-    length::{foot, kilometer, meter, mile},
+    // length::{foot, kilometer, meter, mile},
+    length::meter,
     u16::Length as Length_u16,
-    velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
+    // velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
+    velocity::meter_per_second,
 };
 
 // Logging
@@ -28,6 +30,7 @@ use simple_logger::SimpleLogger;
 
 // Import all the types
 pub mod types;
+use crate::types::TimeStamp;
 
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
 macro_rules! map_value {
@@ -47,8 +50,7 @@ map_value!(map_uint16, u16, Value::UInt16(x) => *x);
 map_value!(map_sint32, i32, Value::SInt32(x) => *x);
 map_value!(map_float64, f64, Value::Float64(x) => *x);
 map_value!(map_string, String, Value::String(x) => x.to_string());
-// map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
-
+map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 
 /**
  * Functions that make things work. This will no doubt get moved out to a module eventually.
@@ -61,114 +63,152 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     log::debug!("field_map = {:?}", field_map);
 
-    log::trace!("Get cadence_avg from hashmap");
+    log::trace!("Getting metrics from hashmap.");
     session.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
-    log::debug!("cadence_avg = {:?}", session.cadence_avg);
+    log::trace!("cadence_avg = {:?}", session.cadence_avg);
 
     session.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
-    log::debug!("cadence_avg = {:?}", session.cadence_max);
+    log::trace!("cadence_max = {:?}", session.cadence_max);
 
     session.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
-    log::debug!("cadence_avg = {:?}", session.heartrate_avg);
+    log::trace!("heartrate_avg = {:?}", session.heartrate_avg);
 
     session.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
-    log::debug!("cadence_avg = {:?}", session.heartrate_max);
+    log::trace!("heartrate_max = {:?}", session.heartrate_max);
+
+    session.heartrate_min = field_map.get("min_heart_rate").and_then(map_uint8);
+    log::trace!("heartrate_min = {:?}", session.heartrate_min);
 
     session.speed_avg = field_map
         .get("enhanced_avg_speed")
         .and_then(map_float64)
         .map(Velocity::new::<meter_per_second>);
-    log::debug!("speed_avg = {:?}", session.speed_avg);
+    log::trace!("speed_avg = {:?}", session.speed_avg);
 
     session.speed_max = field_map
-    .get("enhanced_max_speed")
-    .and_then(map_float64)
-    .map(Velocity::new::<meter_per_second>);
-    log::debug!("speed_max = {:?}", session.speed_max);
+        .get("enhanced_max_speed")
+        .and_then(map_float64)
+        .map(Velocity::new::<meter_per_second>);
+    log::trace!("speed_max = {:?}", session.speed_max);
 
     session.power_avg = field_map.get("avg_power").and_then(map_uint16);
-    log::debug!("power_avg = {:?}", session.power_avg);
+    log::trace!("power_avg = {:?}", session.power_avg);
 
     session.power_max = field_map.get("max_power").and_then(map_uint16);
-    log::debug!("power_max = {:?}", session.power_max);
+    log::trace!("power_max = {:?}", session.power_max);
 
     // GPS - NEC = North East Corner, SWC = South West Corner
     session.nec_lat = field_map
-    .get("nec_lat")
-    .and_then(map_sint32)
-    .map(|x| f64::from(x) * types::MULTIPLIER);
-    log::debug!("nec_lat = {:?}", session.nec_lat);
+        .get("nec_lat")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+    log::trace!("nec_lat = {:?}", session.nec_lat);
 
     session.nec_lon = field_map
-    .get("nec_long")
-    .and_then(map_sint32)
-    .map(|x| f64::from(x) * types::MULTIPLIER);
-    log::debug!("nec_lon = {:?}", session.nec_lon);
+        .get("nec_long")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+    log::trace!("nec_lon = {:?}", session.nec_lon);
 
     session.swc_lat = field_map
-    .get("swc_lat")
-    .and_then(map_sint32)
-    .map(|x| f64::from(x) * types::MULTIPLIER);
-    log::debug!("swc_lat = {:?}", session.swc_lat);
+        .get("swc_lat")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+    log::trace!("swc_lat = {:?}", session.swc_lat);
 
     session.swc_lon = field_map
-    .get("swc_long")
-    .and_then(map_sint32)
-    .map(|x| f64::from(x) * types::MULTIPLIER);
-    log::debug!("swc_lon = {:?}", session.swc_lon);
+        .get("swc_long")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+    log::trace!("swc_lon = {:?}", session.swc_lon);
 
     session.laps = field_map.get("num_laps").and_then(map_uint16);
-    log::debug!("laps = {:?}", session.laps);
+    log::trace!("laps = {:?}", session.laps);
 
     session.activity_type = field_map.get("sport").and_then(map_string);
-    log::debug!("activity_type = {:?}", session.activity_type);
+    log::trace!("activity_type = {:?}", session.activity_type);
 
     session.activity_detailed = field_map.get("sub_sport").and_then(map_string);
-    log::debug!("activity_detailed = {:?}", session.activity_detailed);
+    log::trace!("activity_detailed = {:?}", session.activity_detailed);
 
     session.ascent = field_map
-    .get("total_ascent")
-    .and_then(map_uint16)
-    .map(Length_u16::new::<meter>);
-    log::debug!("ascent = {:?}", session.ascent);
+        .get("total_ascent")
+        .and_then(map_uint16)
+        .map(Length_u16::new::<meter>);
+    log::trace!("ascent = {:?}", session.ascent);
 
     session.descent = field_map
-    .get("total_descent")
-    .and_then(map_uint16)
-    .map(Length_u16::new::<meter>);
-    log::debug!("descent = {:?}", session.descent);
+        .get("total_descent")
+        .and_then(map_uint16)
+        .map(Length_u16::new::<meter>);
+    log::trace!("descent = {:?}", session.descent);
 
     session.calories = field_map.get("total_calories").and_then(map_uint16);
-    log::debug!("calories = {:?}", session.calories);
+    log::trace!("calories = {:?}", session.calories);
 
     session.distance = field_map
-    .get("total_distance")
-    .and_then(map_float64)
-    .map(Length_f64::new::<meter>);
-    log::debug!("distance = {:?}", session.distance);
-}
+        .get("total_distance")
+        .and_then(map_float64)
+        .map(Length_f64::new::<meter>);
+    log::trace!("distance = {:?}", session.distance);
 
+    session.duration = field_map
+        .get("total_elapsed_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64)
+        .unwrap_or_default();
+    log::trace!("duration = {}", session.duration);
+
+    session.duration_active = field_map
+        .get("total_timer_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64)
+        .unwrap_or_default();
+    log::trace!("duration_active = {}", session.duration_active);
+
+    session.duration_moving = field_map
+        .get("total_moving_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64)
+        .unwrap_or_default();
+    log::trace!("duration_moving = {}", session.duration_moving);
+
+    session.start_time = field_map
+        .get("start_time")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+    log::trace!("start_time = {:?}", session.start_time);
+
+    // TODO: Decode the time in HR zones
+    // REF: https://stackoverflow.com/questions/56724014/how-do-i-collect-the-values-of-a-hashmap-into-a-vector
+    let time_in_hr_zones = field_map.get("time_in_hr_zone");
+    log::debug!("time_in_hr_zones = {:?}", time_in_hr_zones);
+}
 
 /// This is where the magic happens
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = App::new("fit2csv")
-                        .version("0.0.1")
-                        .author("Even Solberg <even.solberg@gmail.com>")
-                        .about("Provided with no guarantees or warranties whatsoever.")
-                        .arg(Arg::with_name("read")
-                            .short("r")
-                            .long("read")
-                            .value_name("FILE")
-                            .help("Read a file and display the contents")
-                            .takes_value(true))
-                        .arg(Arg::with_name("debug")
-                            .short("d")
-                            .long("debug")
-                            .multiple(true)
-                            .help("Output debug information as we go. Supply it twice for trace-level logs")
-                            .takes_value(false))
-                        .get_matches();
+        .version("0.0.1")
+        .author("Even Solberg <even.solberg@gmail.com>")
+        .about("Provided with no guarantees or warranties whatsoever.")
+        .arg(
+            Arg::with_name("read")
+                .short("r")
+                .long("read")
+                .value_name("FILE")
+                .help("Read a file and display the contents")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("debug")
+                .short("d")
+                .long("debug")
+                .multiple(true)
+                .help("Output debug information as we go. Supply it twice for trace-level logs")
+                .takes_value(false),
+        )
+        .get_matches();
 
     let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
 
@@ -229,10 +269,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Unpack each field in the FileID header
     for n in 0..header_fields.len() {
         let field = &header_fields[n];
-        println!("Name:   {}", field.name());
-        println!("Number: {}", field.number());
-        println!("Value:  {}", field.value());
-        println!("Units:  {}\n", field.units());
+        log::trace!("Name:   {}", field.name());
+        log::trace!("Number: {}", field.number());
+        log::trace!("Value:  {}", field.value());
+        log::trace!("Units:  {}\n", field.units());
     }
 
     log::trace!("Extract manufacturer.");
@@ -248,15 +288,13 @@ fn run() -> Result<(), Box<dyn Error>> {
         num_laps: 0,
         num_records: 0,
     };
-    log::trace!("Printing the header_struct.");
-    println!("Manufacturer: {}", header_struct.manufacturer);
-    println!("Time created: {}", header_struct.time_created);
 
     let mut my_session = types::Session {
         cadence_avg: Some(0),
         cadence_max: Some(0),
         heartrate_avg: Some(0),
         heartrate_max: Some(0),
+        heartrate_min: Some(0),
         speed_avg: Some(Velocity::new::<meter_per_second>(0.0)),
         speed_max: Some(Velocity::new::<meter_per_second>(0.0)),
         power_avg: Some(0),
@@ -272,9 +310,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         descent: Some(Length_u16::new::<meter>(0)),
         calories: Some(0),
         distance: Some(Length_f64::new::<meter>(0.0)),
-        // duration: types::Duration,
-        // duration_active: types::Duration,
-        // start_time: types::TimeStamp,
+        duration: types::Duration::default(),
+        duration_active: types::Duration::default(),
+        duration_moving: types::Duration::default(),
+        start_time: types::TimeStamp::default(),
+        time_in_hr_zones: Some(Vec::new()),
     };
 
     log::debug!("Parsing data.");
@@ -283,19 +323,23 @@ fn run() -> Result<(), Box<dyn Error>> {
         match data.kind() {
             // Figure out what kind it is and count accordingly
             MesgNum::Session => {
-                                    parse_session(data.fields(), &mut my_session);
-                                    header_struct.num_sessions += 1;
-                                },
-            MesgNum::Record  => header_struct.num_records += 1,
-            MesgNum::Lap     => header_struct.num_laps += 1,
+                parse_session(data.fields(), &mut my_session);
+                header_struct.num_sessions += 1;
+            }
+            MesgNum::Record => header_struct.num_records += 1,
+            MesgNum::Lap => header_struct.num_laps += 1,
             _ => (),
         }
     }
 
     log::trace!("Printing summary information.");
-    println!("\nThis file contains {} sessions", header_struct.num_sessions);
-    println!("This file contains {} laps", header_struct.num_laps);
-    println!("This file contains {} records", header_struct.num_records);
+    log::trace!("Printing the header_struct.");
+
+    println!("\nManufacturer: {}", header_struct.manufacturer);
+    println!("Time created: {}", header_struct.time_created);
+    println!("Sessions:     {:5}", header_struct.num_sessions);
+    println!("Laps:         {:5}", header_struct.num_laps);
+    println!("Records:      {:5}", header_struct.num_records);
 
     // Everything is a-okay in the end
     Ok(())
