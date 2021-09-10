@@ -57,6 +57,7 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
  * As it should.
  */
 
+
 fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -180,10 +181,15 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     log::trace!("start_time = {:?}", session.start_time);
 
     // TODO: Decode the time in HR zones
-    // REF: https://stackoverflow.com/questions/56724014/how-do-i-collect-the-values-of-a-hashmap-into-a-vector
+    // REF: https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html
+    // TODO: Figure out how to turn Some(Array([UInt32])) into Some(Vec<Duration>))
+    // Maybe we can iterate_into and_then(matp)
+    // This is actually a Option(Value(Array(Value(UInt32)))) which you can unwrap into Array(Value(UInt32))
     let time_in_hr_zones = field_map.get("time_in_hr_zone");
     log::debug!("time_in_hr_zones = {:?}", time_in_hr_zones);
 }
+
+
 
 /// This is where the magic happens
 fn run() -> Result<(), Box<dyn Error>> {
@@ -194,8 +200,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         .about("Provided with no guarantees or warranties whatsoever.")
         .arg(
             Arg::with_name("read")
-                .short("r")
-                .long("read")
                 .value_name("FILE")
                 .help("Read a file and display the contents")
                 .takes_value(true),
@@ -206,7 +210,8 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .long("debug")
                 .multiple(true)
                 .help("Output debug information as we go. Supply it twice for trace-level logs")
-                .takes_value(false),
+                .takes_value(false)
+                .hidden(true),
         )
         .get_matches();
 
@@ -241,7 +246,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         Ok(fp) => fp,
         Err(e) => return Err(Box::new(e)),
     };
-    log::debug!("File pointer name: {:?}", fp);
+    log::debug!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
 
     // Read and parse the file contents
     log::trace!("Reading data");
@@ -249,6 +254,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         Ok(file) => file,
         Err(e) => return Err(Box::new(e)),
     };
+    log::debug!("Data was read. Parsing.");
 
     // log::trace!("data = {:?}", data);
     log::debug!("Number of records: {}", file.len());
@@ -260,63 +266,20 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // print the data in the file header
     println!("Header kind: {:?}", header.kind());
-    let header_fields = &header.fields();
-    println!("Header fields:\n");
 
     // Try the other way to extract a header
     // let parsed = parser::parse(fitfile_name);
 
-    // Unpack each field in the FileID header
-    for n in 0..header_fields.len() {
-        let field = &header_fields[n];
-        log::trace!("Name:   {}", field.name());
-        log::trace!("Number: {}", field.number());
-        log::trace!("Value:  {}", field.value());
-        log::trace!("Units:  {}\n", field.units());
-    }
+    log::trace!("Creating empty session.");
+    let mut my_session = types::Session::new();
 
     log::trace!("Extract manufacturer.");
-    let manufacturer = header_fields[1].value().to_string();
+    my_session.manufacturer = header.fields()[1].value().to_string();
     log::trace!("Extract time_created.");
-    let time_created = header_fields[3].value().to_string();
+    my_session.time_created = map_timestamp(&&header.fields()[3].value())
+        .expect("Unable to extract session creation time.");
 
-    log::trace!("Trying to assign the header_struct.");
-    let mut header_struct = types::FitHeading {
-        manufacturer,
-        time_created,
-        num_sessions: 0,
-        num_laps: 0,
-        num_records: 0,
-    };
-
-    let mut my_session = types::Session {
-        cadence_avg: Some(0),
-        cadence_max: Some(0),
-        heartrate_avg: Some(0),
-        heartrate_max: Some(0),
-        heartrate_min: Some(0),
-        speed_avg: Some(Velocity::new::<meter_per_second>(0.0)),
-        speed_max: Some(Velocity::new::<meter_per_second>(0.0)),
-        power_avg: Some(0),
-        power_max: Some(0),
-        nec_lat: Some(0.0),
-        nec_lon: Some(0.0),
-        swc_lat: Some(0.0),
-        swc_lon: Some(0.0),
-        laps: Some(0),
-        activity_type: Some("".to_string()),
-        activity_detailed: Some("".to_string()),
-        ascent: Some(Length_u16::new::<meter>(0)),
-        descent: Some(Length_u16::new::<meter>(0)),
-        calories: Some(0),
-        distance: Some(Length_f64::new::<meter>(0.0)),
-        duration: types::Duration::default(),
-        duration_active: types::Duration::default(),
-        duration_moving: types::Duration::default(),
-        start_time: types::TimeStamp::default(),
-        time_in_hr_zones: Some(Vec::new()),
-    };
-
+    // This is the main file parsing loop. This will definitely get expanded.
     log::debug!("Parsing data.");
     for data in file {
         // for each FitDataRecord
@@ -324,22 +287,21 @@ fn run() -> Result<(), Box<dyn Error>> {
             // Figure out what kind it is and count accordingly
             MesgNum::Session => {
                 parse_session(data.fields(), &mut my_session);
-                header_struct.num_sessions += 1;
+                my_session.num_sessions += 1;
             }
-            MesgNum::Record => header_struct.num_records += 1,
-            MesgNum::Lap => header_struct.num_laps += 1,
+            MesgNum::Lap => my_session.num_laps += 1,
+            MesgNum::Record => my_session.num_records += 1,
             _ => (),
         }
     }
 
-    log::trace!("Printing summary information.");
     log::trace!("Printing the header_struct.");
-
-    println!("\nManufacturer: {}", header_struct.manufacturer);
-    println!("Time created: {}", header_struct.time_created);
-    println!("Sessions:     {:5}", header_struct.num_sessions);
-    println!("Laps:         {:5}", header_struct.num_laps);
-    println!("Records:      {:5}", header_struct.num_records);
+    println!("\nFile header:");
+    println!("Manufacturer: {}", my_session.manufacturer);
+    println!("Time created: {}", my_session.time_created);
+    println!("Sessions:     {:5}", my_session.num_sessions);
+    println!("Laps:         {:5}", my_session.num_laps);
+    println!("Records:      {:5}", my_session.num_records);
 
     // Everything is a-okay in the end
     Ok(())
@@ -350,7 +312,7 @@ fn main() {
         Ok(_) => 0, // everying is hunky dory
         Err(err) => {
             // Houston, This file contains a problem
-            eprintln!("{}", Box::new(err)); // Say what's wrong and
+            log::error!("{}", Box::new(err)); // Say what's wrong and
             1 // exit with a non-zero return code, indicating a problem
         }
     });

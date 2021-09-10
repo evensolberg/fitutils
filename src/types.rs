@@ -4,7 +4,6 @@
  *
  * This will then be put into each line in the resulting CSV, so that each line essentially is self-contained.
  */
-
 use chrono::{offset::Local, DateTime};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub};
@@ -16,7 +15,6 @@ use uom::si::{
     // velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
     velocity::meter_per_second,
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,17 +104,6 @@ impl std::fmt::Display for Duration {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO Create a Display trait for this
-pub struct FitHeading {
-    pub manufacturer: String,
-    pub time_created: String,
-    pub num_sessions: u32,
-    pub num_laps: u32,
-    pub num_records: u32,
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 pub enum ActivityType {
     Running,
     Cycling,
@@ -137,6 +124,11 @@ pub enum Unit {
 /// Summary information about the workout session.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
+    pub manufacturer: String,
+    pub time_created: TimeStamp,
+    pub num_sessions: u32,
+    pub num_laps: u32,
+    pub num_records: u32,
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
     pub heartrate_avg: Option<u8>,
@@ -175,6 +167,11 @@ impl Default for Session {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         Session {
+            manufacturer: "".to_string(),
+            time_created: TimeStamp::default(),
+            num_sessions: 0,
+            num_laps: 0,
+            num_records: 0,
             cadence_avg: Some(0),
             cadence_max: Some(0),
             heartrate_avg: Some(0),
@@ -203,8 +200,6 @@ impl Default for Session {
         }
     }
 }
-
-
 
 /// Used in calculating latitudes and longitudes.
 pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
