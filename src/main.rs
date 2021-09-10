@@ -57,7 +57,6 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
  * As it should.
  */
 
-
 fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -80,6 +79,17 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.heartrate_min = field_map.get("min_heart_rate").and_then(map_uint8);
     log::trace!("heartrate_min = {:?}", session.heartrate_min);
 
+    session.stance_time_avg = field_map.get("avg_stance_time").and_then(map_float64);
+    log::trace!("stance_time_avg = {:?}", session.stance_time_avg);
+
+    session.vertical_oscillation_avg = field_map
+        .get("avg_vertical_oscillation")
+        .and_then(map_float64);
+    log::trace!(
+        "vertical_oscillation_avg = {:?}",
+        session.vertical_oscillation_avg
+    );
+
     session.speed_avg = field_map
         .get("enhanced_avg_speed")
         .and_then(map_float64)
@@ -97,6 +107,9 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     session.power_max = field_map.get("max_power").and_then(map_uint16);
     log::trace!("power_max = {:?}", session.power_max);
+
+    session.power_threshold = field_map.get("threshold_power").and_then(map_uint16);
+    log::trace!("power_threshold = {:?}", session.power_threshold);
 
     // GPS - NEC = North East Corner, SWC = South West Corner
     session.nec_lat = field_map
@@ -180,6 +193,15 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
         .unwrap_or_default();
     log::trace!("start_time = {:?}", session.start_time);
 
+    session.finish_time = field_map
+        .get("timestamp")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+    log::trace!("finish_time = {:?}", session.finish_time);
+
+    session.num_laps = field_map.get("num_laps").and_then(map_uint16);
+    log::trace!("num_laps = {:?}", session.num_laps);
+
     // TODO: Decode the time in HR zones
     // REF: https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html
     // TODO: Figure out how to turn Some(Array([UInt32])) into Some(Vec<Duration>))
@@ -188,8 +210,6 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let time_in_hr_zones = field_map.get("time_in_hr_zone");
     log::debug!("time_in_hr_zones = {:?}", time_in_hr_zones);
 }
-
-
 
 /// This is where the magic happens
 fn run() -> Result<(), Box<dyn Error>> {
@@ -273,6 +293,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("Creating empty session.");
     let mut my_session = types::Session::new();
 
+    // TODO put this into a function
     log::trace!("Extract manufacturer.");
     my_session.manufacturer = header.fields()[1].value().to_string();
     log::trace!("Extract time_created.");
@@ -281,31 +302,37 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // This is the main file parsing loop. This will definitely get expanded.
     log::debug!("Parsing data.");
+    let mut num_records = 0;
+    let mut num_sessions = 0;
+
     for data in file {
         // for each FitDataRecord
         match data.kind() {
             // Figure out what kind it is and count accordingly
             MesgNum::Session => {
                 parse_session(data.fields(), &mut my_session);
-                my_session.num_sessions += 1;
+                num_sessions += 1;
             }
-            MesgNum::Lap => my_session.num_laps += 1,
-            MesgNum::Record => my_session.num_records += 1,
+            MesgNum::Lap => (),
+            MesgNum::Record => num_records += 1,
             _ => (),
-        }
-    }
+        } // match
+    } // for data
+
+    my_session.num_sessions = Some(num_sessions);
+    my_session.num_records = Some(num_records);
 
     log::trace!("Printing the header_struct.");
     println!("\nFile header:");
     println!("Manufacturer: {}", my_session.manufacturer);
     println!("Time created: {}", my_session.time_created);
-    println!("Sessions:     {:5}", my_session.num_sessions);
-    println!("Laps:         {:5}", my_session.num_laps);
-    println!("Records:      {:5}", my_session.num_records);
+    println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
+    println!("Laps:         {:5}", my_session.num_laps.unwrap());
+    println!("Records:      {:5}", my_session.num_records.unwrap());
 
     // Everything is a-okay in the end
     Ok(())
-}
+} // fn run()
 
 fn main() {
     std::process::exit(match run() {
