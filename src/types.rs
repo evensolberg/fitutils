@@ -1,14 +1,24 @@
-use chrono::{offset::Local, DateTime};
-use serde::{Deserialize, Serialize};
-use std::ops::{Add, AddAssign, Sub};
 /**
  * Local structs used to contain the various bits and pieces of information extracted from the header.
  * This includes such things as device manufacturer, activity, etc.
  *
  * This will then be put into each line in the resulting CSV, so that each line essentially is self-contained.
  */
-use uom::si::f64::{Length as Length_f64, Velocity};
-use uom::si::u16::Length as Length_u16;
+
+use chrono::{offset::Local, DateTime};
+use serde::{Deserialize, Serialize};
+use std::ops::{Add, AddAssign, Sub};
+use uom::si::{
+    f64::{Length as Length_f64, Velocity},
+    // length::{foot, kilometer, meter, mile},
+    length::meter,
+    u16::Length as Length_u16,
+    // velocity::{foot_per_second, kilometer_per_hour, meter_per_second, mile_per_hour},
+    velocity::meter_per_second,
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for chrono::DateTime so we can derive Serialize and Deserialize traits
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,6 +37,8 @@ impl std::fmt::Display for TimeStamp {
         write!(f, "{}", self.0.format("%d.%m.%Y %H:%M"))
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for std::time::Duration so we can derive Serialize and Deserialize traits
 #[derive(Serialize, Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
@@ -92,6 +104,8 @@ impl std::fmt::Display for Duration {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // TODO Create a Display trait for this
 pub struct FitHeading {
     pub manufacturer: String,
@@ -101,6 +115,8 @@ pub struct FitHeading {
     pub num_records: u32,
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 pub enum ActivityType {
     Running,
     Cycling,
@@ -108,12 +124,18 @@ pub enum ActivityType {
     Other(String),
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 pub enum Unit {
     Metric,
     Imperial,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Session - stores summary information about the workout session
+
+/// Summary information about the workout session.
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
@@ -141,6 +163,48 @@ pub struct Session {
     pub start_time: TimeStamp,
     pub time_in_hr_zones: Option<Vec<Duration>>,
 }
+
+impl Session {
+    /// Initialize Session with default empty values
+    pub fn new() -> Self {
+        Session::default()
+    }
+}
+
+impl Default for Session {
+    /// Set defaults to be either empty or zero.
+    fn default() -> Self {
+        Session {
+            cadence_avg: Some(0),
+            cadence_max: Some(0),
+            heartrate_avg: Some(0),
+            heartrate_max: Some(0),
+            heartrate_min: Some(0),
+            speed_avg: Some(Velocity::new::<meter_per_second>(0.0)),
+            speed_max: Some(Velocity::new::<meter_per_second>(0.0)),
+            power_avg: Some(0),
+            power_max: Some(0),
+            nec_lat: Some(0.0),
+            nec_lon: Some(0.0),
+            swc_lat: Some(0.0),
+            swc_lon: Some(0.0),
+            laps: Some(0),
+            activity_type: Some("".to_string()),
+            activity_detailed: Some("".to_string()),
+            ascent: Some(Length_u16::new::<meter>(0)),
+            descent: Some(Length_u16::new::<meter>(0)),
+            calories: Some(0),
+            distance: Some(Length_f64::new::<meter>(0.0)),
+            duration: Duration::default(),
+            duration_active: Duration::default(),
+            duration_moving: Duration::default(),
+            start_time: TimeStamp::default(),
+            time_in_hr_zones: Some(Vec::new()),
+        }
+    }
+}
+
+
 
 /// Used in calculating latitudes and longitudes.
 pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
