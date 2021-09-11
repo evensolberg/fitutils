@@ -157,7 +157,7 @@ pub struct Session {
     pub duration_moving: Duration,
     pub start_time: TimeStamp,
     pub finish_time: TimeStamp,
-    pub time_in_hr_zones: Option<Vec<Duration>>,
+    pub time_in_hr_zones: Vec<Duration>,
 }
 
 impl Session {
@@ -204,7 +204,7 @@ impl Default for Session {
             duration_moving: Duration::default(),
             start_time: TimeStamp::default(),
             finish_time: TimeStamp::default(),
-            time_in_hr_zones: Some(Vec::new()),
+            time_in_hr_zones: Vec::new(),
         }
     }
 }

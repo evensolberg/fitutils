@@ -30,7 +30,7 @@ use simple_logger::SimpleLogger;
 
 // Import all the types
 pub mod types;
-use crate::types::TimeStamp;
+use crate::types::{Duration, TimeStamp};
 
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
 macro_rules! map_value {
@@ -51,6 +51,7 @@ map_value!(map_sint32, i32, Value::SInt32(x) => *x);
 map_value!(map_float64, f64, Value::Float64(x) => *x);
 map_value!(map_string, String, Value::String(x) => x.to_string());
 map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
+// map_value!(map_duration, Duration, u64, u64 => x.from_millis_u64().unwrap());
 
 /**
  * Functions that make things work. This will no doubt get moved out to a module eventually.
@@ -61,7 +62,7 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
 
-    log::debug!("field_map = {:?}", field_map);
+    log::debug!("Session field_map = {:?}", field_map);
 
     log::trace!("Getting metrics from hashmap.");
     session.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
@@ -202,13 +203,27 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
     log::trace!("num_laps = {:?}", session.num_laps);
 
-    // TODO: Decode the time in HR zones
-    // REF: https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html
-    // TODO: Figure out how to turn Some(Array([UInt32])) into Some(Vec<Duration>))
-    // Maybe we can iterate_into and_then(matp)
-    // This is actually a Option(Value(Array(Value(UInt32)))) which you can unwrap into Array(Value(UInt32))
-    let time_in_hr_zones = field_map.get("time_in_hr_zone");
-    log::debug!("time_in_hr_zones = {:?}", time_in_hr_zones);
+    // TODO: Figure out a better way to read the original Array
+    // Turn the Array into a string and strip out everything except the numbers.
+    let tihz = field_map
+        .get("time_in_hr_zone")
+        .unwrap()
+        .to_string()
+        .replace("UInt32(", "")
+        .replace(")", "")
+        .replace("[", "")
+        .replace("]", "")
+        .replace(",", "");
+    // Split the numbers, turn them into u64, convert to Duration and collect to a vector
+    log::trace!("tihz = {:?}", tihz);
+    let t2: Vec<Duration> = tihz
+        .split(' ')
+        .map(|x| str::parse::<u64>(x).unwrap())
+        .map(|x| Duration::from_millis_u64(x))
+        .collect();
+    log::trace!("t2 = {:?}", t2);
+    session.time_in_hr_zones = t2.clone();
+    log::debug!("time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
 
 /// This is where the magic happens
@@ -239,18 +254,9 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Set up logging according to the number of times the debug flag has been supplied
     match log_level {
-        0 => SimpleLogger::new()
-            .with_level(LevelFilter::Info)
-            .init()
-            .unwrap(),
-        1 => SimpleLogger::new()
-            .with_level(LevelFilter::Debug)
-            .init()
-            .unwrap(),
-        _ => SimpleLogger::new()
-            .with_level(LevelFilter::Trace)
-            .init()
-            .unwrap(), // More than 1
+        0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
+        1 => SimpleLogger::new().with_level(LevelFilter::Debug).init()?,
+        _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
     // Get the input file name - use the dummy if nothing was supplied
@@ -275,9 +281,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         Err(e) => return Err(Box::new(e)),
     };
     log::debug!("Data was read. Parsing.");
-
-    // log::trace!("data = {:?}", data);
-    log::debug!("Number of records: {}", file.len());
+    log::debug!("Total number of records: {}", file.len());
 
     // There HAS to be a better way to do this!
     log::trace!("Data read. Extracting header.");
@@ -329,6 +333,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
     println!("Laps:         {:5}", my_session.num_laps.unwrap());
     println!("Records:      {:5}", my_session.num_records.unwrap());
+
+    println!("\nTime in Zones:");
+    println!("Speed / Power: {}", my_session.time_in_hr_zones[4]);
+    println!("Anaerobic:     {}", my_session.time_in_hr_zones[3]);
+    println!("Aerobic:       {}", my_session.time_in_hr_zones[2]);
+    println!("Far Burning:   {}", my_session.time_in_hr_zones[1]);
+    println!("Warmup:        {}", my_session.time_in_hr_zones[0]);
 
     // Everything is a-okay in the end
     Ok(())
