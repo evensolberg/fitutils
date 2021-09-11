@@ -7,7 +7,7 @@
 // Crates Usage:
 
 use clap::{App, Arg}; // Command line
-use fitparser::{profile::field_types::MesgNum, FitDataField, Value}; // .FIT file manipulation
+use fitparser::{profile::field_types::MesgNum, FitDataField, FitDataRecord, Value}; // .FIT file manipulation
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -53,11 +53,21 @@ map_value!(map_string, String, Value::String(x) => x.to_string());
 map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 // map_value!(map_duration, Duration, u64, u64 => x.from_millis_u64().unwrap());
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Functions that make things work. This will no doubt get moved out to a module eventually.
  * As it should.
  */
 
+ /// Extract manufacturer and session creation time from the FIT data file header
+fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
+    session.manufacturer = header.fields()[1].value().to_string();
+    session.time_created = map_timestamp(&header.fields()[3].value())
+        .expect("Unable to extract session creation time.");
+}
+
+/// Parse session information from the FIT data file session record
 fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -226,6 +236,8 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     log::debug!("time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// This is where the magic happens
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
@@ -268,41 +280,24 @@ fn run() -> Result<(), Box<dyn Error>> {
     );
 
     // open the file - return error if unable.
-    let mut fp = match File::open(fitfile_name) {
-        Ok(fp) => fp,
-        Err(e) => return Err(Box::new(e)),
-    };
+    let mut fp = File::open(fitfile_name)?;
     log::debug!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
 
     // Read and parse the file contents
     log::trace!("Reading data");
-    let file = match fitparser::from_reader(&mut fp) {
-        Ok(file) => file,
-        Err(e) => return Err(Box::new(e)),
-    };
-    log::debug!("Data was read. Parsing.");
-    log::debug!("Total number of records: {}", file.len());
+    let file = fitparser::from_reader(&mut fp)?;
+    log::debug!("Data was read. Total number of records: {}", file.len());
 
-    // There HAS to be a better way to do this!
     log::trace!("Data read. Extracting header.");
-    let header = &file[0];
+    let header = &file[0]; // There HAS to be a better way to do this!
     log::trace!("Header extracted.");
-
-    // print the data in the file header
-    println!("Header kind: {:?}", header.kind());
-
-    // Try the other way to extract a header
-    // let parsed = parser::parse(fitfile_name);
+    log::debug!("Header kind: {:?}", header.kind());
 
     log::trace!("Creating empty session.");
     let mut my_session = types::Session::new();
 
-    // TODO put this into a function
-    log::trace!("Extract manufacturer.");
-    my_session.manufacturer = header.fields()[1].value().to_string();
-    log::trace!("Extract time_created.");
-    my_session.time_created = map_timestamp(&&header.fields()[3].value())
-        .expect("Unable to extract session creation time.");
+    log::trace!("Extracting manufacturer and session creation time.");
+    parse_header(header, &mut my_session);
 
     // This is the main file parsing loop. This will definitely get expanded.
     log::debug!("Parsing data.");
@@ -334,16 +329,21 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Laps:         {:5}", my_session.num_laps.unwrap());
     println!("Records:      {:5}", my_session.num_records.unwrap());
 
+    println!("\nTotal duration:  {}", my_session.duration);
+    println!("Calories burned: {:8}", my_session.calories.unwrap());
+
     println!("\nTime in Zones:");
-    println!("Speed / Power: {}", my_session.time_in_hr_zones[4]);
-    println!("Anaerobic:     {}", my_session.time_in_hr_zones[3]);
-    println!("Aerobic:       {}", my_session.time_in_hr_zones[2]);
-    println!("Far Burning:   {}", my_session.time_in_hr_zones[1]);
-    println!("Warmup:        {}", my_session.time_in_hr_zones[0]);
+    println!("Speed Power: {}", my_session.time_in_hr_zones[4]);
+    println!("Anaerobic:   {}", my_session.time_in_hr_zones[3]);
+    println!("Aerobic:     {}", my_session.time_in_hr_zones[2]);
+    println!("Fat Burning: {}", my_session.time_in_hr_zones[1]);
+    println!("Warmup:      {}", my_session.time_in_hr_zones[0]);
 
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
     std::process::exit(match run() {
