@@ -55,7 +55,6 @@ alias b := build
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     tokei
-    open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
 
 # Formats the project source files
 @format:
