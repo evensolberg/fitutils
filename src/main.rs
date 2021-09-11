@@ -28,7 +28,7 @@ use uom::si::{
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
-// Import all the types
+// Import our own modules and types
 pub mod types;
 use crate::types::{Duration, TimeStamp};
 
