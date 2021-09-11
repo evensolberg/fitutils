@@ -75,7 +75,6 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     log::trace!("Data read. Extracting header.");
     let header = &file[0]; // There HAS to be a better way to do this!
-    log::trace!("Header extracted.");
     log::debug!("Header kind: {:?}", header.kind());
 
     log::trace!("Creating empty session.");

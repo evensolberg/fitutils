@@ -33,7 +33,6 @@ map_value!(map_sint32, i32, Value::SInt32(x) => *x);
 map_value!(map_float64, f64, Value::Float64(x) => *x);
 map_value!(map_string, String, Value::String(x) => x.to_string());
 map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
-// map_value!(map_duration, Duration, u64, u64 => x.from_millis_u64().unwrap());
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
