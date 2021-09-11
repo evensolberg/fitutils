@@ -38,7 +38,7 @@ alias b := build
 @release: format
     cargo lbuild --release  --color 'always'
     cargo strip
-    cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
+    cp {{invocation_directory()}}/target/release/{{application}}/usr/local/bin/
     cargo clean
 
 # Documents the project
@@ -55,6 +55,7 @@ alias b := build
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     tokei
+    open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
 
 # Formats the project source files
 @format:
@@ -73,6 +74,10 @@ alias b := build
 # Checks for potential code improvements
 @lint:
     cargo lclippy
+
+# Read the documentation
+@read:
+    open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
 
 # Builds (if necessary) and runs the project
 @run:
