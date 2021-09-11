@@ -66,6 +66,9 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // open the file - return error if unable.
     let mut fp = File::open(fitfile_name)?;
+    let outfile = fitfile_name.to_lowercase().replace(".fit", ".json");
+    log::debug!("Output filename = {}", &outfile);
+
     log::debug!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
 
     // Read and parse the file contents
@@ -122,6 +125,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Aerobic:     {}", my_session.time_in_hr_zones[2]);
     println!("Fat Burning: {}", my_session.time_in_hr_zones[1]);
     println!("Warmup:      {}", my_session.time_in_hr_zones[0]);
+
+    let serialized = serde_json::to_string(&my_session).unwrap();
+    log::debug!("serialized session: {}", serialized);
+
+    log::trace!("Writing JSON file {}", &outfile);
+    serde_json::to_writer_pretty(&File::create(&outfile)?, &my_session)
+        .expect("Unable to write session info to JSON file.");
 
     // Everything is a-okay in the end
     Ok(())

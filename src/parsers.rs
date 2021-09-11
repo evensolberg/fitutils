@@ -125,9 +125,6 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
         .map(|x| f64::from(x) * types::MULTIPLIER);
     log::trace!("swc_lon = {:?}", session.swc_lon);
 
-    session.laps = field_map.get("num_laps").and_then(map_uint16);
-    log::trace!("laps = {:?}", session.laps);
-
     session.activity_type = field_map.get("sport").and_then(map_string);
     log::trace!("activity_type = {:?}", session.activity_type);
 
