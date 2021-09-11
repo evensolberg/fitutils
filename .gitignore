@@ -8,4 +8,4 @@ Cargo.lock
 *.DS_Store
 graph.png
 tree.txt
-data/*.json
+**/*.json
