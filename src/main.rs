@@ -57,7 +57,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Get the input file name - use the dummy if nothing was supplied
-    let fitfile_name = cli_args.value_of("read").unwrap_or("./data/test.fit");
+    let fitfile_name = cli_args.value_of("read").unwrap_or("data/test.fit");
     log::debug!("Input file: {}", fitfile_name);
     log::debug!(
         "Parsing FIT files using Profile version: {}",
@@ -66,9 +66,6 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // open the file - return error if unable.
     let mut fp = File::open(fitfile_name)?;
-    let outfile = fitfile_name.to_lowercase().replace(".fit", ".json");
-    log::debug!("Output filename = {}", &outfile);
-
     log::debug!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
 
     // Read and parse the file contents
@@ -109,7 +106,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     my_session.num_records = Some(num_records);
 
     log::trace!("Printing the header_struct.");
-    println!("\nFile header:");
+    println!("\n{} summary:", fitfile_name);
     println!("Manufacturer: {}", my_session.manufacturer);
     println!("Time created: {}", my_session.time_created);
     println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
@@ -120,7 +117,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Calories burned: {:8}", my_session.calories.unwrap());
 
     println!("\nTime in Zones:");
-    println!("Speed Power: {}", my_session.time_in_hr_zones[4]);
+    println!("Speed/Power: {}", my_session.time_in_hr_zones[4]);
     println!("Anaerobic:   {}", my_session.time_in_hr_zones[3]);
     println!("Aerobic:     {}", my_session.time_in_hr_zones[2]);
     println!("Fat Burning: {}", my_session.time_in_hr_zones[1]);
@@ -129,6 +126,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let serialized = serde_json::to_string(&my_session).unwrap();
     log::debug!("serialized session: {}", serialized);
 
+    // Create the filename for the session output JSON file and write the file
+    let outfile = fitfile_name.to_lowercase().replace(".fit", ".json");
     log::trace!("Writing JSON file {}", &outfile);
     serde_json::to_writer_pretty(&File::create(&outfile)?, &my_session)
         .expect("Unable to write session info to JSON file.");
