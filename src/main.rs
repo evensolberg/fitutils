@@ -9,7 +9,7 @@
 use clap::{App, Arg}; // Command line
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 
-use csv::Writer;
+use csv::WriterBuilder;
 use std::error::Error;
 use std::fs::File;
 
@@ -24,14 +24,12 @@ pub mod types;
 use crate::types::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// This is where the magic happens
+/// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = App::new("fit2csv")
-        .version("0.0.1")
-        .author("Even Solberg <even.solberg@gmail.com>")
-        .about("Provided with no guarantees or warranties whatsoever.")
+        .about("Parses .FIT files to .JSON and .CSV")
+        .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .csv file.")
         .arg(
             Arg::with_name("read")
                 .value_name("FILE")
@@ -147,12 +145,39 @@ fn run() -> Result<(), Box<dyn Error>> {
     serde_json::to_writer_pretty(&File::create(&outfile_session)?, &my_session)
         .expect("Unable to write session info to JSON file.");
 
-    // Write the laps to a CSV
+    // Write the laps to a CSV - need to explicitly write out the header because
+    // it doesn't serialize properly.
     let outfile_laps = fitfile_name.to_lowercase().replace(".fit", ".laps.csv");
     log::trace!("Writing lap CSV file {}", &outfile_laps);
-    let mut lap_writer = Writer::from_path(&outfile_laps)?;
+    let mut lap_writer = WriterBuilder::new()
+        .has_headers(false)
+        .from_path(&outfile_laps)?;
     log::debug!("lap_vec[0] = {:?}", &lap_vec[0]);
-    lap_writer.serialize(&lap_vec)?;
+    lap_writer.write_record(&[
+        "cadence_avg",
+        "cadence_max",
+        "heartrate_avg",
+        "heartrate_max",
+        "speed_avg",
+        "speed_max",
+        "power_avg",
+        "power_max",
+        "lat_start",
+        "lon_start",
+        "lat_end",
+        "lon_end",
+        "ascent",
+        "descent",
+        "calories",
+        "distance",
+        "duration_secs",
+        "duration_nanos",
+        "duration_active_secs",
+        "duration_active_nanos",
+    ])?;
+    for n in 0..lap_vec.len() {
+        lap_writer.serialize(&lap_vec[n])?;
+    }
     lap_writer.flush()?;
 
     // Everything is a-okay in the end
@@ -160,7 +185,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 } // fn run()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// The actual executable function
+/// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory
