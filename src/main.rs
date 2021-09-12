@@ -9,7 +9,7 @@
 use clap::{App, Arg}; // Command line
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 
-// use std::collections::HashMap;
+use csv::Writer;
 use std::error::Error;
 use std::fs::File;
 
@@ -19,7 +19,9 @@ use simple_logger::SimpleLogger;
 
 // Import our own modules and types
 pub mod parsers;
+
 pub mod types;
+use crate::types::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +89,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::debug!("Parsing data.");
     let mut num_records = 0;
     let mut num_sessions = 0;
+    let mut num_laps = 0;
+    let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
+    let mut record: Record = Record::default();
 
     for data in file {
         // for each FitDataRecord
@@ -96,8 +101,16 @@ fn run() -> Result<(), Box<dyn Error>> {
                 parsers::parse_session(data.fields(), &mut my_session);
                 num_sessions += 1;
             }
-            MesgNum::Lap => (),
-            MesgNum::Record => num_records += 1,
+            MesgNum::Lap => {
+                let mut lap = Lap::default(); // Create an empty lap instance
+                parsers::parse_lap(data.fields(), &mut lap); // parse lap data
+                lap_vec.push(lap); // push the lap onto the vector
+                num_laps += 1;
+            }
+            MesgNum::Record => {
+                parsers::parse_record(data.fields(), &mut record);
+                num_records += 1;
+            }
             _ => (),
         } // match
     } // for data
@@ -112,6 +125,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
     println!("Laps:         {:5}", my_session.num_laps.unwrap());
     println!("Records:      {:5}", my_session.num_records.unwrap());
+    log::trace!("num_laps:    {:5}", num_laps);
+    log::trace!("num_records: {:5}", num_records);
 
     println!("\nTotal duration:  {}", my_session.duration);
     println!("Calories burned: {:8}", my_session.calories.unwrap());
@@ -123,21 +138,29 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Fat Burning: {}", my_session.time_in_hr_zones[1]);
     println!("Warmup:      {}", my_session.time_in_hr_zones[0]);
 
-    let serialized = serde_json::to_string(&my_session).unwrap();
-    log::debug!("serialized session: {}", serialized);
+    let serialized_session = serde_json::to_string(&my_session).unwrap();
+    log::trace!("serialized_session session: {}", serialized_session);
 
     // Create the filename for the session output JSON file and write the file
-    let outfile = fitfile_name.to_lowercase().replace(".fit", ".json");
-    log::trace!("Writing JSON file {}", &outfile);
-    serde_json::to_writer_pretty(&File::create(&outfile)?, &my_session)
+    let outfile_session = fitfile_name.to_lowercase().replace(".fit", ".json");
+    log::trace!("Writing JSON file {}", &outfile_session);
+    serde_json::to_writer_pretty(&File::create(&outfile_session)?, &my_session)
         .expect("Unable to write session info to JSON file.");
+
+    // Write the laps to a CSV
+    let outfile_laps = fitfile_name.to_lowercase().replace(".fit", ".laps.csv");
+    log::trace!("Writing lap CSV file {}", &outfile_laps);
+    let mut lap_writer = Writer::from_path(&outfile_laps)?;
+    log::debug!("lap_vec[0] = {:?}", &lap_vec[0]);
+    lap_writer.serialize(&lap_vec)?;
+    lap_writer.flush()?;
 
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// The actual executable function
 fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory

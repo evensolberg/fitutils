@@ -66,13 +66,17 @@ alias b := build
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint
+    cargo deny check
     cargo geiger
-    cargo audit
     cargo bloat
 
 # Checks for potential code improvements
 @lint:
     cargo lclippy
+
+# Initialize directory for various services such as cargo deny
+@init:
+    cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
 
 # Read the documentation
 @read:
@@ -98,9 +102,10 @@ alias b := build
     cargo lrun  --color 'always' -- --debug --debug
     export RUST_BACKTRACE=0
 
-# Copy this justfile to the templates directory
+# Copy this settings files to the templates directory
 @just:
     cp {{invocation_directory()}}/justfile ~/CloudStation/Source/_Templates/justfile.template
+    cp {{invocation_directory()}}/deny.toml ~/CloudStation/Source/_Templates/deny.toml
 
 # Check, but verbose
 @checkv:
@@ -115,4 +120,6 @@ alias b := build
     -cargo install cargo-bloat
     -cargo install --locked cargo-outdated
     -cargo install tokei
+    -cargo install cargo-deny
+    -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     echo "Make sure to also install Graphviz."

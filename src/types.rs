@@ -17,6 +17,10 @@ use uom::si::{
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Used in calculating latitudes and longitudes.
+pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for chrono::DateTime so we can derive Serialize and Deserialize traits
 #[derive(Serialize, Deserialize, Debug)]
@@ -119,9 +123,7 @@ pub enum Unit {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Session - stores summary information about the workout session
-
-/// Summary information about the workout session.
+/// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
     pub manufacturer: String,
@@ -207,5 +209,44 @@ impl Default for Session {
     }
 }
 
-/// Used in calculating latitudes and longitudes.
-pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Summary information per lap
+#[derive(Default, Serialize, Deserialize, Debug)] // Don't need to impl anything since we derive defaults
+#[serde(default)]
+pub struct Lap {
+    pub cadence_avg: Option<u8>,
+    pub cadence_max: Option<u8>,
+    pub heartrate_avg: Option<u8>,
+    pub heartrate_max: Option<u8>,
+    pub speed_avg: Option<Velocity>,
+    pub speed_max: Option<Velocity>,
+    pub power_avg: Option<u16>,
+    pub power_max: Option<u16>,
+    pub lat_start: Option<f64>,
+    pub lon_start: Option<f64>,
+    pub lat_end: Option<f64>,
+    pub lon_end: Option<f64>,
+    pub ascent: Option<Length_u16>,
+    pub descent: Option<Length_u16>,
+    pub calories: Option<u16>,
+    pub distance: Option<Length_f64>,
+    pub duration: Duration,
+    pub duration_active: Duration,
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Detailed information about each record/data point in the workout session.
+#[derive(Default, Serialize, Deserialize, Debug)]
+#[serde(default)]
+pub struct Record {
+    pub cadence: Vec<Option<u8>>,
+    pub distance: Vec<Option<Length_f64>>,
+    pub altitude: Vec<Option<Length_f64>>,
+    pub speed: Vec<Option<Velocity>>,
+    pub heartrate: Vec<Option<u8>>,
+    pub power: Vec<Option<u16>>,
+    pub lat: Vec<Option<f64>>,
+    pub lon: Vec<Option<f64>>,
+    pub timestamp: Vec<TimeStamp>,
+    pub duration: Vec<Duration>,
+}

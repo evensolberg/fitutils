@@ -44,8 +44,16 @@ pub fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/// Parse session information from the FIT data file session record
+/// Parses session information into more detail.
+///
+/// **Parameters:**
+///
+///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+///    `session: &mut Session` -- An empty session struct to be filled in. See `types.rs` for details on this stuct.
+///
+/// **Returns:**
+///
+///    Nothing. The data is put into the `session` struct.
 pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -204,9 +212,179 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let t2: Vec<Duration> = tihz
         .split(' ')
         .map(|x| str::parse::<u64>(x).unwrap())
-        .map(|x| Duration::from_millis_u64(x))
+        .map(Duration::from_millis_u64)
         .collect();
     log::trace!("t2 = {:?}", t2);
-    session.time_in_hr_zones = t2.clone();
+    session.time_in_hr_zones = t2;
     log::debug!("time_in_hr_zones = {:?}", session.time_in_hr_zones);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Parses lap information into more detail.
+///
+/// **Parameters:**
+///
+///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+///    `lap: &mut Lap` -- An empty record struct to be filled in. See `activity.rs` for details on this stuct.`
+///
+/// **Returns:**
+///
+///    Nothing. The data is put into the `lap` struct.
+pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
+    // Collect the fields into a HashMap which we can then dig details out of.
+    // x.name is the key and x.value is the value
+    // Note that the value is an enum and contain a number of different types
+    // See the fitparser crate for details
+    let field_map: HashMap<&str, &fitparser::Value> =
+        fields.iter().map(|x| (x.name(), x.value())).collect();
+
+    lap.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
+
+    lap.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
+
+    lap.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
+
+    lap.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
+
+    lap.speed_avg = field_map
+        .get("enhanced_avg_speed")
+        .and_then(map_float64)
+        .map(Velocity::new::<meter_per_second>);
+
+    lap.speed_max = field_map
+        .get("enhanced_max_speed")
+        .and_then(map_float64)
+        .map(Velocity::new::<meter_per_second>);
+
+    lap.power_avg = field_map.get("avg_power").and_then(map_uint16);
+
+    lap.power_max = field_map.get("max_power").and_then(map_uint16);
+
+    lap.lat_start = field_map
+        .get("start_position_lat")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+
+    lap.lon_start = field_map
+        .get("start_position_long")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+
+    lap.lat_end = field_map
+        .get("end_position_lat")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+
+    lap.lon_end = field_map
+        .get("end_position_long")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+
+    lap.ascent = field_map
+        .get("total_ascent")
+        .and_then(map_uint16)
+        .map(Length_u16::new::<meter>);
+
+    lap.descent = field_map
+        .get("total_descent")
+        .and_then(map_uint16)
+        .map(Length_u16::new::<meter>);
+
+    lap.calories = field_map.get("total_calories").and_then(map_uint16);
+
+    lap.distance = field_map
+        .get("total_distance")
+        .and_then(map_float64)
+        .map(Length_f64::new::<meter>);
+
+    lap.duration = field_map
+        .get("total_elapsed_time")
+        .and_then(map_float64)
+        .map(Duration::from_secs_f64)
+        .unwrap_or_default();
+
+    lap.duration_active = field_map
+        .get("total_timer_time")
+        .and_then(map_float64)
+        .map(Duration::from_secs_f64)
+        .unwrap_or_default();
+}
+
+/// Parses record information into more detail.
+///
+/// **Parameters:**
+///
+///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+///    `record: &mut Record` -- An empty record struct to be filled in. See `activity.rs` for details on this stuct.
+///
+/// **Returns:**
+///
+///    Nothing. The data is put into the `record` struct.
+pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
+    // Collect the fields into a HashMap which we can then dig details out of.
+    // x.name is the key and x.value is the value
+    // Note that the value is an enum and contain a number of different types
+    // See the fitparser crate for details
+    let field_map: HashMap<&str, &fitparser::Value> =
+        fields.iter().map(|x| (x.name(), x.value())).collect();
+
+    record
+        .cadence
+        .push(field_map.get("cadence").and_then(map_uint8));
+
+    record.distance.push(
+        field_map
+            .get("distance")
+            .and_then(map_float64)
+            .map(Length_f64::new::<meter>),
+    );
+
+    record.altitude.push(
+        field_map
+            .get("enhanced_altitude")
+            .and_then(map_float64)
+            .map(Length_f64::new::<meter>),
+    );
+
+    record.speed.push(
+        field_map
+            .get("enhanced_speed")
+            .and_then(map_float64)
+            .map(Velocity::new::<meter_per_second>),
+    );
+
+    record
+        .power
+        .push(field_map.get("power").and_then(map_uint16));
+
+    record
+        .heartrate
+        .push(field_map.get("heart_rate").and_then(map_uint8));
+
+    record.lat.push(
+        field_map
+            .get("position_lat")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * types::MULTIPLIER),
+    );
+
+    record.lon.push(
+        field_map
+            .get("position_long")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * types::MULTIPLIER),
+    );
+
+    let timestamp = field_map
+        .get("timestamp")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+
+    let duration = match record.timestamp.first() {
+        Some(x) => Duration::between(&timestamp, x),
+        None => Duration::default(),
+    };
+
+    record.duration.push(duration);
+    record.timestamp.push(timestamp);
 }

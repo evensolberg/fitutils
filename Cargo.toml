@@ -1,6 +1,7 @@
 [package]
 name = "fit2csv"
 version = "0.0.1"
+license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
 edition = "2018"
 include = ["src/**/*", "README.md"]
@@ -13,10 +14,13 @@ fitparser = "0.4"  # Fitbit
 clap =  { version = "2.3.3" }
 log = "0.4.14"
 simple_logger = "1.11.0"
+thiserror = "1.0.29"
 
 # Time and measurement
 chrono = "0.4.19" # Improved Time and Date
 uom = { version = "0.31.1", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
+
+# Serialization and export
 serde = { version = "1.0.130", features = ["derive"] }
-thiserror = "1.0.29"
 serde_json = "1.0.67"
+csv = "1.1.6"
