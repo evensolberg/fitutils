@@ -214,6 +214,7 @@ impl Default for Session {
 #[derive(Default, Serialize, Deserialize, Debug)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
 pub struct Lap {
+    pub lap_num: u64,
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
     pub heartrate_avg: Option<u8>,

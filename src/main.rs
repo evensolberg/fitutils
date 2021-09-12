@@ -102,8 +102,9 @@ fn run() -> Result<(), Box<dyn Error>> {
             MesgNum::Lap => {
                 let mut lap = Lap::default(); // Create an empty lap instance
                 parsers::parse_lap(data.fields(), &mut lap); // parse lap data
-                lap_vec.push(lap); // push the lap onto the vector
                 num_laps += 1;
+                lap.lap_num = num_laps;
+                lap_vec.push(lap); // push the lap onto the vector
             }
             MesgNum::Record => {
                 parsers::parse_record(data.fields(), &mut record);
@@ -154,6 +155,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         .from_path(&outfile_laps)?;
     log::debug!("lap_vec[0] = {:?}", &lap_vec[0]);
     lap_writer.write_record(&[
+        "lap_num",
         "cadence_avg",
         "cadence_max",
         "heartrate_avg",
