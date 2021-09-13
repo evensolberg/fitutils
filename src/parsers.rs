@@ -63,6 +63,7 @@ pub fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `session` struct.
+// TODO: Refactor to return Result<Session, Box<dyn Error>> instead of using a mutable variable.
 pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -173,6 +174,7 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `lap` struct.
+// TODO: Refactor to return Result<Lap, Box<dyn Error>> instead of using a mutable variable.
 pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
@@ -266,6 +268,7 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
 ///
 ///    Nothing. The data is put into the `record` struct.
 // TODO: Refactor to Vec<struct>
+// TODO: Refactor to return Result<Record, Box<dyn Error>> instead of using a mutable variable.
 pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
