@@ -265,6 +265,7 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
+// TODO: Refactor to Vec<struct>
 pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value

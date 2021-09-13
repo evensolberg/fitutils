@@ -283,7 +283,7 @@ pub struct Record {
 /// **Reference:**
 ///
 ///    <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(default)]
 pub struct HrZones {
     pub hr_zone_0: Option<Duration>,
