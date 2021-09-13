@@ -123,6 +123,17 @@ pub enum Unit {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Holds the all the information about the file and its contents
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct Activity {
+    pub filename: String,
+    pub session: Session,
+    pub laps: Vec<Lap>,
+    pub records: Record,
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
@@ -239,19 +250,20 @@ pub struct Lap {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Detailed information about each record/data point in the workout session.
+// TODO: Refactor to a Vec<struct> and add relevant missing fields
 #[derive(Default, Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct Record {
-    pub cadence: Vec<Option<u8>>,
-    pub distance: Vec<Option<Length_f64>>,
-    pub altitude: Vec<Option<Length_f64>>,
-    pub speed: Vec<Option<Velocity>>,
-    pub heartrate: Vec<Option<u8>>,
-    pub power: Vec<Option<u16>>,
-    pub lat: Vec<Option<f64>>,
-    pub lon: Vec<Option<f64>>,
     pub timestamp: Vec<TimeStamp>,
     pub duration: Vec<Duration>,
+    pub distance: Vec<Option<Length_f64>>,
+    pub altitude: Vec<Option<Length_f64>>,
+    pub cadence: Vec<Option<u8>>,
+    pub speed: Vec<Option<Velocity>>,
+    pub power: Vec<Option<u16>>,
+    pub heartrate: Vec<Option<u8>>,
+    pub lat: Vec<Option<f64>>,
+    pub lon: Vec<Option<f64>>,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
