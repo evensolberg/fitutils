@@ -41,8 +41,12 @@ alias b := build
     cp {{invocation_directory()}}/target/release/{{application}}/usr/local/bin/
     cargo clean
 
+# Build the documentation
+@doc:
+    cargo doc --no-deps
+
 # Documents the project
-@doc: format
+@docs: format
     cargo doc --no-deps
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
@@ -50,7 +54,7 @@ alias b := build
     cargo outdated
 
 # Documents the project and all dependencies
-@docs: format
+@doc-all: format
     cargo doc
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt

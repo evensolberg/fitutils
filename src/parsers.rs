@@ -159,7 +159,7 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
     let tihz = field_map.get("time_in_hr_zone").unwrap();
-    session.time_in_hr_zones = parse_hr_zones(&tihz).unwrap();
+    session.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
     log::trace!("session.time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
 
@@ -348,7 +348,7 @@ pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
 /// **Returns:**
 ///
 ///   `Result<HrZones, Box<dyn Error>>` -- Either an Ok(HrZones) or an error depending on how it went.
-pub fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
+fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
     // TODO: Figure out a better way to read the original Array
     // Turn the Array into a string and strip out everything except the numbers.
     let tihz = time_in_hr_zone
