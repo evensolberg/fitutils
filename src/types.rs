@@ -126,6 +126,7 @@ pub enum Unit {
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
+    pub filename: String,
     pub manufacturer: String,
     pub time_created: TimeStamp,
     pub activity_type: Option<String>,
@@ -158,7 +159,7 @@ pub struct Session {
     pub duration_moving: Duration,
     pub start_time: TimeStamp,
     pub finish_time: TimeStamp,
-    pub time_in_hr_zones: Vec<Duration>,
+    pub time_in_hr_zones: HrZones,
 }
 
 impl Session {
@@ -172,6 +173,7 @@ impl Default for Session {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         Session {
+            filename: "".to_string(),
             manufacturer: "".to_string(),
             time_created: TimeStamp::default(),
             activity_type: Some("".to_string()),
@@ -204,7 +206,7 @@ impl Default for Session {
             duration_moving: Duration::default(),
             start_time: TimeStamp::default(),
             finish_time: TimeStamp::default(),
-            time_in_hr_zones: Vec::new(),
+            time_in_hr_zones: HrZones::default(),
         }
     }
 }
@@ -250,4 +252,31 @@ pub struct Record {
     pub lon: Vec<Option<f64>>,
     pub timestamp: Vec<TimeStamp>,
     pub duration: Vec<Duration>,
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Detailed information about how much time is spent in each heart rate zone.
+///
+/// The actual zones are defined as the training levels based on your maximum heart rate, which is usually calculated
+/// as 220 - your age in years.
+///
+/// **HR Zones:**
+///
+///    **0**: Warmup<br>
+///    **1**: Fat Burn<br>
+///    **2**: Aerobic<br>
+///    **3**: Anaerobic<br>
+///    **4**: Speed/Power<br>
+///
+/// **Reference:**
+///
+///    <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
+#[derive(Default, Serialize, Deserialize, Debug)]
+#[serde(default)]
+pub struct HrZones {
+    pub hr_zone_0: Option<Duration>,
+    pub hr_zone_1: Option<Duration>,
+    pub hr_zone_2: Option<Duration>,
+    pub hr_zone_3: Option<Duration>,
+    pub hr_zone_4: Option<Duration>,
 }

@@ -1,6 +1,7 @@
 // External crates
 use fitparser::{FitDataField, FitDataRecord, Value}; // .FIT file manipulation
 use std::collections::HashMap;
+use std::error::Error;
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
     length::meter,
@@ -10,8 +11,8 @@ use uom::si::{
 
 // Local crates
 use super::types;
-use crate::types::Duration;
 use crate::types::TimeStamp;
+use crate::types::{Duration, HrZones};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
@@ -156,26 +157,9 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
-    // TODO: Figure out a better way to read the original Array
-    // Turn the Array into a string and strip out everything except the numbers.
-    let tihz = field_map
-        .get("time_in_hr_zone")
-        .unwrap()
-        .to_string()
-        .replace("UInt32(", "")
-        .replace(")", "")
-        .replace("[", "")
-        .replace("]", "")
-        .replace(",", "");
-    // Split the numbers, turn them into u64, convert to Duration and collect to a vector
-    log::trace!("tihz = {:?}", tihz);
-    let t2: Vec<Duration> = tihz
-        .split(' ')
-        .map(|x| str::parse::<u64>(x).unwrap())
-        .map(Duration::from_millis_u64)
-        .collect();
-    session.time_in_hr_zones = t2;
-    log::trace!("time_in_hr_zones = {:?}", session.time_in_hr_zones);
+    let tihz = field_map.get("time_in_hr_zone").unwrap();
+    session.time_in_hr_zones = parse_hr_zones(&tihz).unwrap();
+    log::trace!("session.time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,6 +180,7 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
     // See the fitparser crate for details
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
+    log::trace!("Lap field_map = {:?}", field_map);
 
     lap.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
 
@@ -347,4 +332,44 @@ pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
 
     record.duration.push(duration);
     record.timestamp.push(timestamp);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Parses record information into more detail.
+///
+/// **Parameters:**
+///
+///    `time_in_hr_zone: &Value` -- A fitparser value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html><br>
+///
+/// **Returns:**
+///
+///   `Result<HrZones, Box<dyn Error>>` -- Either an Ok(HrZones) or an error depending on how it went.
+pub fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
+    // TODO: Figure out a better way to read the original Array
+    // Turn the Array into a string and strip out everything except the numbers.
+    let tihz = time_in_hr_zone
+        .to_string()
+        .replace("UInt32(", "")
+        .replace(")", "")
+        .replace("[", "")
+        .replace("]", "")
+        .replace(",", "");
+
+    // Split the numbers, turn them into u64, convert to Duration and collect to a vector
+    let t2: Vec<Duration> = tihz
+        .split(' ')
+        .map(|x| str::parse::<u64>(x).unwrap())
+        .map(Duration::from_millis_u64)
+        .collect();
+
+    let time_in_hr_zones = HrZones {
+        hr_zone_0: Some(t2[0]),
+        hr_zone_1: Some(t2[1]),
+        hr_zone_2: Some(t2[2]),
+        hr_zone_3: Some(t2[3]),
+        hr_zone_4: Some(t2[4]),
+    };
+
+    // return it
+    Ok(time_in_hr_zones)
 }

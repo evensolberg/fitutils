@@ -9,7 +9,7 @@
 use clap::{App, Arg}; // Command line
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 
-use csv::WriterBuilder;
+// use csv::WriterBuilder;
 use std::error::Error;
 use std::fs::File;
 
@@ -18,8 +18,8 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Import our own modules and types
+pub mod exporters;
 pub mod parsers;
-
 pub mod types;
 use crate::types::*;
 
@@ -97,6 +97,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             // Figure out what kind it is and count accordingly
             MesgNum::Session => {
                 parsers::parse_session(data.fields(), &mut my_session);
+                my_session.filename = fitfile_name.to_string();
                 num_sessions += 1;
             }
             MesgNum::Lap => {
@@ -131,11 +132,26 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Calories burned: {:8}", my_session.calories.unwrap());
 
     println!("\nTime in Zones:");
-    println!("Speed/Power: {}", my_session.time_in_hr_zones[4]);
-    println!("Anaerobic:   {}", my_session.time_in_hr_zones[3]);
-    println!("Aerobic:     {}", my_session.time_in_hr_zones[2]);
-    println!("Fat Burning: {}", my_session.time_in_hr_zones[1]);
-    println!("Warmup:      {}", my_session.time_in_hr_zones[0]);
+    println!(
+        "Speed/Power: {}",
+        my_session.time_in_hr_zones.hr_zone_4.unwrap()
+    );
+    println!(
+        "Anaerobic:   {}",
+        my_session.time_in_hr_zones.hr_zone_3.unwrap()
+    );
+    println!(
+        "Aerobic:     {}",
+        my_session.time_in_hr_zones.hr_zone_2.unwrap()
+    );
+    println!(
+        "Fat Burning: {}",
+        my_session.time_in_hr_zones.hr_zone_1.unwrap()
+    );
+    println!(
+        "Warmup:      {}",
+        my_session.time_in_hr_zones.hr_zone_0.unwrap()
+    );
 
     let serialized_session = serde_json::to_string(&my_session).unwrap();
     log::trace!("serialized_session session: {}", serialized_session);
@@ -150,37 +166,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // it doesn't serialize properly.
     let outfile_laps = fitfile_name.to_lowercase().replace(".fit", ".laps.csv");
     log::trace!("Writing lap CSV file {}", &outfile_laps);
-    let mut lap_writer = WriterBuilder::new()
-        .has_headers(false)
-        .from_path(&outfile_laps)?;
-    log::debug!("lap_vec[0] = {:?}", &lap_vec[0]);
-    lap_writer.write_record(&[
-        "lap_num",
-        "cadence_avg",
-        "cadence_max",
-        "heartrate_avg",
-        "heartrate_max",
-        "speed_avg",
-        "speed_max",
-        "power_avg",
-        "power_max",
-        "lat_start",
-        "lon_start",
-        "lat_end",
-        "lon_end",
-        "ascent",
-        "descent",
-        "calories",
-        "distance",
-        "duration_secs",
-        "duration_nanos",
-        "duration_active_secs",
-        "duration_active_nanos",
-    ])?;
-    for n in 0..lap_vec.len() {
-        lap_writer.serialize(&lap_vec[n])?;
-    }
-    lap_writer.flush()?;
+    exporters::export_laps_csv(&lap_vec, &outfile_laps)?;
 
     // Everything is a-okay in the end
     Ok(())
