@@ -13,8 +13,9 @@ use std::error::Error;
 ///
 /// **Returns:**
 ///
-///    `Box<dyn Error>` -- propagates error handling up if something goes wrong.
+///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_laps_csv(lap_vec: &[types::Lap], filename: &str) -> Result<(), Box<dyn Error>> {
+    // Create a buffer for the CSV
     let mut lap_writer = WriterBuilder::new()
         .has_headers(false)
         .from_path(filename)?;
@@ -44,9 +45,12 @@ pub fn export_laps_csv(lap_vec: &[types::Lap], filename: &str) -> Result<(), Box
         "duration_active_nanos",
     ])?;
 
+    // Now write the actual laps
     for lap in lap_vec.iter() {
         lap_writer.serialize(lap)?;
     }
+
+    // Write the file
     lap_writer.flush()?;
 
     Ok(())

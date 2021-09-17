@@ -20,6 +20,7 @@ use simple_logger::SimpleLogger;
 // Import our own modules and types
 pub mod exporters;
 pub mod parsers;
+pub mod print_details;
 pub mod types;
 use crate::types::*;
 
@@ -84,13 +85,15 @@ fn run() -> Result<(), Box<dyn Error>> {
     parsers::parse_header(header, &mut my_session);
 
     // This is the main file parsing loop. This will definitely get expanded.
-    log::debug!("Parsing data.");
+    log::trace!("Initializing temporary variables.");
     let mut num_records = 0;
     let mut num_sessions = 0;
     let mut num_laps = 0;
     let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
     let mut record: Record = Record::default();
 
+    // This is where the actual parsing happens
+    log::debug!("Parsing data.");
     for data in file {
         // for each FitDataRecord
         match data.kind() {
@@ -120,38 +123,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     log::trace!("Printing the header_struct.");
     println!("\n{} summary:", fitfile_name);
-    println!("Manufacturer: {}", my_session.manufacturer);
-    println!("Time created: {}", my_session.time_created);
-    println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
-    println!("Laps:         {:5}", my_session.num_laps.unwrap());
-    println!("Records:      {:5}", my_session.num_records.unwrap());
-    log::trace!("num_laps:    {:5}", num_laps);
-    log::trace!("num_records: {:5}", num_records);
-
-    println!("\nTotal duration:  {}", my_session.duration);
-    println!("Calories burned: {:8}", my_session.calories.unwrap());
-
-    println!("\nTime in Zones:");
-    println!(
-        "Speed/Power: {}",
-        my_session.time_in_hr_zones.hr_zone_4.unwrap()
-    );
-    println!(
-        "Anaerobic:   {}",
-        my_session.time_in_hr_zones.hr_zone_3.unwrap()
-    );
-    println!(
-        "Aerobic:     {}",
-        my_session.time_in_hr_zones.hr_zone_2.unwrap()
-    );
-    println!(
-        "Fat Burning: {}",
-        my_session.time_in_hr_zones.hr_zone_1.unwrap()
-    );
-    println!(
-        "Warmup:      {}",
-        my_session.time_in_hr_zones.hr_zone_0.unwrap()
-    );
+    print_details::print_session(&my_session);
 
     let serialized_session = serde_json::to_string(&my_session).unwrap();
     log::trace!("serialized_session session: {}", serialized_session);

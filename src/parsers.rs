@@ -46,6 +46,7 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
+// TODO: Refactor to return Result<Session, Box<dyn Error>> instead of using a mutable variable.
 pub fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
     session.manufacturer = header.fields()[1].value().to_string();
     session.time_created = map_timestamp(&header.fields()[3].value())
