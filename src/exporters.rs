@@ -79,16 +79,13 @@ pub fn export_laps_csv(lap_vec: &[types::Lap], filename: &str) -> Result<(), Box
 ///
 /// **Parameters:**
 ///
-///    `lap_vec: &[types::Lap]` -- A vector of laps as parsed by the parse_laps function.<br>
+///    `rec_vec: &[types::Records]` -- A vector of records as parsed by the parse_laps function.<br>
 ///    `filename: &str` -- The name of the CSV file into which we wish to write the contents of the laps.
 ///
 /// **Returns:**
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
-pub fn export_records_csv(
-    rec_vec: &[types::Records],
-    filename: &str,
-) -> Result<(), Box<dyn Error>> {
+pub fn export_records_csv(rec_vec: &[types::Record], filename: &str) -> Result<(), Box<dyn Error>> {
     // Create a buffer for the CSV
     let mut rec_writer = WriterBuilder::new()
         .has_headers(false)

@@ -258,27 +258,9 @@ pub struct Lap {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Detailed information about each record/data point in the workout session.
-// TODO: Refactor to a Vec<struct> and add relevant missing fields
 #[derive(Default, Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct Record {
-    pub timestamp: Vec<TimeStamp>,
-    pub duration: Vec<Duration>,
-    pub distance: Vec<Option<Length_f64>>,
-    pub altitude: Vec<Option<Length_f64>>,
-    pub cadence: Vec<Option<u8>>,
-    pub speed: Vec<Option<Velocity>>,
-    pub power: Vec<Option<u16>>,
-    pub heartrate: Vec<Option<u8>>,
-    pub lat: Vec<Option<f64>>,
-    pub lon: Vec<Option<f64>>,
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Detailed information about each record/data point in the workout session.
-#[derive(Default, Serialize, Deserialize, Debug)]
-#[serde(default)]
-pub struct Records {
     pub timestamp: TimeStamp,
     pub duration: Duration,
     pub distance: Option<Length_f64>,

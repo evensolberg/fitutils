@@ -90,7 +90,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut num_sessions = 0;
     let mut num_laps = 0;
     let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
-    let mut records_vec: Vec<Records> = Vec::new();
+    let mut records_vec: Vec<Record> = Vec::new();
 
     // This is where the actual parsing happens
     log::debug!("Parsing data.");
@@ -113,8 +113,8 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
             MesgNum::Record => {
                 // FIXME: This is very inefficient since we're instantiating this for every record
-                let mut current_record = Records::default();
-                parsers::parse_records(data.fields(), &mut current_record, num_records);
+                let mut current_record = Record::default();
+                parsers::parse_record(data.fields(), &mut current_record, num_records);
                 records_vec.push(current_record);
                 num_records += 1;
             }

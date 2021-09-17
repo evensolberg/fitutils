@@ -278,96 +278,14 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
 ///
 ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
 ///    `record: &mut types::Record` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
+///    `second_num: u64` -- The second number for this record. Used to calculate duration.
 ///
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-// TODO: Refactor to Vec<struct>
+// TODO: Replace second_num with start time from session.
 // TODO: Refactor to return Result<Record, Box<dyn Error>> instead of using a mutable variable.
-pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
-    // Collect the fields into a HashMap which we can then dig details out of.
-    // x.name is the key and x.value is the value
-    // Note that the value is an enum and contain a number of different types
-    // See the fitparser crate for details
-    let field_map: HashMap<&str, &fitparser::Value> =
-        fields.iter().map(|x| (x.name(), x.value())).collect();
-
-    record
-        .cadence
-        .push(field_map.get("cadence").and_then(map_uint8));
-
-    record.distance.push(
-        field_map
-            .get("distance")
-            .and_then(map_float64)
-            .map(Length_f64::new::<meter>),
-    );
-
-    record.altitude.push(
-        field_map
-            .get("enhanced_altitude")
-            .and_then(map_float64)
-            .map(Length_f64::new::<meter>),
-    );
-
-    record.speed.push(
-        field_map
-            .get("enhanced_speed")
-            .and_then(map_float64)
-            .map(Velocity::new::<meter_per_second>),
-    );
-
-    record
-        .power
-        .push(field_map.get("power").and_then(map_uint16));
-
-    record
-        .heartrate
-        .push(field_map.get("heart_rate").and_then(map_uint8));
-
-    record.lat.push(
-        field_map
-            .get("position_lat")
-            .and_then(map_sint32)
-            .map(|x| f64::from(x) * types::MULTIPLIER),
-    );
-
-    record.lon.push(
-        field_map
-            .get("position_long")
-            .and_then(map_sint32)
-            .map(|x| f64::from(x) * types::MULTIPLIER),
-    );
-
-    let timestamp = field_map
-        .get("timestamp")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
-
-    // Calculate the time from the first timestamp to the current and call it duration.
-    // This should increase each second
-    let duration = match record.timestamp.first() {
-        Some(x) => Duration::between(&timestamp, x),
-        None => Duration::default(),
-    };
-
-    record.duration.push(duration);
-    record.timestamp.push(timestamp);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Parses record information into more detail.
-///
-/// **Parameters:**
-///
-///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
-///    `record: &mut types::Record` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
-///
-/// **Returns:**
-///
-///    Nothing. The data is put into the `record` struct.
-// TODO: Refactor to return Result<Record, Box<dyn Error>> instead of using a mutable variable.
-pub fn parse_records(fields: &[FitDataField], record: &mut types::Records, second_num: u64) {
+pub fn parse_record(fields: &[FitDataField], record: &mut types::Record, second_num: u64) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
