@@ -116,7 +116,7 @@ alias b := build
     cargo lcheck --color 'always' --verbose
 
 # Install the relevant cargo add-ons used in this file
-@prepare:
+@install:
     -cargo install cargo-limit
     -cargo install cargo-geiger
     -cargo install cargo-depgraph

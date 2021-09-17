@@ -9,4 +9,4 @@ A simple little utility to decode FIT files and output them in various formats.
 For simplicity of analysis, each level will have the information from the previous level.
 My end goal is for this utility to be a one-stop shop for all things FIT analysis.
 
-See the [Kanban Board](https://github.com/users/evensolberg/projects/1) for the To Do list.
+See the [Kanban Board](https://github.com/evensolberg/fit2csv/projects) for the To Do list.

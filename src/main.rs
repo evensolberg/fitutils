@@ -37,7 +37,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Read a file and display the contents")
                 .takes_value(true),
         )
-        .arg(
+        .arg( // Hidden debug parameter
             Arg::with_name("debug")
                 .short("d")
                 .long("debug")
@@ -90,7 +90,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut num_sessions = 0;
     let mut num_laps = 0;
     let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
-    let mut record: Record = Record::default();
+    let mut records_vec: Vec<Records> = Vec::new();
 
     // This is where the actual parsing happens
     log::debug!("Parsing data.");
@@ -106,12 +106,16 @@ fn run() -> Result<(), Box<dyn Error>> {
             MesgNum::Lap => {
                 let mut lap = Lap::default(); // Create an empty lap instance
                 parsers::parse_lap(data.fields(), &mut lap); // parse lap data
+                lap.filename = fitfile_name.to_string();
                 num_laps += 1;
                 lap.lap_num = num_laps;
                 lap_vec.push(lap); // push the lap onto the vector
             }
             MesgNum::Record => {
-                parsers::parse_record(data.fields(), &mut record);
+                // FIXME: This is very inefficient since we're instantiating this for every record
+                let mut current_record = Records::default();
+                parsers::parse_records(data.fields(), &mut current_record, num_records);
+                records_vec.push(current_record);
                 num_records += 1;
             }
             _ => (),
@@ -139,6 +143,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     let outfile_laps = fitfile_name.to_lowercase().replace(".fit", ".laps.csv");
     log::trace!("Writing lap CSV file {}", &outfile_laps);
     exporters::export_laps_csv(&lap_vec, &outfile_laps)?;
+
+    // Write records to csv
+    let outfile_records = fitfile_name.to_lowercase().replace(".fit", ".csv");
+    log::trace!("Writing records CSV file {}", &outfile_records);
+    exporters::export_records_csv(&records_vec, &outfile_records)?;
 
     // Everything is a-okay in the end
     Ok(())

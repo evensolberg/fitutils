@@ -144,7 +144,7 @@ pub struct Session {
     pub activity_detailed: Option<String>,
     pub num_sessions: Option<u16>,
     pub num_laps: Option<u16>,
-    pub num_records: Option<u32>,
+    pub num_records: Option<u64>,
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
     pub heartrate_avg: Option<u8>,
@@ -227,9 +227,11 @@ impl Default for Session {
 #[derive(Default, Serialize, Deserialize, Debug)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
 pub struct Lap {
+    pub filename: String,
     pub lap_num: u64,
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
+    pub heartrate_min: Option<u8>,
     pub heartrate_avg: Option<u8>,
     pub heartrate_max: Option<u8>,
     pub speed_avg: Option<Velocity>,
@@ -240,12 +242,18 @@ pub struct Lap {
     pub lon_start: Option<f64>,
     pub lat_end: Option<f64>,
     pub lon_end: Option<f64>,
+    pub stance_time_avg: Option<f64>,
+    pub vertical_oscillation_avg: Option<f64>,
     pub ascent: Option<Length_u16>,
     pub descent: Option<Length_u16>,
     pub calories: Option<u16>,
     pub distance: Option<Length_f64>,
     pub duration: Duration,
     pub duration_active: Duration,
+    pub duration_moving: Duration,
+    pub start_time: TimeStamp,
+    pub finish_time: TimeStamp,
+    pub time_in_hr_zones: HrZones,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +272,23 @@ pub struct Record {
     pub heartrate: Vec<Option<u8>>,
     pub lat: Vec<Option<f64>>,
     pub lon: Vec<Option<f64>>,
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Detailed information about each record/data point in the workout session.
+#[derive(Default, Serialize, Deserialize, Debug)]
+#[serde(default)]
+pub struct Records {
+    pub timestamp: TimeStamp,
+    pub duration: Duration,
+    pub distance: Option<Length_f64>,
+    pub altitude: Option<Length_f64>,
+    pub cadence: Option<u8>,
+    pub speed: Option<Velocity>,
+    pub power: Option<u16>,
+    pub heartrate: Option<u8>,
+    pub lat: Option<f64>,
+    pub lon: Option<f64>,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

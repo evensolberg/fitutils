@@ -186,42 +186,41 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
     log::trace!("Lap field_map = {:?}", field_map);
 
     lap.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
-
     lap.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
 
+    lap.heartrate_min = field_map.get("min_heart_rate").and_then(map_uint8);
     lap.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
-
     lap.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
+
+    lap.stance_time_avg = field_map.get("avg_stance_time").and_then(map_float64);
+    lap.vertical_oscillation_avg = field_map
+        .get("avg_vertical_oscillation")
+        .and_then(map_float64);
 
     lap.speed_avg = field_map
         .get("enhanced_avg_speed")
         .and_then(map_float64)
         .map(Velocity::new::<meter_per_second>);
-
     lap.speed_max = field_map
         .get("enhanced_max_speed")
         .and_then(map_float64)
         .map(Velocity::new::<meter_per_second>);
 
     lap.power_avg = field_map.get("avg_power").and_then(map_uint16);
-
     lap.power_max = field_map.get("max_power").and_then(map_uint16);
 
     lap.lat_start = field_map
         .get("start_position_lat")
         .and_then(map_sint32)
         .map(|x| f64::from(x) * types::MULTIPLIER);
-
     lap.lon_start = field_map
         .get("start_position_long")
         .and_then(map_sint32)
         .map(|x| f64::from(x) * types::MULTIPLIER);
-
     lap.lat_end = field_map
         .get("end_position_lat")
         .and_then(map_sint32)
         .map(|x| f64::from(x) * types::MULTIPLIER);
-
     lap.lon_end = field_map
         .get("end_position_long")
         .and_then(map_sint32)
@@ -231,14 +230,12 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
         .get("total_ascent")
         .and_then(map_uint16)
         .map(Length_u16::new::<meter>);
-
     lap.descent = field_map
         .get("total_descent")
         .and_then(map_uint16)
         .map(Length_u16::new::<meter>);
 
     lap.calories = field_map.get("total_calories").and_then(map_uint16);
-
     lap.distance = field_map
         .get("total_distance")
         .and_then(map_float64)
@@ -249,12 +246,29 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
         .and_then(map_float64)
         .map(Duration::from_secs_f64)
         .unwrap_or_default();
-
     lap.duration_active = field_map
         .get("total_timer_time")
         .and_then(map_float64)
         .map(Duration::from_secs_f64)
         .unwrap_or_default();
+    lap.duration_moving = field_map
+        .get("total_moving_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64)
+        .unwrap_or_default();
+
+    lap.start_time = field_map
+        .get("start_time")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+    lap.finish_time = field_map
+        .get("timestamp")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+
+    let tihz = field_map.get("time_in_hr_zone").unwrap();
+    lap.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
+    log::trace!("session.time_in_hr_zones = {:?}", lap.time_in_hr_zones);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -330,6 +344,8 @@ pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
         .and_then(map_timestamp)
         .unwrap_or_default();
 
+    // Calculate the time from the first timestamp to the current and call it duration.
+    // This should increase each second
     let duration = match record.timestamp.first() {
         Some(x) => Duration::between(&timestamp, x),
         None => Duration::default(),
@@ -344,11 +360,77 @@ pub fn parse_record(fields: &[FitDataField], record: &mut types::Record) {
 ///
 /// **Parameters:**
 ///
+///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+///    `record: &mut types::Record` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
+///
+/// **Returns:**
+///
+///    Nothing. The data is put into the `record` struct.
+// TODO: Refactor to return Result<Record, Box<dyn Error>> instead of using a mutable variable.
+pub fn parse_records(fields: &[FitDataField], record: &mut types::Records, second_num: u64) {
+    // Collect the fields into a HashMap which we can then dig details out of.
+    // x.name is the key and x.value is the value
+    // Note that the value is an enum and contain a number of different types
+    // See the fitparser crate for details
+    let field_map: HashMap<&str, &fitparser::Value> =
+        fields.iter().map(|x| (x.name(), x.value())).collect();
+
+    record.timestamp = field_map
+        .get("timestamp")
+        .and_then(map_timestamp)
+        .unwrap_or_default();
+    record.duration = Duration::from_millis_u64(second_num * 1000);
+
+    record.distance = field_map
+        .get("distance")
+        .and_then(map_float64)
+        .map(Length_f64::new::<meter>);
+
+    record.altitude = field_map
+        .get("enhanced_altitude")
+        .and_then(map_float64)
+        .map(Length_f64::new::<meter>);
+
+    record.cadence = field_map.get("cadence").and_then(map_uint8);
+
+    record.speed = field_map
+        .get("enhanced_speed")
+        .and_then(map_float64)
+        .map(Velocity::new::<meter_per_second>);
+
+    record.power = field_map.get("power").and_then(map_uint16);
+
+    record.heartrate = field_map.get("heart_rate").and_then(map_uint8);
+
+    record.lat = field_map
+        .get("position_lat")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+
+    record.lon = field_map
+        .get("position_long")
+        .and_then(map_sint32)
+        .map(|x| f64::from(x) * types::MULTIPLIER);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Parses heart rate zone information into more detail.
+///
+/// **Parameters:**
+///
 ///    `time_in_hr_zone: &Value` -- A fitparser value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html><br>
 ///
 /// **Returns:**
 ///
 ///   `Result<HrZones, Box<dyn Error>>` -- Either an Ok(HrZones) or an error depending on how it went.
+///
+/// **Example:**
+///
+///   ```rust
+///   let tihz = field_map.get("time_in_hr_zone").unwrap();
+///   lap.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
+///   ```
+///
 fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
     // TODO: Figure out a better way to read the original Array
     // Turn the Array into a string and strip out everything except the numbers.
