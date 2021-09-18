@@ -1,7 +1,11 @@
 // use chrono::DateTime;
 // External crates
+use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 use fitparser::{FitDataField, FitDataRecord, Value}; // .FIT file manipulation
 use std::collections::HashMap;
+use std::error::Error;
+use std::fs::File;
+
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
     length::meter,
@@ -10,8 +14,9 @@ use uom::si::{
 };
 
 // Local crates
+// use super::exporters;
 use super::types;
-use crate::types::TimeStamp;
+use crate::types::{Activity, TimeStamp};
 use crate::types::{Duration, HrZones};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +41,99 @@ map_value!(map_string, String, Value::String(x) => x.to_string());
 map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Parses the input file into its constituent parts.
+///
+/// **Parameters:***
+///
+///    `filename: &str` -- The filename for the FIT file to be parsed.
+///
+/// **Returns:**
+///
+///    `Result<Activity, Box<dyn Error>>` -- Ok(Activity) if succesful, otherwise an error.
+///
+/// **Example:**
+///
+///   ```rust
+///    mod parsers;
+///
+///    let my_activity = parsers::parse_fitfile("fitfile.fit")?;
+///   ```
+pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> {
+    // open the file - return error if unable.
+    let mut fp = File::open(filename).expect("FIT file corrupt or not found.");
+    log::trace!("{} was read OK. File pointer name: {:?}", filename, fp);
+
+    // Read and parse the file contents
+    log::trace!("Reading data");
+    let file = fitparser::from_reader(&mut fp).expect("Unable to read FIT file.");
+    log::debug!("Data was read. Total number of records: {}", file.len());
+
+    log::trace!("Data read. Extracting header.");
+    let header = &file[0]; // There HAS to be a better way to do this!
+    log::debug!("Header: {:?}", header);
+
+    log::trace!("Creating empty session.");
+    let mut my_session = types::Session::new();
+
+    log::trace!("Extracting manufacturer and session creation time.");
+    parse_header(filename, header, &mut my_session);
+
+    // This is the main file parsing loop. This will definitely get expanded.
+    log::trace!("Initializing temporary variables.");
+    let mut num_records = 0;
+    let mut num_sessions = 0;
+    let mut num_laps = 0;
+    let mut lap_vec: Vec<types::Lap> = Vec::new(); // Lap information vector
+    let mut records_vec: Vec<types::Record> = Vec::new();
+
+    // This is where the actual parsing happens
+    log::debug!("Parsing data.");
+    for data in file {
+        // for each FitDataRecord
+        match data.kind() {
+            // Figure out what kind it is and count accordingly
+            MesgNum::Session => {
+                parse_session(data.fields(), &mut my_session);
+                log::debug!("Session: {:?}", my_session);
+                num_sessions += 1;
+                my_session.num_sessions = Some(num_sessions);
+            }
+            MesgNum::Lap => {
+                let mut lap = types::Lap::default(); // Create an empty lap instance
+                parse_lap(data.fields(), &mut lap, &my_session); // parse lap data
+                num_laps += 1;
+                lap.lap_num = Some(num_laps);
+                log::debug!("Lap {:3}: {:?}", num_laps, lap);
+                lap_vec.push(lap); // push the lap onto the vector
+            }
+            MesgNum::Record => {
+                // FIXME: This is very inefficient since we're instantiating this for every record
+                let mut record = types::Record::default();
+                parse_record(data.fields(), &mut record, &my_session);
+                log::debug!("Record: {:?}", record);
+                records_vec.push(record);
+                num_records += 1;
+                my_session.num_records = Some(num_records);
+            }
+            _ => (),
+        } // match
+    } // for data
+
+    let serialized_session = serde_json::to_string(&my_session).unwrap();
+    log::trace!("serialized_session session: {}", serialized_session);
+
+    // Build the activity
+    let my_activity = Activity {
+        session: my_session,
+        laps: lap_vec,
+        records: records_vec,
+    };
+
+    // Return the activity struct
+    Ok(my_activity)
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Extract manufacturer and session creation time from the FIT data file header
 ///
 /// **Parameters:**
@@ -46,7 +144,7 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-pub fn parse_header(filename: &str, header: &FitDataRecord, session: &mut types::Session) {
+fn parse_header(filename: &str, header: &FitDataRecord, session: &mut types::Session) {
     session.manufacturer = Some(header.fields()[1].value().to_string());
     session.time_created = map_timestamp(&header.fields()[3].value());
     session.filename = Some(filename.to_string());
@@ -63,7 +161,7 @@ pub fn parse_header(filename: &str, header: &FitDataRecord, session: &mut types:
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `session` struct.
-pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
+fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
     log::trace!("Session field_map = {:?}", field_map);
@@ -164,7 +262,7 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `lap` struct.
-pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Session) {
+fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
@@ -267,7 +365,7 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types:
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-pub fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &types::Session) {
+fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &types::Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types

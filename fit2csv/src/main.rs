@@ -7,11 +7,9 @@
 // Crates Usage:
 
 use clap::{App, Arg}; // Command line
-use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 
 // use csv::WriterBuilder;
 use std::error::Error;
-use std::fs::File;
 
 // Logging
 use log::LevelFilter;
@@ -22,7 +20,7 @@ pub mod exporters;
 pub mod parsers;
 pub mod print_details;
 pub mod types;
-use crate::types::*;
+// use crate::types::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -51,7 +49,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("q")
                 .long("quiet")
                 .multiple(false)
-                .help("Don't output any summary information about the file processed.")
+                .help("Don't output any summary information about the file processed. ")
                 .takes_value(false)
         )
         .get_matches();
@@ -65,86 +63,31 @@ fn run() -> Result<(), Box<dyn Error>> {
         _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
-    // Get the input file name - use the dummy if nothing was supplied
+    // DEBUG BUILD: Get the input file name - use the dummy if nothing was supplied
+    #[cfg(debug_assertions)]
     let fitfile_name = cli_args.value_of("read").unwrap_or("data/test.fit");
+
+    // RELEASE BUILD: Get the input file name. Complain if empty.
+    #[cfg(not(debug_assertions))]
+    let fitfile_name = cli_args.value_of("read").expect("FIT file name missing.");
+
     log::debug!("Input file: {}", fitfile_name);
     log::debug!(
         "Parsing FIT files using Profile version: {}",
         fitparser::profile::VERSION
     );
 
-    // open the file - return error if unable.
-    let mut fp = File::open(fitfile_name)?;
-    log::trace!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
+    // Parse the FIT file
+    let my_activity = parsers::parse_fitfile(fitfile_name)?;
 
-    // Read and parse the file contents
-    log::trace!("Reading data");
-    let file = fitparser::from_reader(&mut fp)?;
-    log::debug!("Data was read. Total number of records: {}", file.len());
-
-    log::trace!("Data read. Extracting header.");
-    let header = &file[0]; // There HAS to be a better way to do this!
-    log::debug!("Header: {:?}", header);
-
-    log::trace!("Creating empty session.");
-    let mut my_session = types::Session::new();
-
-    log::trace!("Extracting manufacturer and session creation time.");
-    parsers::parse_header(&fitfile_name, header, &mut my_session);
-
-    // This is the main file parsing loop. This will definitely get expanded.
-    log::trace!("Initializing temporary variables.");
-    let mut num_records = 0;
-    let mut num_sessions = 0;
-    let mut num_laps = 0;
-    let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
-    let mut records_vec: Vec<Record> = Vec::new();
-
-    // This is where the actual parsing happens
-    log::debug!("Parsing data.");
-    for data in file {
-        // for each FitDataRecord
-        match data.kind() {
-            // Figure out what kind it is and count accordingly
-            MesgNum::Session => {
-                parsers::parse_session(data.fields(), &mut my_session);
-                log::debug!("Session: {:?}", my_session);
-                num_sessions += 1;
-                my_session.num_sessions = Some(num_sessions);
-            }
-            MesgNum::Lap => {
-                let mut lap = Lap::default(); // Create an empty lap instance
-                parsers::parse_lap(data.fields(), &mut lap, &my_session); // parse lap data
-                num_laps += 1;
-                lap.lap_num = Some(num_laps);
-                log::debug!("Lap {:3}: {:?}", num_laps, lap);
-                lap_vec.push(lap); // push the lap onto the vector
-            }
-            MesgNum::Record => {
-                // FIXME: This is very inefficient since we're instantiating this for every record
-                let mut record = Record::default();
-                parsers::parse_record(data.fields(), &mut record, &my_session);
-                log::debug!("Record: {:?}", record);
-                records_vec.push(record);
-                num_records += 1;
-                my_session.num_records = Some(num_records);
-            }
-            _ => (),
-        } // match
-    } // for data
-
+    // If not --quiet, print the summary information for the session
     log::trace!("Printing the header_struct if not quiet.");
     if !cli_args.is_present("quiet") {
-        print_details::print_session(&my_session);
+        print_details::print_session(&my_activity.session);
     }
 
-    let serialized_session = serde_json::to_string(&my_session).unwrap();
-    log::trace!("serialized_session session: {}", serialized_session);
-
     // Write the data
-    exporters::export_session_json(&my_session, &fitfile_name)?;
-    exporters::export_laps_csv(&lap_vec, &fitfile_name)?;
-    exporters::export_records_csv(&records_vec, &fitfile_name)?;
+    exporters::export_activity(&my_activity)?;
 
     // Everything is a-okay in the end
     Ok(())
