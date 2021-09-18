@@ -9,6 +9,7 @@ application := "fit2csv"
 
 # ALIASES
 alias b := build
+alias br := buildr
 
 # SHORTCUTS AND COMMANDS
 
@@ -22,6 +23,10 @@ alias b := build
 # Only compiles the project
 @build: format
    cargo lbuild --color 'always'
+
+# Compile a release version of the project without moving the binaries
+@buildr: format
+    cargo lbuild --release --color 'always'
 
 # Cleans and builds again
 @rebuild: format

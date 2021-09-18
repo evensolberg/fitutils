@@ -1,5 +1,7 @@
 # fit2json
 
+The base code for this was shamelessly stolen from Matthew Stadelman's excellent [fitparse-rs](https://github.com/stadelmanma/fitparse-rs) crate.
+
 This program will read one or more FIT files and output the corresponding JSON file containing a dump of the entire file.
 
 - If the output location is not provided, the JSON file will be output alongside the input file.
