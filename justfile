@@ -33,6 +33,8 @@ alias b := build
     cargo clean
     -rm tree.txt
     -rm graph.png
+    -rm debug.txt
+    -rm trace.txt
 
 # Documents the project, builds and installs the release version, and cleans up
 @release: format
@@ -96,15 +98,19 @@ alias b := build
 
 # Build and run with a --debug parameter
 @rund:
-    export RUST_BACKTRACE=full
     cargo lrun  --color 'always' -- --debug
-    export RUST_BACKTRACE=0
+
+# Build and run with a --debug parameter, tee to debug.txt
+@rundt:
+    cargo lrun  --color 'always' -- --debug | tee debug.txt
 
 # Build and run with double --debug parameters
 @rundd:
-    export RUST_BACKTRACE=full
     cargo lrun  --color 'always' -- --debug --debug
-    export RUST_BACKTRACE=0
+
+# Build and run with double --debug parameters, tee to trace.txt
+@runddt:
+    cargo lrun  --color 'always' -- --debug --debug | tee trace.txt
 
 # Copy this settings files to the templates directory
 @just:

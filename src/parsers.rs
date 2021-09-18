@@ -1,7 +1,7 @@
+// use chrono::DateTime;
 // External crates
 use fitparser::{FitDataField, FitDataRecord, Value}; // .FIT file manipulation
 use std::collections::HashMap;
-use std::error::Error;
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
     length::meter,
@@ -46,11 +46,10 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-// TODO: Refactor to return Result<Session, Box<dyn Error>> instead of using a mutable variable.
-pub fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
-    session.manufacturer = header.fields()[1].value().to_string();
-    session.time_created = map_timestamp(&header.fields()[3].value())
-        .expect("Unable to extract session creation time.");
+pub fn parse_header(filename: &str, header: &FitDataRecord, session: &mut types::Session) {
+    session.manufacturer = Some(header.fields()[1].value().to_string());
+    session.time_created = map_timestamp(&header.fields()[3].value());
+    session.filename = Some(filename.to_string());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,12 +63,10 @@ pub fn parse_header(header: &FitDataRecord, session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `session` struct.
-// TODO: Refactor to return Result<Session, Box<dyn Error>> instead of using a mutable variable.
 pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
-
-    log::debug!("Session field_map = {:?}", field_map);
+    log::trace!("Session field_map = {:?}", field_map);
 
     session.activity_type = field_map.get("sport").and_then(map_string);
     session.activity_detailed = field_map.get("sub_sport").and_then(map_string);
@@ -135,32 +132,23 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.duration = field_map
         .get("total_elapsed_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(types::Duration::from_secs_f64);
     session.duration_active = field_map
         .get("total_timer_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(types::Duration::from_secs_f64);
     session.duration_moving = field_map
         .get("total_moving_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(types::Duration::from_secs_f64);
 
-    session.start_time = field_map
-        .get("start_time")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
-    session.finish_time = field_map
-        .get("timestamp")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
+    session.start_time = field_map.get("start_time").and_then(map_timestamp);
+    session.finish_time = field_map.get("timestamp").and_then(map_timestamp);
 
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
     let tihz = field_map.get("time_in_hr_zone").unwrap();
-    session.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
+    session.time_in_hr_zones = parse_hr_zones(tihz);
     log::trace!("session.time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
 
@@ -171,16 +159,19 @@ pub fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 ///
 ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
 ///    `lap: &mut types::Lap` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.`
+///    `session: &types::Session` -- Session summary information. Currently used to get the file name.
 ///
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `lap` struct.
-// TODO: Refactor to return Result<Lap, Box<dyn Error>> instead of using a mutable variable.
-pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
+pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
     // See the fitparser crate for details
+    lap.filename = session.filename.to_owned();
+    log::trace!("Lap filename = {:?}", lap.filename);
+
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
     log::trace!("Lap field_map = {:?}", field_map);
@@ -192,7 +183,10 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
     lap.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
     lap.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
 
-    lap.stance_time_avg = field_map.get("avg_stance_time").and_then(map_float64);
+    lap.stance_time_avg = field_map
+        .get("avg_stance_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64);
     lap.vertical_oscillation_avg = field_map
         .get("avg_vertical_oscillation")
         .and_then(map_float64);
@@ -244,31 +238,21 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
     lap.duration = field_map
         .get("total_elapsed_time")
         .and_then(map_float64)
-        .map(Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(Duration::from_secs_f64);
     lap.duration_active = field_map
         .get("total_timer_time")
         .and_then(map_float64)
-        .map(Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(Duration::from_secs_f64);
     lap.duration_moving = field_map
         .get("total_moving_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64)
-        .unwrap_or_default();
+        .map(types::Duration::from_secs_f64);
 
-    lap.start_time = field_map
-        .get("start_time")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
-    lap.finish_time = field_map
-        .get("timestamp")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
+    lap.start_time = field_map.get("start_time").and_then(map_timestamp);
+    lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
 
     let tihz = field_map.get("time_in_hr_zone").unwrap();
-    lap.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
-    log::trace!("session.time_in_hr_zones = {:?}", lap.time_in_hr_zones);
+    lap.time_in_hr_zones = parse_hr_zones(tihz);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,47 +262,53 @@ pub fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap) {
 ///
 ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
 ///    `record: &mut types::Record` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
-///    `second_num: u64` -- The second number for this record. Used to calculate duration.
+///    `session: &types::Session` -- Session summary information. Currently used to calculate duration.
 ///
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-// TODO: Replace second_num with start time from session.
-// TODO: Refactor to return Result<Record, Box<dyn Error>> instead of using a mutable variable.
-pub fn parse_record(fields: &[FitDataField], record: &mut types::Record, second_num: u64) {
+pub fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &types::Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
     // See the fitparser crate for details
+
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
+    log::trace!("Record field map = {:?}", field_map);
 
-    record.timestamp = field_map
-        .get("timestamp")
-        .and_then(map_timestamp)
-        .unwrap_or_default();
-    record.duration = Duration::from_millis_u64(second_num * 1000);
+    record.timestamp = field_map.get("timestamp").and_then(map_timestamp);
+
+    let duration = record
+        .timestamp
+        .as_ref()
+        .map(|x| Duration::between(x, session.time_created.as_ref().unwrap()));
+
+    record.duration = duration;
 
     record.distance = field_map
         .get("distance")
         .and_then(map_float64)
         .map(Length_f64::new::<meter>);
-
     record.altitude = field_map
         .get("enhanced_altitude")
         .and_then(map_float64)
         .map(Length_f64::new::<meter>);
 
     record.cadence = field_map.get("cadence").and_then(map_uint8);
-
     record.speed = field_map
         .get("enhanced_speed")
         .and_then(map_float64)
         .map(Velocity::new::<meter_per_second>);
-
     record.power = field_map.get("power").and_then(map_uint16);
-
+    record.calories = field_map.get("calories").and_then(map_uint16);
     record.heartrate = field_map.get("heart_rate").and_then(map_uint8);
+
+    record.stance_time = field_map
+        .get("stance_time")
+        .and_then(map_float64)
+        .map(types::Duration::from_secs_f64);
+    record.vertical_oscillation = field_map.get("vertical_oscillation").and_then(map_float64);
 
     record.lat = field_map
         .get("position_lat")
@@ -336,20 +326,20 @@ pub fn parse_record(fields: &[FitDataField], record: &mut types::Record, second_
 ///
 /// **Parameters:**
 ///
-///    `time_in_hr_zone: &Value` -- A fitparser value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html><br>
+///    `time_in_hr_zone: &Value` -- A fitparser array value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html>
 ///
 /// **Returns:**
 ///
-///   `Result<HrZones, Box<dyn Error>>` -- Either an Ok(HrZones) or an error depending on how it went.
+///   `HrZones` -- Returns an HrZones struct, which may or may not have values in its elements.
 ///
 /// **Example:**
 ///
 ///   ```rust
 ///   let tihz = field_map.get("time_in_hr_zone").unwrap();
-///   lap.time_in_hr_zones = parse_hr_zones(tihz).unwrap();
+///   lap.time_in_hr_zones = parse_hr_zones(tihz);
 ///   ```
 ///
-fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
+fn parse_hr_zones(time_in_hr_zone: &Value) -> HrZones {
     // TODO: Figure out a better way to read the original Array
     // Turn the Array into a string and strip out everything except the numbers.
     let tihz = time_in_hr_zone
@@ -376,5 +366,5 @@ fn parse_hr_zones(time_in_hr_zone: &Value) -> Result<HrZones, Box<dyn Error>> {
     };
 
     // return it
-    Ok(time_in_hr_zones)
+    time_in_hr_zones
 }

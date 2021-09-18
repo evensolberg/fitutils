@@ -137,9 +137,9 @@ pub struct Activity {
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
-    pub filename: String,
-    pub manufacturer: String,
-    pub time_created: TimeStamp,
+    pub filename: Option<String>,
+    pub manufacturer: Option<String>,
+    pub time_created: Option<TimeStamp>,
     pub activity_type: Option<String>,
     pub activity_detailed: Option<String>,
     pub num_sessions: Option<u16>,
@@ -165,11 +165,11 @@ pub struct Session {
     pub descent: Option<Length_u16>,
     pub calories: Option<u16>,
     pub distance: Option<Length_f64>,
-    pub duration: Duration,
-    pub duration_active: Duration,
-    pub duration_moving: Duration,
-    pub start_time: TimeStamp,
-    pub finish_time: TimeStamp,
+    pub duration: Option<Duration>,
+    pub duration_active: Option<Duration>,
+    pub duration_moving: Option<Duration>,
+    pub start_time: Option<TimeStamp>,
+    pub finish_time: Option<TimeStamp>,
     pub time_in_hr_zones: HrZones,
 }
 
@@ -184,9 +184,9 @@ impl Default for Session {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         Session {
-            filename: "".to_string(),
-            manufacturer: "".to_string(),
-            time_created: TimeStamp::default(),
+            filename: Some("".to_string()),
+            manufacturer: Some("".to_string()),
+            time_created: Some(TimeStamp::default()),
             activity_type: Some("".to_string()),
             activity_detailed: Some("".to_string()),
             num_sessions: Some(0),
@@ -212,11 +212,11 @@ impl Default for Session {
             descent: Some(Length_u16::new::<meter>(0)),
             calories: Some(0),
             distance: Some(Length_f64::new::<meter>(0.0)),
-            duration: Duration::default(),
-            duration_active: Duration::default(),
-            duration_moving: Duration::default(),
-            start_time: TimeStamp::default(),
-            finish_time: TimeStamp::default(),
+            duration: Some(Duration::default()),
+            duration_active: Some(Duration::default()),
+            duration_moving: Some(Duration::default()),
+            start_time: Some(TimeStamp::default()),
+            finish_time: Some(TimeStamp::default()),
             time_in_hr_zones: HrZones::default(),
         }
     }
@@ -227,8 +227,8 @@ impl Default for Session {
 #[derive(Default, Serialize, Deserialize, Debug)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
 pub struct Lap {
-    pub filename: String,
-    pub lap_num: u64,
+    pub filename: Option<String>,
+    pub lap_num: Option<u64>,
     pub cadence_avg: Option<u8>,
     pub cadence_max: Option<u8>,
     pub heartrate_min: Option<u8>,
@@ -242,17 +242,17 @@ pub struct Lap {
     pub lon_start: Option<f64>,
     pub lat_end: Option<f64>,
     pub lon_end: Option<f64>,
-    pub stance_time_avg: Option<f64>,
+    pub stance_time_avg: Option<Duration>,
     pub vertical_oscillation_avg: Option<f64>,
     pub ascent: Option<Length_u16>,
     pub descent: Option<Length_u16>,
     pub calories: Option<u16>,
     pub distance: Option<Length_f64>,
-    pub duration: Duration,
-    pub duration_active: Duration,
-    pub duration_moving: Duration,
-    pub start_time: TimeStamp,
-    pub finish_time: TimeStamp,
+    pub duration: Option<Duration>,
+    pub duration_active: Option<Duration>,
+    pub duration_moving: Option<Duration>,
+    pub start_time: Option<TimeStamp>,
+    pub finish_time: Option<TimeStamp>,
     pub time_in_hr_zones: HrZones,
 }
 
@@ -261,14 +261,17 @@ pub struct Lap {
 #[derive(Default, Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct Record {
-    pub timestamp: TimeStamp,
-    pub duration: Duration,
+    pub timestamp: Option<TimeStamp>,
+    pub duration: Option<Duration>,
     pub distance: Option<Length_f64>,
     pub altitude: Option<Length_f64>,
+    pub stance_time: Option<Duration>,
+    pub vertical_oscillation: Option<f64>,
     pub cadence: Option<u8>,
     pub speed: Option<Velocity>,
     pub power: Option<u16>,
     pub heartrate: Option<u8>,
+    pub calories: Option<u16>,
     pub lat: Option<f64>,
     pub lon: Option<f64>,
 }

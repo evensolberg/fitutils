@@ -76,13 +76,13 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     log::trace!("Data read. Extracting header.");
     let header = &file[0]; // There HAS to be a better way to do this!
-    log::debug!("Header kind: {:?}", header.kind());
+    log::debug!("Header: {:?}", header);
 
     log::trace!("Creating empty session.");
     let mut my_session = types::Session::new();
 
     log::trace!("Extracting manufacturer and session creation time.");
-    parsers::parse_header(header, &mut my_session);
+    parsers::parse_header(&fitfile_name, header, &mut my_session);
 
     // This is the main file parsing loop. This will definitely get expanded.
     log::trace!("Initializing temporary variables.");
@@ -100,22 +100,23 @@ fn run() -> Result<(), Box<dyn Error>> {
             // Figure out what kind it is and count accordingly
             MesgNum::Session => {
                 parsers::parse_session(data.fields(), &mut my_session);
-                my_session.filename = fitfile_name.to_string();
+                log::debug!("Session: {:?}", my_session);
                 num_sessions += 1;
             }
             MesgNum::Lap => {
                 let mut lap = Lap::default(); // Create an empty lap instance
-                parsers::parse_lap(data.fields(), &mut lap); // parse lap data
-                lap.filename = fitfile_name.to_string();
+                parsers::parse_lap(data.fields(), &mut lap, &my_session); // parse lap data
                 num_laps += 1;
-                lap.lap_num = num_laps;
+                lap.lap_num = Some(num_laps);
+                log::debug!("Lap {:3}: {:?}", num_laps, lap);
                 lap_vec.push(lap); // push the lap onto the vector
             }
             MesgNum::Record => {
                 // FIXME: This is very inefficient since we're instantiating this for every record
-                let mut current_record = Record::default();
-                parsers::parse_record(data.fields(), &mut current_record, num_records);
-                records_vec.push(current_record);
+                let mut record = Record::default();
+                parsers::parse_record(data.fields(), &mut record, &my_session);
+                log::debug!("Record: {:?}", record);
+                records_vec.push(record);
                 num_records += 1;
             }
             _ => (),
