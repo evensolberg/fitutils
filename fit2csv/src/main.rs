@@ -16,11 +16,10 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Import our own modules and types
-pub mod exporters;
+pub mod types;
 pub mod parsers;
 pub mod print_details;
-pub mod types;
-// use crate::types::*;
+pub mod exporters;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -77,8 +76,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         fitparser::profile::VERSION
     );
 
+    ///////////////////////////////////
+    // Working section
+
     // Parse the FIT file
     let my_activity = parsers::parse_fitfile(fitfile_name)?;
+
 
     // If not --quiet, print the summary information for the session
     log::trace!("Printing the header_struct if not quiet.");
@@ -86,8 +89,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         print_details::print_session(&my_activity.session);
     }
 
+
     // Write the data
     exporters::export_activity(&my_activity)?;
+
 
     // Everything is a-okay in the end
     Ok(())
