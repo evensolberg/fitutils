@@ -1,5 +1,4 @@
 //! Read one or more FIT files and dump their contents as JSON
-use fitparser;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -17,10 +16,10 @@ struct Cli {
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
-    /// Output location, if not provided the JSON file will be output alongside the input file. If a
-    /// directory is provided all FIT files will be written there using the same filename but with
-    /// a '.json' extension. If multiple FIT files are provided and the output path isn't a
-    /// directory the JSON array will store all records present in the order they were read. Using
+    /// Output location, if not provided, the JSON file will be output alongside the input file. If a
+    /// directory is provided, all FIT files will be written there using the same filename as the FIT file,
+    /// but with a '.json' extension. If multiple FIT files are provided and the output path isn't a
+    /// directory, the JSON array will store all records present in the order they were read. Using
     /// a "-" as the output file name will result in all content being printed to STDOUT.
     #[structopt(short, long, parse(from_os_str))]
     output: Option<PathBuf>,
