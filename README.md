@@ -6,3 +6,5 @@ This is a project consisting of several sub-modules:
 - **fit2json** -- Dumps a FIT file to JSON. This is mostly meant for debugging and digging out information for use in *fit2csv*
 
 More files may come in the future. :smile:
+
+See the [Kanban Boards](https://github.com/evensolberg/fit2csv/projects) for the overall roadmap and To Do lists.
