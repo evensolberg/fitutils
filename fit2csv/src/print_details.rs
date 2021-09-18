@@ -1,19 +1,23 @@
 use super::types;
 
 pub fn print_session(my_session: &types::Session) {
+    println!("\n{} summary:\n", my_session.filename.as_ref().unwrap());
     println!(
-        "Manufacturer: {}",
-        my_session.manufacturer.as_ref().unwrap()
-    );
-    println!(
-        "Time created: {}",
+        "Manufacturer: {}    Time created: {}",
+        my_session.manufacturer.as_ref().unwrap(),
         my_session.time_created.as_ref().unwrap()
     );
-    println!("Sessions:     {:5}", my_session.num_sessions.unwrap());
-    println!("Laps:         {:5}", my_session.num_laps.unwrap());
-    println!("Records:      {:5}", my_session.num_records.unwrap());
-    println!("\nTotal duration:  {}", my_session.duration.unwrap());
-    println!("Calories burned: {:8}", my_session.calories.unwrap());
+    println!(
+        "Sessions: {}      Laps: {:2}      Records: {}",
+        my_session.num_sessions.unwrap(),
+        my_session.num_laps.unwrap(),
+        my_session.num_records.unwrap()
+    );
+    println!(
+        "Total duration:  {}      Calories Burned: {}",
+        my_session.duration.unwrap(),
+        my_session.calories.unwrap()
+    );
     println!("\nTime in Zones:");
     println!(
         "Speed/Power: {}",

@@ -75,7 +75,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // open the file - return error if unable.
     let mut fp = File::open(fitfile_name)?;
-    log::debug!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
+    log::trace!("{} was read OK. File pointer name: {:?}", fitfile_name, fp);
 
     // Read and parse the file contents
     log::trace!("Reading data");
@@ -135,7 +135,6 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     log::trace!("Printing the header_struct if not quiet.");
     if !cli_args.is_present("quiet") {
-        println!("\n{} summary:", fitfile_name);
         print_details::print_session(&my_session);
     }
 
