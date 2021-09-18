@@ -46,6 +46,14 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .takes_value(false)
                 .hidden(true),
         )
+        .arg( // Don't print any information
+            Arg::with_name("quiet")
+                .short("q")
+                .long("quiet")
+                .multiple(false)
+                .help("Don't output any summary information about the file processed.")
+                .takes_value(false)
+        )
         .get_matches();
 
     let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
@@ -102,6 +110,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 parsers::parse_session(data.fields(), &mut my_session);
                 log::debug!("Session: {:?}", my_session);
                 num_sessions += 1;
+                my_session.num_sessions = Some(num_sessions);
             }
             MesgNum::Lap => {
                 let mut lap = Lap::default(); // Create an empty lap instance
@@ -118,37 +127,25 @@ fn run() -> Result<(), Box<dyn Error>> {
                 log::debug!("Record: {:?}", record);
                 records_vec.push(record);
                 num_records += 1;
+                my_session.num_records = Some(num_records);
             }
             _ => (),
         } // match
     } // for data
 
-    my_session.num_sessions = Some(num_sessions);
-    my_session.num_records = Some(num_records);
-
-    log::trace!("Printing the header_struct.");
-    println!("\n{} summary:", fitfile_name);
-    print_details::print_session(&my_session);
+    log::trace!("Printing the header_struct if not quiet.");
+    if !cli_args.is_present("quiet") {
+        println!("\n{} summary:", fitfile_name);
+        print_details::print_session(&my_session);
+    }
 
     let serialized_session = serde_json::to_string(&my_session).unwrap();
     log::trace!("serialized_session session: {}", serialized_session);
 
-    // Create the filename for the session output JSON file and write the file
-    let outfile_session = fitfile_name.to_lowercase().replace(".fit", ".json");
-    log::trace!("Writing JSON file {}", &outfile_session);
-    serde_json::to_writer_pretty(&File::create(&outfile_session)?, &my_session)
-        .expect("Unable to write session info to JSON file.");
-
-    // Write the laps to a CSV - need to explicitly write out the header because
-    // it doesn't serialize properly.
-    let outfile_laps = fitfile_name.to_lowercase().replace(".fit", ".laps.csv");
-    log::trace!("Writing lap CSV file {}", &outfile_laps);
-    exporters::export_laps_csv(&lap_vec, &outfile_laps)?;
-
-    // Write records to csv
-    let outfile_records = fitfile_name.to_lowercase().replace(".fit", ".csv");
-    log::trace!("Writing records CSV file {}", &outfile_records);
-    exporters::export_records_csv(&records_vec, &outfile_records)?;
+    // Write the data
+    exporters::export_session_json(&my_session, &fitfile_name)?;
+    exporters::export_laps_csv(&lap_vec, &fitfile_name)?;
+    exporters::export_records_csv(&records_vec, &fitfile_name)?;
 
     // Everything is a-okay in the end
     Ok(())

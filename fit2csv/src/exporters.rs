@@ -2,6 +2,7 @@
 use super::types;
 use csv::WriterBuilder;
 use std::error::Error;
+use std::fs::File;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Export the laps vector to a CSV file with the file name specified.
@@ -9,16 +10,37 @@ use std::error::Error;
 /// **Parameters:**
 ///
 ///    `lap_vec: &[types::Lap]` -- A vector of laps as parsed by the parse_laps function.<br>
-///    `filename: &str` -- The name of the CSV file into which we wish to write the contents of the laps.
+///    `filename: &str` -- The name of the FIT that we're reading from. The `.fit` extension will be replaced with `.laps.csv`.
+///
+/// **Returns:**
+///
+///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
+pub fn export_session_json(session: &types::Session, filename: &str) -> Result<(), Box<dyn Error>> {
+    let outfile = filename.to_lowercase().replace(".fit", ".session.json");
+    log::trace!("Writing JSON file {}", &outfile);
+    serde_json::to_writer_pretty(&File::create(&outfile)?, &session)
+        .expect("Unable to write session info to JSON file.");
+
+    Ok(())
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Export the laps vector to a CSV file with the file name specified.
+///
+/// **Parameters:**
+///
+///    `lap_vec: &[types::Lap]` -- A vector of laps as parsed by the parse_laps function.<br>
+///    `filename: &str` -- The name of the FIT that we're reading from. The `.fit` extension will be replaced with `.laps.csv`.
 ///
 /// **Returns:**
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_laps_csv(lap_vec: &[types::Lap], filename: &str) -> Result<(), Box<dyn Error>> {
+    let outfile = filename.to_lowercase().replace(".fit", ".laps.csv");
+    log::trace!("Writing lap CSV file {}", &outfile);
+
     // Create a buffer for the CSV
-    let mut lap_writer = WriterBuilder::new()
-        .has_headers(false)
-        .from_path(filename)?;
+    let mut lap_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
     // Write the header separately since types::Duration doesn't get serialized properly
     lap_writer.write_record(&[
@@ -81,16 +103,16 @@ pub fn export_laps_csv(lap_vec: &[types::Lap], filename: &str) -> Result<(), Box
 /// **Parameters:**
 ///
 ///    `rec_vec: &[types::Records]` -- A vector of records as parsed by the parse_laps function.<br>
-///    `filename: &str` -- The name of the CSV file into which we wish to write the contents of the laps.
+///    `filename: &str` -- The name of the FIT that we're reading from. The `.fit` extension will be replaced with `.records.csv`.
 ///
 /// **Returns:**
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_records_csv(rec_vec: &[types::Record], filename: &str) -> Result<(), Box<dyn Error>> {
+    let outfile = filename.to_lowercase().replace(".fit", ".records.csv");
+    log::trace!("Writing records CSV file {}", &outfile);
     // Create a buffer for the CSV
-    let mut rec_writer = WriterBuilder::new()
-        .has_headers(false)
-        .from_path(filename)?;
+    let mut rec_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
     // Write the header separately since types::Duration doesn't get serialized properly
     rec_writer.write_record(&[
