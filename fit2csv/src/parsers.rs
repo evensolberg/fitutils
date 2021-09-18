@@ -455,14 +455,12 @@ fn parse_hr_zones(time_in_hr_zone: &Value) -> HrZones {
         .map(Duration::from_millis_u64)
         .collect();
 
-    let time_in_hr_zones = HrZones {
+    // return it
+    HrZones {
         hr_zone_0: Some(t2[0]),
         hr_zone_1: Some(t2[1]),
         hr_zone_2: Some(t2[2]),
         hr_zone_3: Some(t2[3]),
         hr_zone_4: Some(t2[4]),
-    };
-
-    // return it
-    time_in_hr_zones
+    }
 }
