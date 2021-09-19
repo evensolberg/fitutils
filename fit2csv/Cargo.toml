@@ -14,7 +14,6 @@ fitparser = "0.4"  # Fitbit
 clap =  { version = "2.3.3" }
 log = "0.4.14"
 simple_logger = "1.11.0"
-thiserror = "1.0.29"
 
 # Time and measurement
 chrono = "0.4.19" # Improved Time and Date

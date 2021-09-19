@@ -24,7 +24,7 @@ pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for chrono::DateTime so we can derive Serialize and Deserialize traits
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TimeStamp(pub DateTime<Local>);
 
 impl Default for TimeStamp {
@@ -145,7 +145,7 @@ pub struct Activity {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information about the workout session
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
     pub filename: Option<String>,
     pub manufacturer: Option<String>,

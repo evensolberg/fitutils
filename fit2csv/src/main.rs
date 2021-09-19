@@ -62,7 +62,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         eprintln!("Missing file argument.\n{}", cli_args.usage());
         std::process::exit(1);
     } else {
-        println!("File argument: {:?}", cli_args.values_of("read").unwrap());
+        log::trace!("File argument: {:?}", cli_args.values_of("read").unwrap());
     }
 
     // Set up logging according to the number of times the debug flag has been supplied
@@ -84,6 +84,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     ///////////////////////////////////
     // Working section
 
+    let mut session_vec = Vec::new();
+
     for fitfile_name in fitfiles {
         log::debug!("Now processing: {}", fitfile_name);
 
@@ -96,8 +98,14 @@ fn run() -> Result<(), Box<dyn Error>> {
             print_details::print_session(&my_activity.session);
         }
 
+        // Push the session onto the summary vector
+        let my_session = my_activity.session.clone();
+        session_vec.push(my_session);
+        log::debug!("Session vector length: {}", session_vec.len());
+
         // Write the data
         exporters::export_activity(&my_activity)?;
+        exporters::export_sessions_csv(&session_vec)?;
     }
 
     // Everything is a-okay in the end
