@@ -16,23 +16,25 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Import our own modules and types
-pub mod types;
+pub mod exporters;
 pub mod parsers;
 pub mod print_details;
-pub mod exporters;
+pub mod types;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
+    println!("Check CLI arguments.");
     let cli_args = App::new("fit2csv")
         .about("Parses .FIT files to .JSON and .CSV")
         .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .csv file.")
         .arg(
             Arg::with_name("read")
-                .value_name("FILE")
+                .value_name("read")
                 .help("Read a file and display the contents")
-                .takes_value(true),
+                .takes_value(true)
+                .multiple(true),
         )
         .arg( // Hidden debug parameter
             Arg::with_name("debug")
@@ -55,6 +57,14 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
 
+    log::trace!("Checking if 'read' argument is present.");
+    if !cli_args.is_present("read") {
+        eprintln!("Missing file argument.\n{}", cli_args.usage());
+        std::process::exit(1);
+    } else {
+        println!("File argument: {:?}", cli_args.values_of("read").unwrap());
+    }
+
     // Set up logging according to the number of times the debug flag has been supplied
     match log_level {
         0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
@@ -63,14 +73,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // DEBUG BUILD: Get the input file name - use the dummy if nothing was supplied
-    #[cfg(debug_assertions)]
-    let fitfile_name = cli_args.value_of("read").unwrap_or("data/test.fit");
+    let fitfiles = cli_args.values_of("read").unwrap();
 
-    // RELEASE BUILD: Get the input file name. Complain if empty.
-    #[cfg(not(debug_assertions))]
-    let fitfile_name = cli_args.value_of("read").expect("FIT file name missing.");
-
-    log::debug!("Input file: {}", fitfile_name);
+    log::debug!("Input files: {:?}", fitfiles);
     log::debug!(
         "Parsing FIT files using Profile version: {}",
         fitparser::profile::VERSION
@@ -79,20 +84,21 @@ fn run() -> Result<(), Box<dyn Error>> {
     ///////////////////////////////////
     // Working section
 
-    // Parse the FIT file
-    let my_activity = parsers::parse_fitfile(fitfile_name)?;
+    for fitfile_name in fitfiles {
+        log::debug!("Now processing: {}", fitfile_name);
 
+        // Parse the FIT file
+        let my_activity = parsers::parse_fitfile(fitfile_name)?;
 
-    // If not --quiet, print the summary information for the session
-    log::trace!("Printing the header_struct if not quiet.");
-    if !cli_args.is_present("quiet") {
-        print_details::print_session(&my_activity.session);
+        // If not --quiet, print the summary information for the session
+        log::trace!("Printing the header_struct if not quiet.");
+        if !cli_args.is_present("quiet") {
+            print_details::print_session(&my_activity.session);
+        }
+
+        // Write the data
+        exporters::export_activity(&my_activity)?;
     }
-
-
-    // Write the data
-    exporters::export_activity(&my_activity)?;
-
 
     // Everything is a-okay in the end
     Ok(())

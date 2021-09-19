@@ -5,6 +5,7 @@
  * This will then be put into each line in the resulting CSV, so that each line essentially is self-contained.
  */
 use chrono::{offset::Local, DateTime};
+use serde::ser::{SerializeStruct, Serializer};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub};
 use uom::si::{
@@ -43,7 +44,7 @@ impl std::fmt::Display for TimeStamp {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for std::time::Duration so we can derive Serialize and Deserialize traits
-#[derive(Serialize, Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
+#[derive(Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Duration(std::time::Duration);
 
 impl Duration {
@@ -103,6 +104,18 @@ impl std::fmt::Display for Duration {
         let (h, s) = (s / 3600, s % 3600);
         let (m, s) = (s / 60, s % 60);
         write!(f, "{:02}:{:02}:{:02}", h, m, s)
+    }
+}
+
+impl Serialize for Duration {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // 3 is the number of fields in the struct.
+        let mut state = serializer.serialize_struct("Duration", 1)?;
+        state.serialize_field("secs", &self.0.as_secs_f32())?;
+        state.end()
     }
 }
 
@@ -290,7 +303,7 @@ pub struct Record {
 /// **Reference:**
 ///
 ///    <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
-#[derive(Default, Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Default, Deserialize, Debug, Clone, Copy)]
 #[serde(default)]
 pub struct HrZones {
     pub hr_zone_0: Option<Duration>,
@@ -298,4 +311,20 @@ pub struct HrZones {
     pub hr_zone_2: Option<Duration>,
     pub hr_zone_3: Option<Duration>,
     pub hr_zone_4: Option<Duration>,
+}
+
+impl Serialize for HrZones {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // 3 is the number of fields in the struct.
+        let mut state = serializer.serialize_struct("HrZones", 5)?;
+        state.serialize_field("hr_zone_0_secs", &self.hr_zone_0.unwrap().0.as_secs_f32())?;
+        state.serialize_field("hr_zone_1_secs", &self.hr_zone_1.unwrap().0.as_secs_f32())?;
+        state.serialize_field("hr_zone_2_secs", &self.hr_zone_2.unwrap().0.as_secs_f32())?;
+        state.serialize_field("hr_zone_3_secs", &self.hr_zone_3.unwrap().0.as_secs_f32())?;
+        state.serialize_field("hr_zone_4_secs", &self.hr_zone_4.unwrap().0.as_secs_f32())?;
+        state.end()
+    }
 }
