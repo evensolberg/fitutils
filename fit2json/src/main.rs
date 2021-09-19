@@ -7,11 +7,10 @@ use structopt::StructOpt;
 
 // Application-specific types
 pub mod types;
-use crate::types::OutputLocation;
 
 /// Parse FIT formatted files and output their data in the JSON format
 #[derive(Debug, StructOpt)]
-#[structopt(name = "fit_to_json")]
+#[structopt(name = "fit2json")]
 struct Cli {
     /// FIT files to convert to JSON
     #[structopt(name = "FILE", parse(from_os_str))]
@@ -30,8 +29,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let opt = Cli::from_args();
     let output_loc = opt
         .output
-        .map_or(OutputLocation::Inplace, OutputLocation::new);
-    let collect_all = matches!(output_loc, OutputLocation::LocalFile(_));
+        .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
+    let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
     if opt.files.is_empty() {
         let mut stdin = io::stdin();
         let data = fitparser::from_reader(&mut stdin)?;

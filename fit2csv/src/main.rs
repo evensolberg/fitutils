@@ -25,14 +25,14 @@ pub mod types;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    println!("Check CLI arguments.");
     let cli_args = App::new("fit2csv")
         .about("Parses .FIT files to .JSON and .CSV")
-        .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .csv file.")
+        .version("0.2.0")
+        .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
                 .value_name("read")
-                .help("Read a file and display the contents")
+                .help("Read a FIT file (or files) and process the contents.")
                 .takes_value(true)
                 .multiple(true),
         )
@@ -41,7 +41,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("d")
                 .long("debug")
                 .multiple(true)
-                .help("Output debug information as we go. Supply it twice for trace-level logs")
+                .help("Output debug information as we go. Supply it twice for trace-level logs.")
                 .takes_value(false)
                 .hidden(true),
         )
@@ -50,7 +50,15 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("q")
                 .long("quiet")
                 .multiple(false)
-                .help("Don't output any summary information about the file processed. ")
+                .help("Don't produce any output except errors while working.")
+                .takes_value(false)
+        )
+        .arg( // Don't print any information
+            Arg::with_name("summary")
+                .short("s")
+                .long("summary")
+                .multiple(false)
+                .help("Output summary detail for each session processed.")
                 .takes_value(false)
         )
         .get_matches();
@@ -87,14 +95,17 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut session_vec = Vec::new();
 
     for fitfile_name in fitfiles {
-        log::debug!("Now processing: {}", fitfile_name);
+        // If not quiet, indicate which file we're processing
+        if !cli_args.is_present("quiet") {
+            println!("Processing: {}", fitfile_name);
+        }
 
         // Parse the FIT file
         let my_activity = parsers::parse_fitfile(fitfile_name)?;
 
-        // If not --quiet, print the summary information for the session
-        log::trace!("Printing the header_struct if not quiet.");
-        if !cli_args.is_present("quiet") {
+        // If requested, print the summary information for the session
+        log::trace!("Printing the header_struct if requested.");
+        if cli_args.is_present("summary") {
             print_details::print_session(&my_activity.session);
         }
 
