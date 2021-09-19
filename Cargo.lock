@@ -188,7 +188,7 @@ dependencies = [
 
 [[package]]
 name = "fit2csv"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "clap",
@@ -203,7 +203,7 @@ dependencies = [
 
 [[package]]
 name = "fit2json"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fitparser",
  "serde",
