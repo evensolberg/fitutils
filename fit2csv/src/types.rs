@@ -18,13 +18,9 @@ use uom::si::{
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Used in calculating latitudes and longitudes.
-pub const MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Wrapper for chrono::DateTime so we can derive Serialize and Deserialize traits
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialOrd, PartialEq)]
 pub struct TimeStamp(pub DateTime<Local>);
 
 impl Default for TimeStamp {
@@ -53,16 +49,33 @@ impl Duration {
         Duration(std::time::Duration::from_secs_f64(secs))
     }
 
+    /// Get duration from milliseconds (u64).
     pub fn from_millis_u64(millis: u64) -> Self {
         Duration(std::time::Duration::from_millis(millis))
     }
 
-    /// Calculate the duration between two TimeStamps
+    /// Get duration from milliseconds (u32).
+    pub fn from_millis_u32(millis: u32) -> Self {
+        Duration(std::time::Duration::from_millis(millis as u64))
+    }
+
+    /// Calculate the duration between two TimeStamps, regardless of which comes first.
     pub fn between(ts1: &TimeStamp, ts2: &TimeStamp) -> Self {
-        Duration(
+        log::trace!(
+            "types::Duration::between() -- ts1: {:?} -- ts2: {:?}",
+            ts1,
+            ts2
+        );
+        Duration(if ts2 > ts1 {
+            // ts2 is after ts1
+            log::debug!("types::Duration::between() -- ts2 > ts1");
+            chrono::Duration::to_std(&ts2.0.signed_duration_since(ts1.0))
+                .expect("types::Duration::between() -- ts2 > ts1: Duration out of bounds.")
+        } else {
+            log::debug!("types::Duration::between() -- ts1 >= ts2");
             chrono::Duration::to_std(&ts1.0.signed_duration_since(ts2.0))
-                .expect("Duration out of bounds"),
-        )
+                .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
+        })
     }
 }
 
@@ -149,6 +162,8 @@ pub struct Activity {
 pub struct Session {
     pub filename: Option<String>,
     pub manufacturer: Option<String>,
+    pub product: Option<String>,
+    pub serial_number: Option<String>,
     pub time_created: Option<TimeStamp>,
     pub activity_type: Option<String>,
     pub activity_detailed: Option<String>,
@@ -196,6 +211,8 @@ impl Default for Session {
         Session {
             filename: Some("".to_string()),
             manufacturer: Some("".to_string()),
+            product: Some("".to_string()),
+            serial_number: Some("".to_string()),
             time_created: Some(TimeStamp::default()),
             activity_type: Some("".to_string()),
             activity_detailed: Some("".to_string()),
@@ -303,7 +320,7 @@ pub struct Record {
 /// **Reference:**
 ///
 ///    <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
-#[derive(Default, Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(default)]
 pub struct HrZones {
     pub hr_zone_0: Option<Duration>,
@@ -313,6 +330,26 @@ pub struct HrZones {
     pub hr_zone_4: Option<Duration>,
 }
 
+impl HrZones {
+    /// Initialize Session with default empty values
+    pub fn new() -> Self {
+        HrZones::default()
+    }
+}
+
+impl Default for HrZones {
+    /// Set defaults to be either empty or zero.
+    fn default() -> Self {
+        HrZones {
+            hr_zone_0: None,
+            hr_zone_1: None,
+            hr_zone_2: None,
+            hr_zone_3: None,
+            hr_zone_4: None,
+        }
+    }
+}
+
 impl Serialize for HrZones {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -320,11 +357,27 @@ impl Serialize for HrZones {
     {
         // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("HrZones", 5)?;
-        state.serialize_field("hr_zone_0_secs", &self.hr_zone_0.unwrap().0.as_secs_f32())?;
-        state.serialize_field("hr_zone_1_secs", &self.hr_zone_1.unwrap().0.as_secs_f32())?;
-        state.serialize_field("hr_zone_2_secs", &self.hr_zone_2.unwrap().0.as_secs_f32())?;
-        state.serialize_field("hr_zone_3_secs", &self.hr_zone_3.unwrap().0.as_secs_f32())?;
-        state.serialize_field("hr_zone_4_secs", &self.hr_zone_4.unwrap().0.as_secs_f32())?;
+        let dur_zero = Duration::from_millis_u64(0);
+        state.serialize_field(
+            "hr_zone_0_secs",
+            &self.hr_zone_0.unwrap_or(dur_zero).0.as_secs_f32(),
+        )?;
+        state.serialize_field(
+            "hr_zone_1_secs",
+            &self.hr_zone_1.unwrap_or(dur_zero).0.as_secs_f32(),
+        )?;
+        state.serialize_field(
+            "hr_zone_2_secs",
+            &self.hr_zone_2.unwrap_or(dur_zero).0.as_secs_f32(),
+        )?;
+        state.serialize_field(
+            "hr_zone_3_secs",
+            &self.hr_zone_3.unwrap_or(dur_zero).0.as_secs_f32(),
+        )?;
+        state.serialize_field(
+            "hr_zone_4_secs",
+            &self.hr_zone_4.unwrap_or(dur_zero).0.as_secs_f32(),
+        )?;
         state.end()
     }
 }

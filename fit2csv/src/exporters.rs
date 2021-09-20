@@ -190,6 +190,8 @@ pub fn export_sessions_csv(session_vec: &[types::Session]) -> Result<(), Box<dyn
     sess_writer.write_record(&[
         "filename",
         "manufacturer",
+        "product",
+        "serial_number",
         "time_created",
         "activity_type",
         "activity_detailed",

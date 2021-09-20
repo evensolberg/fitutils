@@ -1,10 +1,12 @@
 // use chrono::DateTime;
 // External crates
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
-use fitparser::{FitDataField, FitDataRecord, Value}; // .FIT file manipulation
+use fitparser::{FitDataField, Value}; // .FIT file manipulation
 use std::collections::HashMap;
+// use std::convert::TryInto;
 use std::error::Error;
 use std::fs::File;
+// use std::io::Error::ErrorKind;
 
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
@@ -18,6 +20,10 @@ use uom::si::{
 use super::types;
 use crate::types::{Activity, TimeStamp};
 use crate::types::{Duration, HrZones};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Used in calculating latitudes and longitudes.
+const LATLON_MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
@@ -61,25 +67,30 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> {
     // open the file - return error if unable.
     let mut fp = File::open(filename).expect("FIT file corrupt or not found.");
-    log::trace!("{} was read OK. File pointer name: {:?}", filename, fp);
+    log::trace!(
+        "parsers::parse_fitfile() -- {} was read OK. File pointer name: {:?}",
+        filename,
+        fp
+    );
 
     // Read and parse the file contents
-    log::trace!("Reading data");
+    log::trace!("parsers::parse_fitfile() -- Reading data");
     let file = fitparser::from_reader(&mut fp).expect("Unable to read FIT file.");
-    log::debug!("Data was read. Total number of records: {}", file.len());
+    log::debug!(
+        "parsers::parse_fitfile() -- Data was read. Total number of records: {}",
+        file.len()
+    );
 
-    log::trace!("Data read. Extracting header.");
+    log::trace!("parsers::parse_fitfile() -- Data read. Extracting header.");
     let header = &file[0]; // There HAS to be a better way to do this!
-    log::debug!("Header: {:?}", header);
+    log::debug!("parsers::parse_fitfile() -- Header: {:?}", header);
 
-    log::trace!("Creating empty session.");
+    log::trace!("parsers::parse_fitfile() -- Creating empty session.");
     let mut my_session = types::Session::new();
-
-    log::trace!("Extracting manufacturer and session creation time.");
-    parse_header(filename, header, &mut my_session);
+    my_session.filename = Some(filename.to_string());
 
     // This is the main file parsing loop. This will definitely get expanded.
-    log::trace!("Initializing temporary variables.");
+    log::trace!("parsers::parse_fitfile() -- Initializing temporary variables.");
     let mut num_records = 0;
     let mut num_sessions = 0;
     let mut num_laps = 0;
@@ -87,14 +98,22 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
     let mut records_vec: Vec<types::Record> = Vec::new();
 
     // This is where the actual parsing happens
-    log::debug!("Parsing data.");
+    log::debug!("parsers::parse_fitfile() -- Parsing data.");
     for data in file {
         // for each FitDataRecord
         match data.kind() {
-            // Figure out what kind it is and count accordingly
+            // Figure out what kind it is and parse accordingly
+            MesgNum::FileId => {
+                // File header
+                parse_header(data.fields(), &mut my_session);
+                log::debug!(
+                    "parsers::parse_fitfile() -- Session after parsing header: {:?}",
+                    my_session
+                );
+            }
             MesgNum::Session => {
                 parse_session(data.fields(), &mut my_session);
-                log::debug!("Session: {:?}", my_session);
+                log::debug!("parsers::parse_fitfile() -- Session: {:?}", my_session);
                 num_sessions += 1;
                 my_session.num_sessions = Some(num_sessions);
             }
@@ -103,14 +122,14 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
                 parse_lap(data.fields(), &mut lap, &my_session); // parse lap data
                 num_laps += 1;
                 lap.lap_num = Some(num_laps);
-                log::debug!("Lap {:3}: {:?}", num_laps, lap);
+                log::debug!("parsers::parse_fitfile() -- Lap {:3}: {:?}", num_laps, lap);
                 lap_vec.push(lap); // push the lap onto the vector
             }
             MesgNum::Record => {
                 // FIXME: This is very inefficient since we're instantiating this for every record
                 let mut record = types::Record::default();
                 parse_record(data.fields(), &mut record, &my_session);
-                log::debug!("Record: {:?}", record);
+                log::debug!("parsers::parse_fitfile() -- Record: {:?}", record);
                 records_vec.push(record);
                 num_records += 1;
                 my_session.num_records = Some(num_records);
@@ -120,7 +139,10 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
     } // for data
 
     let serialized_session = serde_json::to_string(&my_session).unwrap();
-    log::trace!("serialized_session session: {}", serialized_session);
+    log::trace!(
+        "parsers::parse_fitfile() -- serialized_session session: {}",
+        serialized_session
+    );
 
     // Build the activity
     let my_activity = Activity {
@@ -138,16 +160,24 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
 ///
 /// **Parameters:**
 ///
-///    `fields: &[FitDataRecord]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataRecord.html><br>
+///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
 ///    `session: &mut types::Session` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
 ///
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-fn parse_header(filename: &str, header: &FitDataRecord, session: &mut types::Session) {
-    session.manufacturer = Some(header.fields()[1].value().to_string());
-    session.time_created = map_timestamp(&header.fields()[3].value());
-    session.filename = Some(filename.to_string());
+fn parse_header(fields: &[FitDataField], session: &mut types::Session) {
+    let field_map: HashMap<&str, &fitparser::Value> =
+        fields.iter().map(|x| (x.name(), x.value())).collect();
+    log::trace!(
+        "parsers::parse_header() -- Header field_map = {:?}",
+        field_map
+    );
+
+    session.manufacturer = field_map.get("manufacturer").and_then(map_string);
+    session.product = field_map.get("product").and_then(map_string);
+    session.serial_number = field_map.get("serial_number").and_then(map_string);
+    session.time_created = field_map.get("time_created").and_then(map_timestamp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,19 +228,19 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.nec_lat = field_map
         .get("nec_lat")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     session.nec_lon = field_map
         .get("nec_long")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     session.swc_lat = field_map
         .get("swc_lat")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     session.swc_lon = field_map
         .get("swc_long")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 
     session.ascent = field_map
         .get("total_ascent")
@@ -245,7 +275,7 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
-    let tihz = field_map.get("time_in_hr_zone").unwrap();
+    let tihz = field_map.get("time_in_hr_zone");
     session.time_in_hr_zones = parse_hr_zones(tihz);
     log::trace!("session.time_in_hr_zones = {:?}", session.time_in_hr_zones);
 }
@@ -304,19 +334,19 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     lap.lat_start = field_map
         .get("start_position_lat")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     lap.lon_start = field_map
         .get("start_position_long")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     lap.lat_end = field_map
         .get("end_position_lat")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
     lap.lon_end = field_map
         .get("end_position_long")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 
     lap.ascent = field_map
         .get("total_ascent")
@@ -349,7 +379,7 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     lap.start_time = field_map.get("start_time").and_then(map_timestamp);
     lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
 
-    let tihz = field_map.get("time_in_hr_zone").unwrap();
+    let tihz = field_map.get("time_in_hr_zone");
     lap.time_in_hr_zones = parse_hr_zones(tihz);
 }
 
@@ -411,12 +441,12 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
     record.lat = field_map
         .get("position_lat")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 
     record.lon = field_map
         .get("position_long")
         .and_then(map_sint32)
-        .map(|x| f64::from(x) * types::MULTIPLIER);
+        .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,34 +463,39 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
 /// **Example:**
 ///
 ///   ```rust
-///   let tihz = field_map.get("time_in_hr_zone").unwrap();
+///   let tihz = field_map.get("time_in_hr_zone");
 ///   lap.time_in_hr_zones = parse_hr_zones(tihz);
 ///   ```
 ///
-fn parse_hr_zones(time_in_hr_zone: &Value) -> HrZones {
-    // TODO: Figure out a better way to read the original Array
-    // Turn the Array into a string and strip out everything except the numbers.
-    let tihz = time_in_hr_zone
-        .to_string()
-        .replace("UInt32(", "")
-        .replace(")", "")
-        .replace("[", "")
-        .replace("]", "")
-        .replace(",", "");
+fn parse_hr_zones(time_in_hr_zone: Option<&&Value>) -> HrZones {
+    let mut hr_zones = HrZones::new();
+    log::debug!("time_in_hr_zone = {:?}", time_in_hr_zone);
 
-    // Split the numbers, turn them into u64, convert to Duration and collect to a vector
-    let t2: Vec<Duration> = tihz
-        .split(' ')
-        .map(|x| str::parse::<u64>(x).unwrap())
-        .map(Duration::from_millis_u64)
-        .collect();
+    match time_in_hr_zone {
+        Some(Value::Array(thiz_vec)) => {
+            log::trace!("parse_hr_zones: Found Array(UInt32): {:?}", thiz_vec);
+
+            // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
+            let t2: Vec<Duration> = thiz_vec
+                .iter()
+                .map(|x| x.to_string().parse::<u64>().unwrap())
+                .map(Duration::from_millis_u64)
+                .collect();
+
+            log::debug!("tihz = {:?}", t2);
+
+            hr_zones.hr_zone_0 = Some(t2[0]);
+            hr_zones.hr_zone_1 = Some(t2[1]);
+            hr_zones.hr_zone_2 = Some(t2[2]);
+            hr_zones.hr_zone_3 = Some(t2[3]);
+            hr_zones.hr_zone_4 = Some(t2[4]);
+        }
+        _ => {
+            log::trace!("parse_hr_zones: Empty or None. Using default.");
+        }
+    }
 
     // return it
-    HrZones {
-        hr_zone_0: Some(t2[0]),
-        hr_zone_1: Some(t2[1]),
-        hr_zone_2: Some(t2[2]),
-        hr_zone_3: Some(t2[3]),
-        hr_zone_4: Some(t2[4]),
-    }
+    log::debug!("hr_zones = {:?}", hr_zones);
+    hr_zones
 }

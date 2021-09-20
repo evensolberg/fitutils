@@ -10,3 +10,4 @@ tree.txt
 **/*.json
 **/*.csv
 Cargo.lock
+*.lock

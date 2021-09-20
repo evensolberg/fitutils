@@ -1,0 +1,63 @@
+2021-09-20 08:25:25,304 TRACE [fit2csv] File argument: Values { iter: Map { iter: Iter(["data/unexpected_eof.fit"]) } }
+2021-09-20 08:25:25,305 DEBUG [fit2csv] Input files: Values { iter: Map { iter: Iter(["data/unexpected_eof.fit"]) } }
+2021-09-20 08:25:25,305 TRACE [fit2csv] Parsing FIT files using Profile version: 21.54.01
+Processing: data/unexpected_eof.fit
+2021-09-20 08:25:25,306 TRACE [fit2csv::parsers] data/unexpected_eof.fit was read OK. File pointer name: File { fd: 3, path: "/Users/evensolberg/CloudStation/Source/Rust/fitparser/data/unexpected_eof.fit", read: true, write: false }
+2021-09-20 08:25:25,306 TRACE [fit2csv::parsers] Reading data
+thread 'main' panicked at 'Unable to read FIT file.: UnexpectedEof(Size(18446744073709547981))', fit2csv/src/parsers.rs:74:48
+stack backtrace:
+   0:        0x100926784 - std::backtrace_rs::backtrace::libunwind::trace::hd9b9204470182ffc
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/../../backtrace/src/backtrace/libunwind.rs:90:5
+   1:        0x100926784 - std::backtrace_rs::backtrace::trace_unsynchronized::hdc48b9180be04761
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/../../backtrace/src/backtrace/mod.rs:66:5
+   2:        0x100926784 - std::sys_common::backtrace::_print_fmt::h8824de041faf4112
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/sys_common/backtrace.rs:67:5
+   3:        0x100926784 - <std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt::h8d168763f08a78b9
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/sys_common/backtrace.rs:46:22
+   4:        0x100943e8c - core::fmt::write::h0fa46d4891ed63f1
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/core/src/fmt/mod.rs:1115:17
+   5:        0x10092409a - std::io::Write::write_fmt::hacbf9e10e17149ce
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/io/mod.rs:1665:15
+   6:        0x10092842f - std::sys_common::backtrace::_print::h26213154a400cfbe
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/sys_common/backtrace.rs:49:5
+   7:        0x10092842f - std::sys_common::backtrace::print::h0f4ab60f53d1f93b
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/sys_common/backtrace.rs:36:9
+   8:        0x10092842f - std::panicking::default_hook::{{closure}}::hee7cf38dedfa76fc
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:208:50
+   9:        0x100927f2d - std::panicking::default_hook::hd12252412832a45f
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:225:9
+  10:        0x100928b30 - std::panicking::rust_panic_with_hook::h521fd09e07057893
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:622:17
+  11:        0x1009285d5 - std::panicking::begin_panic_handler::{{closure}}::h3588a5a9cca9e8e5
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:519:13
+  12:        0x100926c28 - std::sys_common::backtrace::__rust_end_short_backtrace::h86522c151a195ff9
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/sys_common/backtrace.rs:141:18
+  13:        0x10092853a - rust_begin_unwind
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:515:5
+  14:        0x100951b2f - core::panicking::panic_fmt::h8ab5bf5f27d0a26a
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/core/src/panicking.rs:92:14
+  15:        0x100951c15 - core::result::unwrap_failed::ha249df8fad19d4e8
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/core/src/result.rs:1599:5
+  16:        0x10081d32e - fit2csv::parsers::parse_fitfile::hcd12fb37902c6a15
+  17:        0x100827ab2 - fit2csv::main::h1c87fb8dc2feca8a
+  18:        0x10081dfca - std::sys_common::backtrace::__rust_begin_short_backtrace::h54f3baac0414f023
+  19:        0x10081fe7c - std::rt::lang_start::{{closure}}::h1213a51a90fb0323
+  20:        0x100928f79 - core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once::h5adc1669b25f044b
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/core/src/ops/function.rs:259:13
+  21:        0x100928f79 - std::panicking::try::do_call::h405f88a3fec16587
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:401:40
+  22:        0x100928f79 - std::panicking::try::h86d9af92fb3c6022
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:365:19
+  23:        0x100928f79 - std::panic::catch_unwind::h67150880d2b87901
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panic.rs:434:14
+  24:        0x100928f79 - std::rt::lang_start_internal::{{closure}}::h548e43d03023c928
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/rt.rs:45:48
+  25:        0x100928f79 - std::panicking::try::do_call::h1383affbfec23244
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:401:40
+  26:        0x100928f79 - std::panicking::try::hf51149bda74e8587
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panicking.rs:365:19
+  27:        0x100928f79 - std::panic::catch_unwind::h8280208a4f5e7cf4
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/panic.rs:434:14
+  28:        0x100928f79 - std::rt::lang_start_internal::h5f9b030f0a63c040
+                               at /rustc/c8dfcfe046a7680554bf4eb612bad840e7631c4b/library/std/src/rt.rs:45:20
+  29:        0x1008286f9 - _main

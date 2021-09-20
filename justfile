@@ -27,6 +27,7 @@ alias br := buildr
 # Compile a release version of the project without moving the binaries
 @buildr: format
     cargo lbuild --release --color 'always'
+    cargo strip
 
 # Cleans and builds again
 @rebuild: format

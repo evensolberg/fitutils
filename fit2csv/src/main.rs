@@ -27,7 +27,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = App::new("fit2csv")
         .about("Parses .FIT files to .JSON and .CSV")
-        .version("0.2.0")
+        .version("0.2.5")
         .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
@@ -53,19 +53,32 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Don't produce any output except errors while working.")
                 .takes_value(false)
         )
-        .arg( // Don't print any information
-            Arg::with_name("summary")
+        .arg( // Print summary information
+            Arg::with_name("print-summary")
                 .short("s")
-                .long("summary")
+                .long("print-summary")
+                .multiple(false)
+                .help("Output summary detail for each session processed.")
+                .takes_value(false)
+        )
+        .arg( // Don't print any information
+            Arg::with_name("summary-only")
+                .short("o")
+                .long("summary-only")
                 .multiple(false)
                 .help("Output summary detail for each session processed.")
                 .takes_value(false)
         )
         .get_matches();
 
+    // Set up logging according to the number of times the debug flag has been supplied
     let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
+    match log_level {
+        0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
+        1 => SimpleLogger::new().with_level(LevelFilter::Debug).init()?,
+        _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
+    }
 
-    log::trace!("Checking if 'read' argument is present.");
     if !cli_args.is_present("read") {
         eprintln!("Missing file argument.\n{}", cli_args.usage());
         std::process::exit(1);
@@ -73,18 +86,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::trace!("File argument: {:?}", cli_args.values_of("read").unwrap());
     }
 
-    // Set up logging according to the number of times the debug flag has been supplied
-    match log_level {
-        0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
-        1 => SimpleLogger::new().with_level(LevelFilter::Debug).init()?,
-        _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
-    }
-
-    // DEBUG BUILD: Get the input file name - use the dummy if nothing was supplied
     let fitfiles = cli_args.values_of("read").unwrap();
-
     log::debug!("Input files: {:?}", fitfiles);
-    log::debug!(
+    log::trace!(
         "Parsing FIT files using Profile version: {}",
         fitparser::profile::VERSION
     );
@@ -105,7 +109,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // If requested, print the summary information for the session
         log::trace!("Printing the header_struct if requested.");
-        if cli_args.is_present("summary") {
+        if cli_args.is_present("print-summary") {
             print_details::print_session(&my_activity.session);
         }
 
@@ -115,7 +119,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::debug!("Session vector length: {}", session_vec.len());
 
         // Write the data
-        exporters::export_activity(&my_activity)?;
+        if !cli_args.is_present("summary-only") {
+            exporters::export_activity(&my_activity)?;
+        }
         exporters::export_sessions_csv(&session_vec)?;
     }
 
