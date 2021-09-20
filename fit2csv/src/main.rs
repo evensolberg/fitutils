@@ -31,8 +31,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
-                .value_name("read")
-                .help("Read a FIT file (or files) and process the contents.")
+                .value_name("FILE(S)")
+                .help("One or more .fit file(s) to process. Wildcards and multiple files (e.g. 2019*.fit 2020*.fit) are supported.")
                 .takes_value(true)
                 .multiple(true),
         )
@@ -66,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("o")
                 .long("summary-only")
                 .multiple(false)
-                .help("Output summary detail for each session processed.")
+                .help("Don't output detail files for each session processed.")
                 .takes_value(false)
         )
         .get_matches();
