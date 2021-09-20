@@ -66,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("o")
                 .long("summary-only")
                 .multiple(false)
-                .help("Don't output detail files for each session processed.")
+                .help("Don't output detail files for each session processed. Only create the summary file sessions.csv")
                 .takes_value(false)
         )
         .get_matches();
@@ -101,7 +101,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     for fitfile_name in fitfiles {
         // If not quiet, indicate which file we're processing
         if !cli_args.is_present("quiet") {
-            println!("Processing: {}", fitfile_name);
+            log::info!("Processing: {}", fitfile_name);
         }
 
         // Parse the FIT file

@@ -73,17 +73,24 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
         fp
     );
 
-    // Read and parse the file contents
-    log::trace!("parsers::parse_fitfile() -- Reading data");
-    let file = fitparser::from_reader(&mut fp).expect("Unable to read FIT file.");
+    // Deserialize the file contents
+    log::trace!("parsers::parse_fitfile() -- Deserializing file.");
+    let file = match fitparser::from_reader(&mut fp) {
+        Ok(data) => data,
+        Err(e) => {
+            log::error!(
+                "parsers::parse_fitfile() -- Error reading source {:?}: {:?}. Exiting.",
+                fp,
+                e
+            );
+            std::process::exit(1);
+        }
+    };
+
     log::debug!(
-        "parsers::parse_fitfile() -- Data was read. Total number of records: {}",
+        "parsers::parse_fitfile() -- Data was deserialized. Total number of records: {}",
         file.len()
     );
-
-    log::trace!("parsers::parse_fitfile() -- Data read. Extracting header.");
-    let header = &file[0]; // There HAS to be a better way to do this!
-    log::debug!("parsers::parse_fitfile() -- Header: {:?}", header);
 
     log::trace!("parsers::parse_fitfile() -- Creating empty session.");
     let mut my_session = types::Session::new();
@@ -126,7 +133,7 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
                 lap_vec.push(lap); // push the lap onto the vector
             }
             MesgNum::Record => {
-                // FIXME: This is very inefficient since we're instantiating this for every record
+                // FIXME: This is inefficient since we're instantiating this for every record
                 let mut record = types::Record::default();
                 parse_record(data.fields(), &mut record, &my_session);
                 log::debug!("parsers::parse_fitfile() -- Record: {:?}", record);
@@ -137,12 +144,6 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
             _ => (),
         } // match
     } // for data
-
-    let serialized_session = serde_json::to_string(&my_session).unwrap();
-    log::trace!(
-        "parsers::parse_fitfile() -- serialized_session session: {}",
-        serialized_session
-    );
 
     // Build the activity
     let my_activity = Activity {
