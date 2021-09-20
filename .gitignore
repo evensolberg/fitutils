@@ -11,3 +11,5 @@ tree.txt
 **/*.csv
 Cargo.lock
 *.lock
+trace.txt
+debug.txt
