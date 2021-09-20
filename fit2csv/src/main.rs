@@ -58,7 +58,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("s")
                 .long("print-summary")
                 .multiple(false)
-                .help("Output summary detail for each session processed.")
+                .help("Print summary detail for each session processed.")
                 .takes_value(false)
         )
         .arg( // Don't print any information
@@ -66,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("o")
                 .long("summary-only")
                 .multiple(false)
-                .help("Don't output detail files for each session processed. Only create the summary file sessions.csv")
+                .help("Don't produce detail files for each session processed. Only create the summary file sessions.csv")
                 .takes_value(false)
         )
         .get_matches();
@@ -80,7 +80,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     if !cli_args.is_present("read") {
-        eprintln!("Missing file argument.\n{}", cli_args.usage());
+        log::error!(
+            "Missing file argument. Try again with -h for assistance.\n{}",
+            cli_args.usage()
+        );
         std::process::exit(1);
     } else {
         log::trace!("File argument: {:?}", cli_args.values_of("read").unwrap());
