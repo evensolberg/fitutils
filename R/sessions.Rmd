@@ -1,5 +1,5 @@
 ---
-title: "Fit File Session Summaries"
+title: "Fit File Session Analysis"
 author: "Even Solberg"
 output: html_document
 ---
@@ -7,18 +7,27 @@ Report date: `r Sys.Date()`
 
 ```{r setup, include=FALSE}
 # Configure Page Settings -------------------------------------------------
+# REF: https://yihui.org/knitr/options/#chunk-options
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE) 
+knitr::opts_chunk$set(tidy = TRUE)
 knitr::opts_chunk$set(fig.align = "left")
 
 # Load Required Packages --------------------------------------------------
+if (!require("devtools")) install.packages("devtools")
 if (!require("pacman")) install.packages("pacman")
+
 pacman::p_load(tidyverse)
 pacman::p_load(ggplot2)
+pacman::p_load(viridis)
 pacman::p_load(here)
-pacman::p_load(kableExtra)
 pacman::p_load(formattable)
+
+if (!require("kableExtra")) devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0")
+library(kableExtra)
+
+#pacman::p_load(kableExtra)
 
 # Helper Functions --------------------------------------------------------
 not_all_na <- function(x) any(!is.na(x))
@@ -28,11 +37,23 @@ not_any_na <- function(x) all(!is.na(x))
 # Change this to point to where ever your sessions.csv can be found.
 sessions <- read_csv(here("data/sessions.csv")) %>%
     select_if(not_all_na) # Remove empty columns
+
+laps <- read_csv(here("data/test.laps.csv")) %>%
+    select_if(not_all_na) %>% # Remove empty columns
+    rename(Lap = lap_num,
+           "0: Warmup" = heart_rate_zone0_sec, 
+           "1: Fat Burn" = heart_rate_zone1_sec,
+           "2: Aerobic" = heart_rate_zone2_sec,
+           "3: Anaerobic" = heart_rate_zone3_sec,
+           "4: Speed/Power" = heart_rate_zone4_sec)
+
+records = read_csv(here("data/test.records.csv")) %>%
+  select_if(not_all_na) # Remove empty columns
 ```
 
 ## Activities
 
-```{r plot_activities, message=FALSE}
+```{r plot_activities}
 #Create the graphic
 sessions %>%
   group_by(activity_type)%>%
@@ -41,6 +62,7 @@ sessions %>%
   
   ggplot(aes(x = reorder(activity_type, n), y = n, fill = activity_type)) +
     geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_viridis(discrete = TRUE, option = "viridis", direction = 1) +
     geom_text(aes(label = n), position = position_dodge(width= 1), vjust= 0, hjust = -0.25, size = 3) +
     scale_y_continuous(breaks = seq(0, 1000, 10) ) +
     coord_flip() +
@@ -58,6 +80,96 @@ sessions %>%
   kable(col.names = c("Activity", "Number of Activities", "Average Duration", "Total Duration"),
         align = c("l", rep("r", 3)),
         caption = "Activity Overview Statistics") %>%
+  kable_classic() %>%
   kable_styling(bootstrap_options = c("striped", "condensed"),
                 font_size = 11, full_width = FALSE, position = "left")
+```
+
+## Activity Detail
+
+Taken from the `test.fit` file.
+
+### Laps
+
+Laps were set manually every 77 calories (7.7 calories = 1g fat burned)
+
+#### Heart Rate and Cadence
+
+```{r plot_lap_cadence}
+laps %>%
+  select (Lap, cadence_avg_bpm, cadence_max_bpm) %>%
+  rename(`Avg RPM` = cadence_avg_bpm, `Max RPM` = cadence_max_bpm) %>%
+  pivot_longer(cols = ends_with("RPM"), names_to = "Cadence", values_to = "Value") %>%
+
+  ggplot(aes(x = Lap, y = Value, fill = Cadence)) +
+    geom_col(position = "dodge") +
+    scale_x_continuous(breaks = seq(0, 1000, 1) ) +
+    scale_y_continuous(breaks = seq(0, 1000, 10) ) +
+    scale_fill_brewer(palette = "Paired") +
+    theme_light() +
+    labs(x = "Lap #", y = "RPM", title = "Cadence Summary", fill = "Cadence")
+```
+
+
+```{r plot_lap_hr}
+laps %>%
+  select (Lap, heartrate_avg_bpm, heartrate_max_bpm) %>%
+  rename(`Avg BPM` = heartrate_avg_bpm, `Max BPM` = heartrate_max_bpm) %>%
+  pivot_longer(cols = ends_with("BPM"), names_to = "Heart Rate", values_to = "Value") %>%
+
+  ggplot(aes(x = Lap, y = Value, fill = `Heart Rate`)) +
+    geom_col(position = "dodge") +
+    scale_x_continuous(breaks = seq(0, 1000, 1) ) +
+    scale_y_continuous(breaks = seq(0, 1000, 10) ) +
+    scale_fill_brewer(palette = "Reds") +
+    theme_light() +
+    labs(x = "Lap #", y = "BPM", title = "Heart Rate Summary", fill = "Heart Rate")
+```
+
+
+#### Heart Rate Zones
+
+```{r plot_laps}
+laps %>%
+  select(Lap, `0: Warmup`, `1: Fat Burn`, `2: Aerobic`, `3: Anaerobic`, `4: Speed/Power`) %>%
+  pivot_longer(cols = c(`0: Warmup`, `1: Fat Burn`, `2: Aerobic`, `3: Anaerobic`, `4: Speed/Power`), names_to = "HR Zone", values_to = "Seconds") %>%
+  
+  ggplot(aes(x = Lap, y = Seconds, fill = `HR Zone`)) + 
+    scale_x_continuous(breaks = seq(0, 1000, 1) ) +
+    scale_y_continuous(breaks = seq(0, 1000, 60) ) +
+    geom_col() +
+    scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+    theme_light() +
+    theme(legend.position = "bottom") +
+    labs(fill = "HR Zone:  ")
+
+laps %>% 
+  select(Lap, `0: Warmup`, `1: Fat Burn`, `2: Aerobic`, `3: Anaerobic`, `4: Speed/Power` ) %>%
+  mutate(`0: Warmup` = str_to_lower(lubridate::seconds_to_period(round(`0: Warmup`, 1))),
+         `1: Fat Burn` = str_to_lower(lubridate::seconds_to_period(round(`1: Fat Burn`, 1))),
+         `2: Aerobic` = str_to_lower(lubridate::seconds_to_period(round(`2: Aerobic`, 1))),
+         `3: Anaerobic` = str_to_lower(lubridate::seconds_to_period(round(`3: Anaerobic`, 1))),
+         `4: Speed/Power` = str_to_lower(lubridate::seconds_to_period(round(`4: Speed/Power`)))) %>%
+  
+  kable(align = c("c", rep("r", 5)),
+        caption = "Time in Heart Rate Zones") %>%
+  kable_classic() %>%
+  kable_styling(bootstrap_options = c("condensed"),
+                font_size = 11, full_width = FALSE, position = "left", repeat_header_continued = FALSE) 
+```
+
+## Records
+
+```{r records}
+records %>%
+  select(duration_sec, heartrate_bpm, cadence_bpm) %>%
+  rename(Second = duration_sec, `Heart Rate` = heartrate_bpm, Cadence = cadence_bpm) %>%
+  pivot_longer(cols = c(`Heart Rate`, Cadence), names_to = "Metric", values_to = "Value") %>%
+  
+  ggplot(aes(x = Second, y = Value, colour = Metric)) +
+    geom_line() +
+    scale_color_discrete(type = c("#0055CC", "#F8766D")) +
+    scale_x_time() +
+    theme_light() +
+    labs(x = "Duration", y = "", title = "Heart Rate vs Cadence", colour = "Metric")
 ```

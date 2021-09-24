@@ -3,4 +3,5 @@
 members = [
     "fit2csv",
     "fit2json",
+    "gpx2csv",
 ]

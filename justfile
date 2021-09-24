@@ -37,10 +37,11 @@ alias br := buildr
 # Cleans up the project directory
 @clean:
     cargo clean
-    -rm tree.txt
-    -rm graph.png
-    -rm debug.txt
-    -rm trace.txt
+    -rm tree.txt > /dev/null 2>&1
+    -rm graph.png > /dev/null 2>&1
+    -rm debug.txt > /dev/null 2>&1
+    -rm trace.txt > /dev/null 2>&1
+    -rm bom.txt > /dev/null 2>&1
 
 # Documents the project, builds and installs the release version, and cleans up
 @release: format
@@ -58,6 +59,7 @@ alias br := buildr
     cargo doc --no-deps
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
+    cargo bom > bom.txt
     tokei
     cargo outdated
 
@@ -66,7 +68,9 @@ alias br := buildr
     cargo doc
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
+    cargo bom > bom.txt
     tokei
+    cargo outdated
 
 # Formats the project source files
 @format:
