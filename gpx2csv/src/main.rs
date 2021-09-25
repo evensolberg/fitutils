@@ -1,32 +1,24 @@
-/*
-    This is very much a work in progress. I expect eventually
-    a lot of code will get broken out into separate modules.
-*/
-
-// See Cargo.toml for crates versions
-// Crates Usage:
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
 
 use clap::{App, Arg}; // Command line
-
-use std::error::Error;
 
 // Logging
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
-// Import our own modules and types
-pub mod exporters;
-pub mod parsers;
-pub mod print_details;
-pub mod types;
+// Read GPX
+use gpx::{Gpx, Track, TrackSegment};
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// This is where the magic happens.
+// pub mod types;
+pub mod parsers;
+
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = App::new("fit2csv")
-        .about("Parses .FIT files to .JSON and .CSV")
-        .version("0.2.5")
+        .about("Parses .GPX files to .JSON and .CSV")
+        .version("0.0.1")
         .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
@@ -78,58 +70,28 @@ fn run() -> Result<(), Box<dyn Error>> {
         _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
-    if !cli_args.is_present("read") {
-        log::error!(
-            "Missing file argument. Try again with -h for assistance.\n{}",
-            cli_args.usage()
-        );
-        std::process::exit(1);
-    } else {
-        log::trace!("File argument: {:?}", cli_args.values_of("read").unwrap());
-    }
+    let file = File::open("../data/running.gpx")?;
+    let reader = BufReader::new(file);
 
-    let fitfiles = cli_args.values_of("read").unwrap();
-    log::debug!("Input files: {:?}", fitfiles);
-    log::trace!(
-        "Parsing FIT files using Profile version: {}",
-        fitparser::profile::VERSION
-    );
+    // read takes any io::Read and gives a Result<Gpx, Error>.
+    let gpx: Gpx = gpx::read(reader)?;
+    log::trace!("gpx = {:?}", gpx);
+    log::debug!("gpx.metadata = {:?}", gpx.metadata);
 
-    ///////////////////////////////////
-    // Working section
+    println!("GPX Version = {}", parsers::gpx_ver_to_string(&gpx.version));
 
-    let mut session_vec = Vec::new();
+    // Each GPX file has multiple "tracks", this takes the first one.
+    let track: &Track = &gpx.tracks[0];
+    log::trace!("track = {:?}", track);
 
-    for fitfile_name in fitfiles {
-        // If not quiet, indicate which file we're processing
-        if !cli_args.is_present("quiet") {
-            log::info!("Processing: {}", fitfile_name);
-        }
-
-        // Parse the FIT file
-        let my_activity = parsers::parse_fitfile(fitfile_name)?;
-
-        // If requested, print the summary information for the session
-        log::trace!("Printing the header_struct if requested.");
-        if cli_args.is_present("print-summary") {
-            print_details::print_session(&my_activity.session);
-        }
-
-        // Push the session onto the summary vector
-        let my_session = my_activity.session.clone();
-        session_vec.push(my_session);
-        log::debug!("Session vector length: {}", session_vec.len());
-
-        // Write the data
-        if !cli_args.is_present("summary-only") {
-            exporters::export_activity(&my_activity)?;
-        }
-        exporters::export_sessions_csv(&session_vec)?;
-    }
+    // Each track will have different segments full of waypoints, where a
+    // waypoint contains info like latitude, longitude, and elevation.
+    let segment: &TrackSegment = &track.segments[0];
+    log::trace!("segment = {:?}", segment);
 
     // Everything is a-okay in the end
     Ok(())
-} // fn run()
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// The actual executable function that gets called when the program in invoked.

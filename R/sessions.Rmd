@@ -70,7 +70,7 @@ sessions %>%
     theme(legend.position = "none") +
     labs(x = "Activity", y = "Count", title = "Activities Summary", fill = "Activity")
 
-# Create the table
+# Activities Summaries
 sessions %>%
   group_by(activity_type) %>%
   mutate(activity_type = str_to_title(activity_type)) %>%
@@ -80,6 +80,47 @@ sessions %>%
   kable(col.names = c("Activity", "Number of Activities", "Average Duration", "Total Duration"),
         align = c("l", rep("r", 3)),
         caption = "Activity Overview Statistics") %>%
+  kable_classic() %>%
+  kable_styling(bootstrap_options = c("striped", "condensed"),
+                font_size = 11, full_width = FALSE, position = "left")
+
+sessions %>%
+  summarise(`0: Warmup` = sum(time_in_hr_zone_0_sec),
+            `1: Fat Burn` = sum(time_in_hr_zone_1_sec),
+            `2: Aerobic` = sum(time_in_hr_zone_2_sec),
+            `3: Anaerobic` = sum(time_in_hr_zone_3_sec),
+            `4: Speed/Power` = sum(time_in_hr_zone_4_sec)) %>%
+  pivot_longer(cols = c(`0: Warmup`, `1: Fat Burn`, `2: Aerobic`, `3: Anaerobic`, `4: Speed/Power`), names_to = "HR Zone", values_to = "Time") %>%
+
+  ggplot(aes(x = `HR Zone`, y = Time, fill = `HR Zone`)) +
+    geom_col() +
+    scale_y_time() +
+    scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+    coord_flip() +
+    theme_light() +
+    theme(legend.position = "none") +
+    labs(x = "HR Zone", y = "Hours", title = "Heart Rate Zone Summary", fill = "Activity")
+
+
+# HR Zone Summaries
+sessions %>%
+  summarise(`0: Warmup` = sum(time_in_hr_zone_0_sec),
+            `1: Fat Burn` = sum(time_in_hr_zone_1_sec),
+            `2: Aerobic` = sum(time_in_hr_zone_2_sec),
+            `3: Anaerobic` = sum(time_in_hr_zone_3_sec),
+            `4: Speed/Power` = sum(time_in_hr_zone_4_sec)
+            ) %>%
+  mutate(`0: Warmup` = str_to_lower(lubridate::seconds_to_period(round(`0: Warmup`,0))),
+         `1: Fat Burn` = str_to_lower(lubridate::seconds_to_period(round(`1: Fat Burn`,0))),
+         `2: Aerobic` = str_to_lower(lubridate::seconds_to_period(round(`2: Aerobic`,0))),
+         `3: Anaerobic` = str_to_lower(lubridate::seconds_to_period(round(`3: Anaerobic`,0))),
+         `4: Speed/Power` = str_to_lower(lubridate::seconds_to_period(round(`4: Speed/Power`,0)))
+            ) %>%
+  pivot_longer(cols = c(`0: Warmup`, `1: Fat Burn`, `2: Aerobic`, `3: Anaerobic`, `4: Speed/Power`), names_to = "HR Zone", values_to = "Time") %>%
+  arrange(desc(`HR Zone`)) %>%
+
+  kable(align = c("l", rep("r", 1)),
+        caption = "Heart Rate Zone Totals") %>%
   kable_classic() %>%
   kable_styling(bootstrap_options = c("striped", "condensed"),
                 font_size = 11, full_width = FALSE, position = "left")
@@ -160,7 +201,7 @@ laps %>%
 
 ## Records
 
-```{r records}
+```{r records, fig.width=10}
 records %>%
   select(duration_sec, heartrate_bpm, cadence_bpm) %>%
   rename(Second = duration_sec, `Heart Rate` = heartrate_bpm, Cadence = cadence_bpm) %>%
@@ -171,5 +212,6 @@ records %>%
     scale_color_discrete(type = c("#0055CC", "#F8766D")) +
     scale_x_time() +
     theme_light() +
-    labs(x = "Duration", y = "", title = "Heart Rate vs Cadence", colour = "Metric")
+    theme(legend.position = "top") +
+    labs(x = "Duration", y = "Frequency (per min)", title = "Heart Rate vs Cadence", colour = "Measurement:  ")
 ```
