@@ -3,11 +3,8 @@
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 use fitparser::{FitDataField, Value}; // .FIT file manipulation
 use std::collections::HashMap;
-// use std::convert::TryInto;
 use std::error::Error;
 use std::fs::File;
-// use std::io::Error::ErrorKind;
-
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
     length::meter,
@@ -15,8 +12,7 @@ use uom::si::{
     velocity::meter_per_second,
 };
 
-// Local crates
-// use super::exporters;
+// Local modules
 use super::types;
 use crate::types::{Activity, TimeStamp};
 use crate::types::{Duration, HrZones};
@@ -195,7 +191,10 @@ fn parse_header(fields: &[FitDataField], session: &mut types::Session) {
 fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
-    log::trace!("Session field_map = {:?}", field_map);
+    log::trace!(
+        "Sparsers::parse_session() -- ession field_map = {:?}",
+        field_map
+    );
 
     session.activity_type = field_map.get("sport").and_then(map_string);
     session.activity_detailed = field_map.get("sub_sport").and_then(map_string);
@@ -278,7 +277,10 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     let tihz = field_map.get("time_in_hr_zone");
     session.time_in_hr_zones = parse_hr_zones(tihz);
-    log::trace!("session.time_in_hr_zones = {:?}", session.time_in_hr_zones);
+    log::trace!(
+        "parsers::parse_header() -- session.time_in_hr_zones = {:?}",
+        session.time_in_hr_zones
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,11 +301,11 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     // Note that the value is an enum and contain a number of different types
     // See the fitparser crate for details
     lap.filename = session.filename.to_owned();
-    log::trace!("Lap filename = {:?}", lap.filename);
+    log::trace!("parsers::parse_lap() -- Lap filename = {:?}", lap.filename);
 
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
-    log::trace!("Lap field_map = {:?}", field_map);
+    log::trace!("parsers::parse_lap() -- Lap field_map = {:?}", field_map);
 
     lap.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
     lap.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
@@ -404,7 +406,10 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
 
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
-    log::trace!("Record field map = {:?}", field_map);
+    log::trace!(
+        "parsers::parse_record() -- Record field map = {:?}",
+        field_map
+    );
 
     record.timestamp = field_map.get("timestamp").and_then(map_timestamp);
 
@@ -470,11 +475,17 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
 ///
 fn parse_hr_zones(time_in_hr_zone: Option<&&Value>) -> HrZones {
     let mut hr_zones = HrZones::new();
-    log::debug!("time_in_hr_zone = {:?}", time_in_hr_zone);
+    log::debug!(
+        "parsers::parse_hr_zones() -- time_in_hr_zone = {:?}",
+        time_in_hr_zone
+    );
 
     match time_in_hr_zone {
         Some(Value::Array(thiz_vec)) => {
-            log::trace!("parse_hr_zones: Found Array(UInt32): {:?}", thiz_vec);
+            log::trace!(
+                "parsers::parse_hr_zones() -- Found Array(UInt32): {:?}",
+                thiz_vec
+            );
 
             // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
             let t2: Vec<Duration> = thiz_vec
@@ -492,11 +503,11 @@ fn parse_hr_zones(time_in_hr_zone: Option<&&Value>) -> HrZones {
             hr_zones.hr_zone_4 = Some(t2[4]);
         }
         _ => {
-            log::trace!("parse_hr_zones: Empty or None. Using default.");
+            log::trace!("parsers::parse_hr_zones() -- Empty or None. Using default.");
         }
     }
 
     // return it
-    log::debug!("hr_zones = {:?}", hr_zones);
+    log::debug!("parsers::parse_hr_zones() -- hr_zones = {:?}", hr_zones);
     hr_zones
 }

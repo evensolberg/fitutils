@@ -85,13 +85,16 @@ fn run() -> Result<(), Box<dyn Error>> {
         );
         std::process::exit(1);
     } else {
-        log::trace!("File argument: {:?}", cli_args.values_of("read").unwrap());
+        log::trace!(
+            "main::run() -- File argument: {:?}",
+            cli_args.values_of("read").unwrap()
+        );
     }
 
     let fitfiles = cli_args.values_of("read").unwrap();
-    log::debug!("Input files: {:?}", fitfiles);
+    log::debug!("main::run() -- Input files: {:?}", fitfiles);
     log::trace!(
-        "Parsing FIT files using Profile version: {}",
+        "main:run() -- Parsing FIT files using Profile version: {}",
         fitparser::profile::VERSION
     );
 
@@ -110,7 +113,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         let my_activity = parsers::parse_fitfile(fitfile_name)?;
 
         // If requested, print the summary information for the session
-        log::trace!("Printing the header_struct if requested.");
+        log::trace!("main:run() -- Printing the header_struct if requested.");
         if cli_args.is_present("print-summary") {
             print_details::print_session(&my_activity.session);
         }
@@ -118,7 +121,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         // Push the session onto the summary vector
         let my_session = my_activity.session.clone();
         session_vec.push(my_session);
-        log::debug!("Session vector length: {}", session_vec.len());
+        log::debug!("main:run() -- Session vector length: {}", session_vec.len());
 
         // Write the data
         if !cli_args.is_present("summary-only") {

@@ -133,20 +133,6 @@ impl Serialize for Duration {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-pub enum ActivityType {
-    Running,
-    Cycling,
-    Rowing,
-    Other(String),
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-pub enum Unit {
-    Metric,
-    Imperial,
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the all the information about the file and its contents
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
@@ -160,7 +146,7 @@ pub struct Activity {
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
-    pub filename: Option<String>,
+    pub filename: Option<String>, // TODO: Switch to PathBuf
     pub manufacturer: Option<String>,
     pub product: Option<String>,
     pub serial_number: Option<String>,

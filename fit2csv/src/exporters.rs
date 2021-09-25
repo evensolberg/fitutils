@@ -3,6 +3,7 @@ use super::types;
 use csv::WriterBuilder;
 use std::error::Error;
 use std::fs::File;
+use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Export the activity into its constituent JSON and CSV parts:
@@ -37,17 +38,19 @@ pub fn export_activity(activity: &types::Activity) -> Result<(), Box<dyn Error>>
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_session_json(activity: &types::Activity) -> Result<(), Box<dyn Error>> {
-    let outfile = activity
-        .session
-        .filename
-        .as_ref()
-        .unwrap()
-        .to_lowercase()
-        .replace(".fit", ".session.json");
-    log::trace!("Writing JSON file {}", &outfile);
-    serde_json::to_writer_pretty(&File::create(&outfile)?, &activity.session)
+    // Change the file extension
+    let mut export_path = PathBuf::from(&activity.session.filename.as_ref().unwrap());
+    export_path.set_extension("session.json");
+    log::trace!(
+        "exporter::export_session_json() -- Writing JSON file {}",
+        &export_path.to_str().unwrap()
+    );
+
+    // Write the session data to JSON
+    serde_json::to_writer_pretty(&File::create(&export_path)?, &activity.session)
         .expect("Unable to write session info to JSON file.");
 
+    // Everything is OK
     Ok(())
 }
 
@@ -62,14 +65,13 @@ pub fn export_session_json(activity: &types::Activity) -> Result<(), Box<dyn Err
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_laps_csv(activity: &types::Activity) -> Result<(), Box<dyn Error>> {
-    let outfile = activity
-        .session
-        .filename
-        .as_ref()
-        .unwrap()
-        .to_lowercase()
-        .replace(".fit", ".laps.csv");
-    log::trace!("Writing lap CSV file {}", &outfile);
+    // Change the file extension
+    let mut outfile = PathBuf::from(&activity.session.filename.as_ref().unwrap());
+    outfile.set_extension("laps.csv");
+    log::trace!(
+        "exporter::export_laps_csv() -- Writing lap CSV file {}",
+        &outfile.to_str().unwrap()
+    );
 
     // Create a buffer for the CSV
     let mut lap_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
@@ -131,14 +133,14 @@ pub fn export_laps_csv(activity: &types::Activity) -> Result<(), Box<dyn Error>>
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_records_csv(activity: &types::Activity) -> Result<(), Box<dyn Error>> {
-    let outfile = activity
-        .session
-        .filename
-        .as_ref()
-        .unwrap()
-        .to_lowercase()
-        .replace(".fit", ".records.csv");
-    log::trace!("Writing records CSV file {}", &outfile);
+    // Change the file extension
+    let mut outfile = PathBuf::from(&activity.session.filename.as_ref().unwrap());
+    outfile.set_extension("laps.csv");
+    log::trace!(
+        "exporter::export_records_csv() -- Writing records CSV file {}",
+        &outfile.to_str().unwrap()
+    );
+
     // Create a buffer for the CSV
     let mut rec_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
@@ -182,9 +184,14 @@ pub fn export_records_csv(activity: &types::Activity) -> Result<(), Box<dyn Erro
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
 pub fn export_sessions_csv(session_vec: &[types::Session]) -> Result<(), Box<dyn Error>> {
     // Create a buffer for the CSV
+    let outfile = PathBuf::from("sessions.csv");
     let mut sess_writer = WriterBuilder::new()
         .has_headers(false)
-        .from_path("sessions.csv")?;
+        .from_path(&outfile)?;
+    log::trace!(
+        "exporter::export_sessions_csv() -- Writing session summaries to CSV file: {}.",
+        &outfile.to_str().unwrap()
+    );
 
     // Write the header separately since types::Duration doesn't get serialized properly
     sess_writer.write_record(&[
