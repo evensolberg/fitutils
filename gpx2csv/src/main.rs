@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use std::path::PathBuf;
 
 use clap::{App, Arg}; // Command line
 
@@ -11,8 +12,9 @@ use simple_logger::SimpleLogger;
 // Read GPX
 use gpx::{Gpx, Track, TrackSegment};
 
-// pub mod types;
+// Local modules
 pub mod parsers;
+pub mod types;
 
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
@@ -70,7 +72,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
-    let file = File::open("../data/running.gpx")?;
+    let filename = "../data/running.gpx";
+    let file = File::open(&filename)?;
     let reader = BufReader::new(file);
 
     // read takes any io::Read and gives a Result<Gpx, Error>.
@@ -78,7 +81,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("gpx = {:?}", gpx);
     log::debug!("gpx.metadata = {:?}", gpx.metadata);
 
-    println!("GPX Version = {}", parsers::gpx_ver_to_string(&gpx.version));
+    // Fill the GPX Header info so we can serialize it later
+    let mut metadata = parsers::parse_gpx_header(&gpx)?;
+    metadata.filename = Some(PathBuf::from(&filename));
+    log::debug!("main::run() -- GPX Metadata header: {:?}", metadata);
 
     // Each GPX file has multiple "tracks", this takes the first one.
     let track: &Track = &gpx.tracks[0];

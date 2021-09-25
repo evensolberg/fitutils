@@ -1,7 +1,10 @@
 [package]
 name = "gpx2csv"
 version = "0.0.1"
+license = "Apache-2.0"
+authors = ["evensolberg <even.solberg@gmail.com>"]
 edition = "2018"
+include = ["src/**/*", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

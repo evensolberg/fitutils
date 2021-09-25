@@ -1,13 +1,14 @@
-use serde::ser::{SerializeStruct, Serializer};
-use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct GpxMetadata {
+    pub filename: Option<PathBuf>,
     pub version: Option<String>,
     pub creator: Option<String>,
     pub activity: Option<String>,
@@ -28,6 +29,7 @@ impl Default for GpxMetadata {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         GpxMetadata {
+            filename: Some(PathBuf::new()),
             version: Some("".to_string()),
             creator: Some("".to_string()),
             activity: Some("".to_string()),
