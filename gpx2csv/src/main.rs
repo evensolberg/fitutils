@@ -13,6 +13,7 @@ use simple_logger::SimpleLogger;
 use gpx::{Gpx, Track, TrackSegment};
 
 // Local modules
+pub mod exporters;
 pub mod parsers;
 pub mod types;
 
@@ -85,6 +86,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut metadata = parsers::parse_gpx_header(&gpx)?;
     metadata.filename = Some(PathBuf::from(&filename));
     log::debug!("main::run() -- GPX Metadata header: {:?}", metadata);
+    exporters::export_session_json(&metadata)?;
 
     // Each GPX file has multiple "tracks", this takes the first one.
     let track: &Track = &gpx.tracks[0];
