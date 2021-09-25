@@ -5,7 +5,7 @@ use std::fs::File;
 use super::types;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Holds the metadata information about the file and its contents
+/// Export the metadata information about the file and its contents to a JSON file
 pub fn export_session_json(gpx_data: &types::GpxMetadata) -> Result<(), Box<dyn Error>> {
     // Get the filename from the struct and replace .gpx with .session.json
     let mut filename = gpx_data.filename.as_ref().unwrap().to_path_buf();

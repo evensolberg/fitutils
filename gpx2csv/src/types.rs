@@ -16,6 +16,9 @@ pub struct GpxMetadata {
     pub author: Option<String>,
     pub links_href: Option<String>,
     pub time: Option<DateTime<Utc>>,
+    pub copyright_author: Option<String>,
+    pub copyright_year: Option<i32>,
+    pub copyright_license: Option<String>,
 }
 
 impl GpxMetadata {
@@ -29,14 +32,17 @@ impl Default for GpxMetadata {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         GpxMetadata {
-            filename: Some(PathBuf::new()),
-            version: Some("".to_string()),
-            creator: Some("".to_string()),
-            activity: Some("".to_string()),
-            description: Some("".to_string()),
-            author: Some("".to_string()),
-            links_href: Some("".to_string()),
-            time: Some(chrono::offset::Utc::now()),
+            filename: None,
+            version: None,
+            creator: None,
+            activity: None,
+            description: None,
+            author: None,
+            links_href: None,
+            time: None,
+            copyright_author: None,
+            copyright_year: None,
+            copyright_license: None,
         }
     }
 }
