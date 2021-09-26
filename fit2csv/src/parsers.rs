@@ -14,8 +14,7 @@ use uom::si::{
 
 // Local modules
 use super::types;
-use crate::types::{Activity, TimeStamp};
-use crate::types::{Duration, HrZones};
+use crate::types::{Activity, Duration, HrZones, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Used in calculating latitudes and longitudes.
