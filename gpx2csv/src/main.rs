@@ -22,11 +22,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = App::new("fit2csv")
         .about("Parses .GPX files to .JSON and .CSV")
         .version("0.0.1")
-        .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
+        .long_about("This program will read a .gpx file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
                 .value_name("FILE(S)")
-                .help("One or more .fit file(s) to process. Wildcards and multiple files (e.g. 2019*.fit 2020*.fit) are supported.")
+                .help("One or more .gpx file(s) to process. Wildcards and multiple files (e.g. 2019*.gpx 2020*.gpx) are supported.")
                 .takes_value(true)
                 .multiple(true),
         )
@@ -79,8 +79,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // read takes any io::Read and gives a Result<Gpx, Error>.
     let gpx: Gpx = gpx::read(reader)?;
-    log::trace!("gpx = {:?}", gpx);
-    log::debug!("gpx.metadata = {:?}", gpx.metadata);
+    log::debug!("main::run() -- gpx.metadata = {:?}", gpx.metadata);
+    log::trace!("\nmain::run() -- gpx = {:?}", gpx);
 
     // Fill the GPX Header info so we can serialize it later
     let mut metadata = parsers::parse_gpx_header(&gpx)?;
@@ -89,13 +89,20 @@ fn run() -> Result<(), Box<dyn Error>> {
     exporters::export_session_json(&metadata)?;
 
     // Each GPX file has multiple "tracks", this takes the first one.
+    log::debug!("main::run() -- Number of tracks: {}", &gpx.tracks.len());
     let track: &Track = &gpx.tracks[0];
-    log::trace!("track = {:?}", track);
+    log::trace!("\nmain::run() -- track = {:?}", track);
 
     // Each track will have different segments full of waypoints, where a
     // waypoint contains info like latitude, longitude, and elevation.
+    log::debug!(
+        "main::run() -- Number of segments: {}",
+        &track.segments.len()
+    );
     let segment: &TrackSegment = &track.segments[0];
-    log::trace!("segment = {:?}", segment);
+    log::trace!("\nmain::run() -- segment = {:?}", segment);
+
+    log::debug!("main::run() -- Number of Routes: {}", &gpx.routes.len());
 
     // Everything is a-okay in the end
     Ok(())
