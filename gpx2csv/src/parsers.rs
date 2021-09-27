@@ -1,4 +1,4 @@
-use gpx::Gpx;
+use gpx::{Gpx, Track, TrackSegment};
 use std::error::Error;
 
 // Local modules
@@ -90,4 +90,11 @@ pub fn parse_gpx_header(gpx_data: &Gpx) -> Result<types::GpxMetadata, Box<dyn Er
 
     // return the metadata struct
     Ok(gpx_meta)
+}
+
+pub fn parse_gpx_track(gpx_track: &gpx::Track) -> Result<types::Track, Box<dyn Error>> {
+    let return_track = types::Track::new();
+
+    // Return OK
+    Ok(return_track)
 }

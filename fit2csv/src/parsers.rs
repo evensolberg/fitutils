@@ -274,12 +274,7 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 
     session.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
-    let tihz = field_map.get("time_in_hr_zone");
-    session.time_in_hr_zones = parse_hr_zones(tihz);
-    log::trace!(
-        "parsers::parse_header() -- session.time_in_hr_zones = {:?}",
-        session.time_in_hr_zones
-    );
+    session.time_in_hr_zones = HrZones::from(field_map.get("time_in_hr_zone"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -381,8 +376,7 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     lap.start_time = field_map.get("start_time").and_then(map_timestamp);
     lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
 
-    let tihz = field_map.get("time_in_hr_zone");
-    lap.time_in_hr_zones = parse_hr_zones(tihz);
+    lap.time_in_hr_zones = HrZones::from(field_map.get("time_in_hr_zone"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -452,61 +446,4 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
         .get("position_long")
         .and_then(map_sint32)
         .map(|x| f64::from(x) * LATLON_MULTIPLIER);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Parses heart rate zone information into more detail.
-///
-/// **Parameters:**
-///
-///    `time_in_hr_zone: &Value` -- A fitparser array value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html>
-///
-/// **Returns:**
-///
-///   `HrZones` -- Returns an HrZones struct, which may or may not have values in its elements.
-///
-/// **Example:**
-///
-///   ```rust
-///   let tihz = field_map.get("time_in_hr_zone");
-///   lap.time_in_hr_zones = parse_hr_zones(tihz);
-///   ```
-///
-fn parse_hr_zones(time_in_hr_zone: Option<&&Value>) -> HrZones {
-    let mut hr_zones = HrZones::new();
-    log::debug!(
-        "parsers::parse_hr_zones() -- time_in_hr_zone = {:?}",
-        time_in_hr_zone
-    );
-
-    match time_in_hr_zone {
-        Some(Value::Array(thiz_vec)) => {
-            log::trace!(
-                "parsers::parse_hr_zones() -- Found Array(UInt32): {:?}",
-                thiz_vec
-            );
-
-            // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
-            let t2: Vec<Duration> = thiz_vec
-                .iter()
-                .map(|x| x.to_string().parse::<u64>().unwrap())
-                .map(Duration::from_millis_u64)
-                .collect();
-
-            log::debug!("tihz = {:?}", t2);
-
-            hr_zones.hr_zone_0 = Some(t2[0]);
-            hr_zones.hr_zone_1 = Some(t2[1]);
-            hr_zones.hr_zone_2 = Some(t2[2]);
-            hr_zones.hr_zone_3 = Some(t2[3]);
-            hr_zones.hr_zone_4 = Some(t2[4]);
-        }
-        _ => {
-            log::trace!("parsers::parse_hr_zones() -- Empty or None. Using default.");
-        }
-    }
-
-    // return it
-    log::debug!("parsers::parse_hr_zones() -- hr_zones = {:?}", hr_zones);
-    hr_zones
 }

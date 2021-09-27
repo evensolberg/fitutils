@@ -52,3 +52,39 @@ impl Default for GpxMetadata {
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Holds the high-level information about each track
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
+pub struct Track {
+    pub activity: Option<String>,
+    pub comment: Option<String>,
+    pub description: Option<String>,
+    pub source: Option<String>,
+    pub links_href: Option<String>,
+    pub links_text: Option<String>,
+    pub _type: Option<String>,
+    // pub segments: Vec<gpx::TrackSegment>,
+}
+
+impl Track {
+    pub fn new() -> Self {
+        Track::default()
+    }
+}
+
+impl Default for Track {
+    /// Set defaults to be either empty or zero.
+    fn default() -> Self {
+        Track {
+            activity: None,
+            comment: None,
+            description: None,
+            source: None,
+            links_href: None,
+            links_text: None,
+            _type: None,
+        }
+    }
+}
