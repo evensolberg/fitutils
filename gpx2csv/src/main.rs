@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::PathBuf;
 
 use clap::{App, Arg}; // Command line
 
@@ -10,11 +9,12 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Read GPX
-use gpx::{Gpx, Track, TrackSegment};
+use gpx::Gpx;
+
+use crate::types::GpxMetadata;
 
 // Local modules
 pub mod exporters;
-pub mod parsers;
 pub mod types;
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -83,26 +83,33 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("\nmain::run() -- gpx = {:?}", gpx);
 
     // Fill the GPX Header info so we can serialize it later
-    let mut metadata = parsers::parse_gpx_header(&gpx)?;
-    metadata.filename = Some(PathBuf::from(&filename));
+    let metadata = GpxMetadata::from_header(&gpx, &filename);
     log::debug!("main::run() -- GPX Metadata header: {:?}", metadata);
     exporters::export_session_json(&metadata)?;
 
     // Each GPX file has multiple "tracks", this takes the first one.
-    log::debug!("main::run() -- Number of tracks: {}", &gpx.tracks.len());
-    let track: &Track = &gpx.tracks[0];
+    log::debug!(
+        "main::run() -- gpx:Number of waypoints: {}",
+        metadata.num_waypoints
+    );
+    log::debug!(
+        "main::run() -- gpx:Number of tracks: {}",
+        metadata.num_tracks
+    );
+    log::debug!(
+        "main::run() -- gpx:Number of routes: {}",
+        metadata.num_routes
+    );
+
+    let track = types::Track::from_gpx_track(&gpx.tracks[0]);
     log::trace!("\nmain::run() -- track = {:?}", track);
 
     // Each track will have different segments full of waypoints, where a
     // waypoint contains info like latitude, longitude, and elevation.
     log::debug!(
-        "main::run() -- Number of segments: {}",
-        &track.segments.len()
+        "main::run() -- track::Number of segments: {}",
+        track.num_segments
     );
-    let segment: &TrackSegment = &track.segments[0];
-    log::trace!("\nmain::run() -- segment = {:?}", segment);
-
-    log::debug!("main::run() -- Number of Routes: {}", &gpx.routes.len());
 
     // Everything is a-okay in the end
     Ok(())
