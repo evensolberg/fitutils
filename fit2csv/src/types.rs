@@ -5,7 +5,6 @@
  * This will then be put into each line in the resulting CSV, so that each line essentially is self-contained.
  */
 use chrono::{offset::Local, DateTime};
-use fitparser;
 use serde::ser::{SerializeStruct, Serializer};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub};
@@ -19,7 +18,6 @@ use uom::si::{
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// Wrapper for chrono::DateTime so we can derive Serialize and Deserialize traits
 #[derive(Serialize, Deserialize, Debug, Clone, PartialOrd, PartialEq)]
 pub struct TimeStamp(pub DateTime<Local>);
@@ -318,14 +316,59 @@ pub struct HrZones {
 }
 
 impl HrZones {
-    /// Initialize Session with default empty values
+    /// Initialize HrZones with default empty values
     pub fn new() -> Self {
         HrZones::default()
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Initialize HrZones from a HrZone array from the fitparser
+    ///
+    /// **Parameters:**
+    ///
+    ///    `src: Option<&&fitparser::Value>` -- A fitparser array value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html>
+    ///
+    /// **Returns:**
+    ///
+    ///   `Self` -- Returns a new HrZones struct, which may or may not have values in its elements.
+    ///
+    /// **Example:**
+    ///
+    ///   ```rust
+    ///   lap.time_in_hr_zones = HzZones::from(field_map.get("time_in_hr_zone"));
+    ///   ```
+    ///
+    pub fn from(src: Option<&&fitparser::Value>) -> Self {
+        let mut hr_zones = HrZones::new();
+
+        match src {
+            Some(fitparser::Value::Array(tihz_vec)) => {
+                // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
+                // FIXME: There has to be a better way to get the value
+                let t2: Vec<Duration> = tihz_vec
+                    .iter()
+                    .map(|x| x.to_string().parse::<u64>().unwrap())
+                    .map(Duration::from_millis_u64)
+                    .collect();
+
+                hr_zones.hr_zone_0 = Some(t2[0]);
+                hr_zones.hr_zone_1 = Some(t2[1]);
+                hr_zones.hr_zone_2 = Some(t2[2]);
+                hr_zones.hr_zone_3 = Some(t2[3]);
+                hr_zones.hr_zone_4 = Some(t2[4]);
+            }
+            _ => {
+                // HrZones default = None for everything
+            }
+        }
+
+        // return it
+        hr_zones
     }
 }
 
 impl Default for HrZones {
-    /// Set defaults to be either empty or zero.
+    /// Set defaults to be all `None`.
     fn default() -> Self {
         HrZones {
             hr_zone_0: None,
@@ -366,54 +409,5 @@ impl Serialize for HrZones {
             &self.hr_zone_4.unwrap_or(dur_zero).0.as_secs_f32(),
         )?;
         state.end()
-    }
-}
-
-
-/// Implement HrZone::from()
-impl From<Option<&&fitparser::Value>> for HrZones {
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Parses heart rate zone information into more detail.
-    ///
-    /// **Parameters:**
-    ///
-    ///    `src: Option<&&fitparser::Value>` -- A fitparser array value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html>
-    ///
-    /// **Returns:**
-    ///
-    ///   `HrZones` -- Returns a new HrZones struct, which may or may not have values in its elements.
-    ///
-    /// **Example:**
-    ///
-    ///   ```rust
-    ///   lap.time_in_hr_zones = HzZones::from(field_map.get("time_in_hr_zone"));
-    ///   ```
-    ///
-    fn from(src: Option<&&fitparser::Value>) -> Self {
-        let mut hr_zones = HrZones::new();
-
-        match src {
-            Some(fitparser::Value::Array(tihz_vec)) => {
-                // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
-                // FIXME: There has to be a better way to get the value
-                let t2: Vec<Duration> = tihz_vec
-                    .iter()
-                    .map(|x| x.to_string().parse::<u64>().unwrap())
-                    .map(Duration::from_millis_u64)
-                    .collect();
-
-                hr_zones.hr_zone_0 = Some(t2[0]);
-                hr_zones.hr_zone_1 = Some(t2[1]);
-                hr_zones.hr_zone_2 = Some(t2[2]);
-                hr_zones.hr_zone_3 = Some(t2[3]);
-                hr_zones.hr_zone_4 = Some(t2[4]);
-            }
-            _ => {
-                // HrZones default = None for everything
-            }
-        }
-
-        // return it
-        hr_zones
     }
 }

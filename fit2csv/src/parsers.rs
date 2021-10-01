@@ -399,10 +399,6 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
 
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
-    log::trace!(
-        "parsers::parse_record() -- Record field map = {:?}",
-        field_map
-    );
 
     record.timestamp = field_map.get("timestamp").and_then(map_timestamp);
 

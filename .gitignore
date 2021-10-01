@@ -13,3 +13,4 @@ Cargo.lock
 *.lock
 trace.txt
 debug.txt
+bom.txt
