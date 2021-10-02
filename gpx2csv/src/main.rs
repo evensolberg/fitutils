@@ -102,15 +102,17 @@ fn run() -> Result<(), Box<dyn Error>> {
     );
 
     let mut track = types::Track::from_gpx_track(&gpx.tracks[0]);
-    track.tracknum = 1;
-    log::debug!("\nmain::run() -- track = {:?}", track);
-
-    // Each track will have different segments full of waypoints, where a
-    // waypoint contains info like latitude, longitude, and elevation.
+    track.tracknum += 1;
     log::debug!(
         "main::run() -- track::Number of segments: {}",
         track.num_segments
     );
+    log::debug!(
+        "main::run() -- track::Number of waypoints: {}",
+        track.num_waypoints
+    );
+
+    log::trace!("\nmain::run() -- track = {:?}", track);
 
     // Everything is a-okay in the end
     Ok(())

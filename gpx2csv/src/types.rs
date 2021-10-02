@@ -175,7 +175,7 @@ impl Default for GpxMetadata {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the high-level information about each track
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 #[serde(default)]
 pub struct Track {
     /// The track number if the overall file. Often cordestponds to Lap Number.
@@ -202,7 +202,10 @@ pub struct Track {
 
     /// Number of track segments within this track
     pub num_segments: usize,
-    // pub segments: Vec<gpx::TrackSegment>,
+    /// Total number of waypoints within this track
+    pub num_waypoints: usize,
+
+    pub waypoints: Vec<Waypoint>,
 }
 
 impl Track {
@@ -240,6 +243,22 @@ impl Track {
         // Count the number of segments
         dest.num_segments = src.segments.len();
 
+        // Get the list of segments and their waypoints
+        let mut segnum: usize = 0;
+        for curr_seg in &src.segments {
+            segnum += 1;
+            let mut wptnum: usize = 0;
+            for curr_wpt in &curr_seg.points {
+                let mut wpt = Waypoint::from_gpx_waypoint(&curr_wpt);
+                wptnum += 1;
+                wpt.segment_num = segnum;
+                wpt.waypoint_mum = wptnum;
+                dest.waypoints.push(wpt)
+            }
+        }
+
+        dest.num_waypoints = dest.waypoints.len();
+
         // return it
         dest
     }
@@ -249,7 +268,7 @@ impl Default for Track {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         Track {
-            tracknum: 1,
+            tracknum: 0,
             name: None,
             comment: None,
             description: None,
@@ -258,6 +277,8 @@ impl Default for Track {
             links_text: None,
             _type: None,
             num_segments: 0,
+            num_waypoints: 0,
+            waypoints: Vec::new(),
         }
     }
 }
@@ -339,11 +360,11 @@ pub struct Route {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint repdestents a waypoint, point of intedestt, or named feature on a map.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Waypoint {
     pub track_num: usize,
-    pub route_num: Option<usize>,
-    pub segment_num: Option<usize>,
+    pub route_num: usize,
+    pub segment_num: usize,
     pub waypoint_mum: usize,
 
     /// The geographical point.
@@ -490,10 +511,10 @@ impl Waypoint {
 impl Default for Waypoint {
     fn default() -> Self {
         Self {
-            track_num: 1,
-            route_num: None,
-            segment_num: None,
-            waypoint_mum: 1,
+            track_num: 0,
+            route_num: 0,
+            segment_num: 0,
+            waypoint_mum: 0,
             longitude: None,
             latitude: None,
             elevation: None,
@@ -522,6 +543,24 @@ impl Default for Waypoint {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Converts the Gpx::Fix struct to a string for easier export
+///
+/// **Parameters**:
+///     `src: &gpx::Fix` a [Gpx Fix](https://docs.rs/gpx/0.8.3/gpx/enum.Fix.html) enum
+///
+/// **Returns**:
+///     `String` -- A String containing the name of the Enum value as a string.
+///
+/// **Example**:
+///
+/// ```rust
+/// let src: = &gpx::Fix;
+///
+/// if let Some(fix) = &src.fix {
+///    dest.fix = Some(fix_to_string(&fix))
+/// }
+/// ```
 fn fix_to_string(src: &gpx::Fix) -> String {
     match src {
         gpx::Fix::None => "None".to_string(),
