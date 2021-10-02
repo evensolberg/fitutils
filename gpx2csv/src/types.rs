@@ -41,7 +41,7 @@ pub struct GpxMetadata {
 impl GpxMetadata {
     /// Initialize Session with default empty values
     pub fn new() -> Self {
-        GpxMetadata::default()
+        Self::default()
     }
 
     fn from_filename(filename: &str) -> Self {
@@ -178,7 +178,7 @@ impl Default for GpxMetadata {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct Track {
-    /// The track number if the overall file. Often corresponds to Lap Number.
+    /// The track number if the overall file. Often cordestponds to Lap Number.
     pub tracknum: usize,
 
     /// GPS name of track.
@@ -207,41 +207,41 @@ pub struct Track {
 
 impl Track {
     pub fn new() -> Self {
-        Track::default()
+        Self::default()
     }
 
-    pub fn from_gpx_track(gpx_track: &gpx::Track) -> Self {
-        let mut my_track = Self::new();
+    pub fn from_gpx_track(src: &gpx::Track) -> Self {
+        let mut dest = Self::new();
 
-        if let Some(name) = &gpx_track.name {
-            my_track.name = Some(name.to_string());
+        if let Some(name) = &src.name {
+            dest.name = Some(name.to_string())
         }
-        if let Some(comment) = &gpx_track.comment {
-            my_track.comment = Some(comment.to_string());
+        if let Some(comment) = &src.comment {
+            dest.comment = Some(comment.to_string())
         }
-        if let Some(description) = &gpx_track.description {
-            my_track.description = Some(description.to_string());
+        if let Some(description) = &src.description {
+            dest.description = Some(description.to_string())
         }
-        if let Some(source) = &gpx_track.source {
-            my_track.source = Some(source.to_string());
+        if let Some(source) = &src.source {
+            dest.source = Some(source.to_string())
         }
-        if let Some(_type) = &gpx_track._type {
-            my_track._type = Some(_type.to_string());
+        if let Some(_type) = &src._type {
+            dest._type = Some(_type.to_string())
         }
 
         // See if we have links
-        if gpx_track.links.len() > 0 {
-            my_track.links_href = Some(gpx_track.links[0].href.to_string());
-            if let Some(text) = &gpx_track.links[0].text {
-                my_track.links_text = Some(text.to_string());
+        if src.links.len() > 0 {
+            dest.links_href = Some(src.links[0].href.to_string());
+            if let Some(text) = &src.links[0].text {
+                dest.links_text = Some(text.to_string());
             }
         }
 
         // Count the number of segments
-        my_track.num_segments = gpx_track.segments.len();
+        dest.num_segments = src.segments.len();
 
         // return it
-        my_track
+        dest
     }
 }
 
@@ -263,9 +263,9 @@ impl Default for Track {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Link represents a link to an external resource.
+/// Link repdestents a link to an external destource.
 ///
-/// An external resource could be a web page, digital photo,
+/// An external destource could be a web page, digital photo,
 /// video clip, etc., with additional information.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Link {
@@ -280,13 +280,13 @@ pub struct Link {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Person represents a person or organization.
+/// Person repdestents a person or organization.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Person {
     /// Name of person or organization.
     pub name: Option<String>,
 
-    /// Email address.
+    /// Email adddests.
     pub email: Option<String>,
 
     /// Link to Web site or other external information about person.
@@ -325,7 +325,7 @@ impl ToString for Fix {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Route represents an ordered list of waypoints representing a series of turn points leading to a destination.
+/// Route repdestents an ordered list of waypoints repdestenting a series of turn points leading to a destination.
 pub struct Route {
     pub name: Option<String>,
     pub comment: Option<String>,
@@ -337,10 +337,9 @@ pub struct Route {
     pub points: Vec<Waypoint>,
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Waypoint represents a waypoint, point of interest, or named feature on a map.
-#[derive(Clone, Default, Debug, PartialEq)]
+/// Waypoint repdestents a waypoint, point of intedestt, or named feature on a map.
+#[derive(Clone, Debug, PartialEq)]
 pub struct Waypoint {
     pub track_num: usize,
     pub route_num: Option<usize>,
@@ -359,12 +358,12 @@ pub struct Waypoint {
 
     /// Creation/modification timestamp for element. Date and time in are in
     /// Univeral Coordinated Time (UTC), not local time! Conforms to ISO 8601
-    /// specification for date/time representation. Fractional seconds are
+    /// specification for date/time repdestentation. Fractional seconds are
     /// allowed for millisecond timing in tracklogs.
     pub time: Option<DateTime<Utc>>,
 
     /// The GPS name of the waypoint. This field will be transferred to and
-    /// from the GPS. GPX does not place restrictions on the length of this
+    /// from the GPS. GPX does not place desttrictions on the length of this
     /// field or the characters contained in it. It is up to the receiving
     /// application to validate the field before sending it to the GPS.
     pub name: Option<String>,
@@ -382,8 +381,8 @@ pub struct Waypoint {
 
     /// Links to additional information about the waypoint.
     pub num_links: usize,
-    pub link_href: Option<String>,
-    pub link_text: Option<String>,
+    pub links_href: Option<String>,
+    pub links_text: Option<String>,
 
     /// Text of GPS symbol name. For interchange with other programs, use the
     /// exact spelling of the symbol as displayed on the GPS. If the GPS
@@ -394,7 +393,7 @@ pub struct Waypoint {
     pub _type: Option<String>,
 
     // <magvar> degreesType </magvar> [0..1] ?
-    /// Height of geoid in meters above WGS 84. This correspond to the sea level.
+    /// Height of geoid in meters above WGS 84. This cordestpond to the sea level.
     pub geoidheight: Option<f64>,
 
     /// Type of GPS fix. `none` means GPS had no fix. To signify "the fix info
@@ -420,4 +419,116 @@ pub struct Waypoint {
 
     /// ID of DGPS station used in differential correction, in the range [0, 1023].
     pub dgpsid: Option<u16>,
+
+    /// Placeholder: Heart Rate
+    pub heart_rate: Option<u16>,
+
+    /// Placeholder: Cadence
+    pub cadence: Option<u16>,
+}
+
+impl Waypoint {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_gpx_waypoint(src: &gpx::Waypoint) -> Self {
+        let mut dest = Self::new();
+
+        dest.longitude = Some(src.point().x());
+        dest.latitude = Some(src.point().y());
+
+        dest.elevation = src.elevation;
+        dest.speed = src.speed;
+        dest.time = src.time;
+
+        if let Some(name) = &src.name {
+            dest.name = Some(name.to_string())
+        }
+        if let Some(comment) = &src.comment {
+            dest.comment = Some(comment.to_string())
+        }
+        if let Some(description) = &src.description {
+            dest.description = Some(description.to_string())
+        }
+        if let Some(source) = &src.source {
+            dest.source = Some(source.to_string())
+        }
+        if let Some(symbol) = &src.symbol {
+            dest.symbol = Some(symbol.to_string())
+        }
+        if let Some(_type) = &src._type {
+            dest._type = Some(_type.to_string())
+        }
+
+        if src.links.len() > 0 {
+            dest.links_href = Some(src.links[0].href.to_string());
+            if let Some(text) = &src.links[0].text {
+                dest.links_text = Some(text.to_string());
+            }
+        }
+
+        if let Some(fix) = &src.fix {
+            dest.fix = Some(fix_to_string(&fix))
+        }
+
+        dest.sat = src.sat;
+        dest.hdop = src.hdop;
+        dest.vdop = src.vdop;
+        dest.pdop = src.pdop;
+        dest.age = src.dgps_age;
+        dest.dgpsid = src.dgpsid;
+
+        // We currently don't have any way of extracting heart rate and cadence from
+        // the GPX file using the Gpx struct, so we're just omitting those for now.
+
+        // return it
+        dest
+    }
+}
+
+impl Default for Waypoint {
+    fn default() -> Self {
+        Self {
+            track_num: 1,
+            route_num: None,
+            segment_num: None,
+            waypoint_mum: 1,
+            longitude: None,
+            latitude: None,
+            elevation: None,
+            speed: None,
+            time: None,
+            name: None,
+            comment: None,
+            description: None,
+            source: None,
+            num_links: 0,
+            links_href: None,
+            links_text: None,
+            symbol: None,
+            _type: None,
+            geoidheight: None,
+            fix: None,
+            sat: None,
+            hdop: None,
+            vdop: None,
+            pdop: None,
+            age: None,
+            dgpsid: None,
+            heart_rate: None,
+            cadence: None,
+        }
+    }
+}
+
+fn fix_to_string(src: &gpx::Fix) -> String {
+    match src {
+        gpx::Fix::None => "None".to_string(),
+        gpx::Fix::TwoDimensional => "TwoDimensional".to_string(),
+        gpx::Fix::ThreeDimensional => "ThreeDimensional".to_string(),
+        gpx::Fix::DGPS => "DGPS".to_string(),
+        gpx::Fix::PPS => "PPS".to_string(),
+        gpx::Fix::Other(str) => format!("Other({})", str.to_owned()),
+    }
 }

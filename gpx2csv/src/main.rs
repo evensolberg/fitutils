@@ -101,8 +101,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         metadata.num_routes
     );
 
-    let track = types::Track::from_gpx_track(&gpx.tracks[0]);
-    log::trace!("\nmain::run() -- track = {:?}", track);
+    let mut track = types::Track::from_gpx_track(&gpx.tracks[0]);
+    track.tracknum = 1;
+    log::debug!("\nmain::run() -- track = {:?}", track);
 
     // Each track will have different segments full of waypoints, where a
     // waypoint contains info like latitude, longitude, and elevation.
