@@ -30,14 +30,13 @@ impl Default for TimeStamp {
 }
 
 impl std::fmt::Display for TimeStamp {
-    /// Format time to `%d.%m.%Y %H:%M`
+    /// Format time to `%Y-%m-%d %H:%M:%S`
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.format("%d.%m.%Y %H:%M"))
+        write!(f, "{}", self.0.format("%Y-%m-%d %H:%M:%S"))
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// Wrapper for std::time::Duration so we can derive Serialize and Deserialize traits
 #[derive(Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Duration(std::time::Duration);
