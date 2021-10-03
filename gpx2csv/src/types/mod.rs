@@ -2,10 +2,10 @@ use std::error::Error;
 
 // Submodules
 pub mod duration;
-// pub mod fix;  // Currently not used.
+// pub mod fix; // Currently not used.
 pub mod gpxmetadata;
 pub mod link;
-// pub mod person;  // Currently not used.
+// pub mod person; // Currently not used.
 pub mod route;
 pub mod timestamp;
 pub mod track;

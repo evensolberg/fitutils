@@ -46,13 +46,18 @@ impl ToString for Fix {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[test]
-fn test_fix() {
-    let src_fix = gpx::Fix::TwoDimensional;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let dest_fix = Fix::from_gpx_fix(&src_fix);
-    assert_eq!(dest_fix, Fix::TwoDimensional);
+    #[test]
+    fn test_fix() {
+        let src_fix = gpx::Fix::TwoDimensional;
 
-    let dest_fix_str = Fix::to_string(&dest_fix);
-    assert_eq!("TwoDimensional".to_string(), dest_fix_str);
+        let dest_fix = Fix::from_gpx_fix(&src_fix);
+        assert_eq!(dest_fix, Fix::TwoDimensional);
+
+        let dest_fix_str = Fix::to_string(&dest_fix);
+        assert_eq!("TwoDimensional".to_string(), dest_fix_str);
+    }
 }
