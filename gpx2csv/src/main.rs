@@ -11,11 +11,11 @@ use simple_logger::SimpleLogger;
 // Read GPX
 use gpx::Gpx;
 
-use crate::types::GpxMetadata;
-
 // Local modules
-pub mod exporters;
 pub mod types;
+use crate::types::gpxmetadata::GpxMetadata;
+use crate::types::track::Track;
+use crate::types::ExportJSON;
 
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
@@ -73,19 +73,17 @@ fn run() -> Result<(), Box<dyn Error>> {
         _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
-    let filename = "../data/running.gpx";
-    let file = File::open(&filename)?;
-    let reader = BufReader::new(file);
-
     // read takes any io::Read and gives a Result<Gpx, Error>.
-    let gpx: Gpx = gpx::read(reader)?;
+    let filename = "../data/running.gpx";
+    let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
     log::debug!("main::run() -- gpx.metadata = {:?}", gpx.metadata);
     log::trace!("\nmain::run() -- gpx = {:?}", gpx);
 
     // Fill the GPX Header info so we can serialize it later
     let metadata = GpxMetadata::from_header(&gpx, &filename);
     log::debug!("main::run() -- GPX Metadata header: {:?}", metadata);
-    exporters::export_session_json(&metadata)?;
+
+    metadata.export_json()?;
 
     // Each GPX file has multiple "tracks", this takes the first one.
     log::debug!(
@@ -101,7 +99,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         metadata.num_routes
     );
 
-    let mut track = types::Track::from_gpx_track(&gpx.tracks[0]);
+    let mut track = Track::from_gpx_track(&gpx.tracks[0]);
     track.tracknum += 1;
     log::debug!(
         "main::run() -- track::Number of segments: {}",
