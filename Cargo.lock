@@ -321,6 +321,7 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "clap",
+ "csv",
  "gpx",
  "log",
  "serde",

@@ -1,15 +1,23 @@
 use crate::types::duration::Duration;
 use crate::types::timestamp::TimeStamp;
 use crate::types::waypoint::Waypoint;
+use crate::types::ExportCSV;
 
+use csv::WriterBuilder;
 use serde::Serialize;
+use std::fmt::Error;
+use std::path::PathBuf;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
 #[derive(Serialize, Debug)]
 #[serde(default)]
 pub struct Track {
+    /// The original file name containing the track
+    pub filename: Option<PathBuf>,
+
     /// The track number if the overall file. Often cordestponds to Lap Number.
-    pub tracknum: usize,
+    pub track_num: usize,
 
     /// GPS name of track.
     pub name: Option<String>,
@@ -41,6 +49,8 @@ pub struct Track {
     /// Total number of waypoints within this track
     pub num_waypoints: usize,
 
+    /// The list of waypoints in this track
+    #[serde(skip)] // Do not serialize - we'll handle it in the export. Maybe.
     pub waypoints: Vec<Waypoint>,
 }
 
@@ -49,8 +59,14 @@ impl Track {
         Self::default()
     }
 
-    pub fn from_gpx_track(src: &gpx::Track) -> Self {
+    /// Create a new Session instance with the filename set from the parameter
+    pub fn set_filename(&mut self, filename: &str) {
+        self.filename = Some(PathBuf::from(filename));
+    }
+
+    pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Self {
         let mut dest = Self::new();
+        dest.set_filename(&filename);
 
         if let Some(name) = &src.name {
             dest.name = Some(name.to_string())
@@ -114,7 +130,8 @@ impl Default for Track {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
         Track {
-            tracknum: 0,
+            filename: None,
+            track_num: 0,
             name: None,
             start_time: None,
             duration: None,
@@ -128,5 +145,23 @@ impl Default for Track {
             num_waypoints: 0,
             waypoints: Vec::new(),
         }
+    }
+}
+
+impl ExportCSV for Track {
+    fn export_csv(&self) -> Result<(), Box<dyn Error>> {
+        if self.filename == None {
+            Error("filename not set in struct.")
+        }
+
+        // Change the file extension
+        let mut outfile = PathBuf::from(self.filename.as_ref().unwrap());
+        outfile.set_extension("tracks.csv");
+
+        // Create a buffer for the CSV
+        let mut writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
+
+        // Return safely
+        Ok(())
     }
 }

@@ -10,6 +10,7 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 gpx = "0.8.3"
+csv = "1.1.6"
 log = "0.4.14"
 clap = "2.33.3"
 serde = "1.0.130"

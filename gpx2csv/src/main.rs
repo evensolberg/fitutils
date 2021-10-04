@@ -99,8 +99,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         metadata.num_routes
     );
 
-    let mut track = Track::from_gpx_track(&gpx.tracks[0]);
-    track.tracknum += 1;
+    let mut track = Track::from_gpx_track(&gpx.tracks[0], &filename);
+    track.track_num += 1;
     log::debug!(
         "main::run() -- track::Number of segments: {}",
         track.num_segments

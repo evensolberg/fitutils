@@ -39,31 +39,14 @@ impl GpxMetadata {
     }
 
     /// Create a new Session instance with the filename set from the parameter
-    fn with_filename(filename: &str) -> Self {
-        GpxMetadata {
-            filename: Some(PathBuf::from(&filename)),
-            version: None,
-            creator: None,
-            activity: None,
-            description: None,
-            author_name: None,
-            author_email: None,
-            links_href: None,
-            links_text: None,
-            keywords: None,
-            time: None,
-            copyright_author: None,
-            copyright_year: None,
-            copyright_license: None,
-            num_waypoints: 0,
-            num_tracks: 0,
-            num_routes: 0,
-        }
+    pub fn set_filename(&mut self, filename: &str) {
+        self.filename = Some(PathBuf::from(&filename));
     }
 
     /// Create a new Session instance based on the original metadata and file name.
     pub fn from_header(src: &gpx::Gpx, filename: &str) -> Self {
-        let mut dest = Self::with_filename(filename);
+        let mut dest = Self::new();
+        dest.set_filename(&filename);
 
         // Parse the GPX header
         log::trace!("parsers::parse_gpx_header() -- Parsing the GPX header information.");
