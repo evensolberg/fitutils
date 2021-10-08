@@ -140,6 +140,7 @@ alias br := buildr
     -cargo install cargo-bloat
     -cargo install --locked cargo-outdated
     -cargo install tokei
+    -cargo install cargo-semver --vers 1.0.0-alpha.3
     -cargo install cargo-deny
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     echo "Make sure to also install Graphviz."
