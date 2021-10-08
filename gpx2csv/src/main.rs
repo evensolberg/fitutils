@@ -19,9 +19,10 @@ use crate::types::ExportJSON;
 
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new("gpx2csv")
-        .about("Parses .GPX files to .JSON and .CSV")
-        .version("0.0.1")
+    let cli_args = App::new(clap::crate_name!())
+        .about(clap::crate_description!())
+        .version(clap::crate_version!())
+        // .author(clap::crate_authors!("\n"))
         .long_about("This program will read one or more .gpx file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")

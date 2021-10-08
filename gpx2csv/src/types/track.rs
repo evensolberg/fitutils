@@ -5,7 +5,7 @@ use crate::types::ExportCSV;
 
 use csv::WriterBuilder;
 use serde::Serialize;
-use std::fmt::Error;
+use std::error::Error;
 use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ impl Default for Track {
 impl ExportCSV for Track {
     fn export_csv(&self) -> Result<(), Box<dyn Error>> {
         if self.filename == None {
-            Error("filename not set in struct.")
+            return Err("track::export_csv() -- No filename set in the Track.".into());
         }
 
         // Change the file extension
@@ -159,7 +159,7 @@ impl ExportCSV for Track {
         outfile.set_extension("tracks.csv");
 
         // Create a buffer for the CSV
-        let mut writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
+        let mut _writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
 
         // Return safely
         Ok(())
