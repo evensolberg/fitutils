@@ -24,9 +24,10 @@ pub mod types;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new("fit2csv")
-        .about("Parses .FIT files to .JSON and .CSV")
-        .version("0.2.6")
+    let cli_args = App::new(clap::crate_name!())
+        .about(clap::crate_description!())
+        .version(clap::crate_version!())
+        // .author(clap::crate_authors!("\n"))
         .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
@@ -63,10 +64,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         .arg( // Don't print any information
             Arg::with_name("summary-only")
                 .short("o")
+                .value_name("summary output file name")
                 .long("summary-only")
                 .multiple(false)
-                .help("Don't produce detail files for each session processed. Only create the summary file sessions.csv")
-                .takes_value(false)
+                .help("Don't produce detail files for each session processed. Only create the summary file.")
+                .takes_value(true)
+                .default_value("sessions.csv")
         )
         .get_matches();
 
@@ -98,6 +101,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         fitparser::profile::VERSION
     );
 
+    // Find the name of the session output file
+    let sessionfile = cli_args.value_of("summary-only").unwrap_or("sessions.csv");
+    log::debug!("main::run() -- session output file: {}", sessionfile);
+
     ///////////////////////////////////
     // Working section
 
@@ -127,7 +134,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         if !cli_args.is_present("summary-only") {
             exporters::export_activity(&my_activity)?;
         }
-        exporters::export_sessions_csv(&session_vec)?;
+        exporters::export_sessions_csv(&session_vec, &sessionfile)?;
     }
 
     // Everything is a-okay in the end

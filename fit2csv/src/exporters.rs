@@ -182,9 +182,12 @@ pub fn export_records_csv(activity: &types::Activity) -> Result<(), Box<dyn Erro
 /// **Returns:**
 ///
 ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
-pub fn export_sessions_csv(session_vec: &[types::Session]) -> Result<(), Box<dyn Error>> {
+pub fn export_sessions_csv(
+    session_vec: &[types::Session],
+    sessionfile: &str,
+) -> Result<(), Box<dyn Error>> {
     // Create a buffer for the CSV
-    let outfile = PathBuf::from("sessions.csv");
+    let outfile = PathBuf::from(sessionfile);
     let mut sess_writer = WriterBuilder::new()
         .has_headers(false)
         .from_path(&outfile)?;

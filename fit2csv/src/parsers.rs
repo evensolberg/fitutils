@@ -1,4 +1,3 @@
-// use chrono::DateTime;
 // External crates
 use fitparser::profile::field_types::MesgNum; // .FIT file manipulation
 use fitparser::{FitDataField, Value}; // .FIT file manipulation
