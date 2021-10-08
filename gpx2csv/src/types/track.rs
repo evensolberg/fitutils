@@ -1,11 +1,8 @@
 use crate::types::duration::Duration;
 use crate::types::timestamp::TimeStamp;
 use crate::types::waypoint::Waypoint;
-use crate::types::ExportCSV;
 
-use csv::WriterBuilder;
 use serde::Serialize;
-use std::error::Error;
 use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,23 +142,5 @@ impl Default for Track {
             num_waypoints: 0,
             waypoints: Vec::new(),
         }
-    }
-}
-
-impl ExportCSV for Track {
-    fn export_csv(&self) -> Result<(), Box<dyn Error>> {
-        if self.filename == None {
-            return Err("track::export_csv() -- No filename set in the Track.".into());
-        }
-
-        // Change the file extension
-        let mut outfile = PathBuf::from(self.filename.as_ref().unwrap());
-        outfile.set_extension("tracks.csv");
-
-        // Create a buffer for the CSV
-        let mut _writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
-
-        // Return safely
-        Ok(())
     }
 }

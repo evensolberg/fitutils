@@ -1,6 +1,7 @@
 use std::error::Error;
 
 // Submodules
+pub mod activity;
 pub mod duration;
 // pub mod fix; // Currently not used.
 pub mod gpxmetadata;
