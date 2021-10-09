@@ -61,7 +61,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Print summary detail for each session processed.")
                 .takes_value(false)
         )
-        .arg( // Don't print any information
+        .arg( // Output summary file only
             Arg::with_name("summary-only")
                 .short("o")
                 .value_name("summary output file name")
@@ -69,7 +69,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .multiple(false)
                 .help("Don't produce detail files for each session processed. Only create the summary file.")
                 .takes_value(true)
-                .default_value("sessions.csv")
+                .default_value("fit-sessions.csv")
         )
         .get_matches();
 
@@ -102,7 +102,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     );
 
     // Find the name of the session output file
-    let sessionfile = cli_args.value_of("summary-only").unwrap_or("sessions.csv");
+    let sessionfile = cli_args
+        .value_of("summary-only")
+        .unwrap_or("fit-sessions.csv");
     log::debug!("main::run() -- session output file: {}", sessionfile);
 
     ///////////////////////////////////
