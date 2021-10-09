@@ -124,6 +124,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         // Export the data
         activity.metadata.export_json()?;
         exporters::export_tracks_csv(&activity)?;
+        exporters::export_waypoints_csv(&activity)?;
     }
 
     // Everything is a-okay in the end
