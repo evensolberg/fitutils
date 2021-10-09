@@ -36,11 +36,11 @@ impl Duration {
         );
         Duration(if ts2 > ts1 {
             // ts2 is after ts1
-            log::debug!("types::Duration::between() -- ts2 > ts1");
+            log::trace!("types::Duration::between() -- ts2 > ts1");
             chrono::Duration::to_std(&ts2.0.signed_duration_since(ts1.0))
                 .expect("types::Duration::between() -- ts2 > ts1: Duration out of bounds.")
         } else {
-            log::debug!("types::Duration::between() -- ts1 >= ts2");
+            log::trace!("types::Duration::between() -- ts1 >= ts2");
             chrono::Duration::to_std(&ts1.0.signed_duration_since(ts2.0))
                 .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
         })

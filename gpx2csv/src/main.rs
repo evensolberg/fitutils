@@ -76,73 +76,55 @@ fn run() -> Result<(), Box<dyn Error>> {
         _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
     }
 
-    // read takes any io::Read and gives a Result<Gpx, Error>.
+    // Check if we have file arguments. Exit oout if not.
     if !cli_args.is_present("read") {
         log::error!(
             "Missing file argument. Try again with -h for assistance.\n{}",
             cli_args.usage()
         );
-        std::process::exit(1);
-    } else {
-        log::trace!(
-            "main::run() -- File argument: {:?}",
-            cli_args.values_of("read").unwrap()
-        );
+        return Err("Input files missing.".into());
     }
 
-    let filenames = cli_args.values_of("read").unwrap();
-    let mut filename = "";
+    log::trace!(
+        "main::run() -- File argument: {:?}",
+        cli_args.values_of("read").unwrap()
+    );
 
-    for file_name in filenames {
-        filename = file_name;
+    // Do the parsing
+    for filename in cli_args.values_of("read").unwrap() {
         log::debug!("main::run() -- filname = {}", filename);
-    }
 
-    let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
-    log::debug!("main::run() -- gpx.metadata = {:?}", gpx.metadata);
-    log::trace!("\nmain::run() -- gpx = {:?}", gpx);
+        let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+        log::debug!("main::run() -- gpx.metadata = {:?}", gpx.metadata);
+        log::trace!("\nmain::run() -- gpx = {:?}", gpx);
 
-    // Create the overall activity placeholder
-    let mut activity = Activity::new();
+        // Create the overall activity placeholder
+        let mut activity = Activity::new();
 
-    // Fill the GPX Header info so we can serialize it later
-    activity.metadata = GpxMetadata::from_header(&gpx, &filename);
-    log::debug!(
-        "main::run() -- GPX Metadata header: {:?}",
-        activity.metadata
-    );
-    activity.metadata.export_json()?;
-
-    // Each GPX file has multiple "tracks", this takes the first one.
-    log::debug!(
-        "main::run() -- gpx:Number of waypoints: {}",
-        activity.metadata.num_waypoints
-    );
-    log::debug!(
-        "main::run() -- gpx:Number of tracks: {}",
-        activity.metadata.num_tracks
-    );
-    log::debug!(
-        "main::run() -- gpx:Number of routes: {}",
-        activity.metadata.num_routes
-    );
-
-    for tracknum in 0..gpx.tracks.len() {
-        let mut track = Track::from_gpx_track(&gpx.tracks[tracknum], &filename);
-        track.track_num += 1;
-        log::debug!(
-            "main::run() -- track::Number of segments: {}",
-            track.num_segments
+        // Fill the GPX Header info so we can serialize it later
+        activity.metadata = GpxMetadata::from_header(&gpx, &filename);
+        log::trace!(
+            "main::run() -- GPX Metadata header: {:?}",
+            activity.metadata
         );
-        log::debug!(
-            "main::run() -- track::Number of waypoints: {}",
-            track.num_waypoints
-        );
-        log::trace!("\nmain::run() -- track = {:?}", track);
-        activity.tracks.push(track);
-    }
 
-    exporters::export_tracks_csv(&activity)?;
+        for curr_track in gpx.tracks {
+            let mut track = Track::from_gpx_track(&curr_track, &filename);
+            track.track_num += 1;
+            log::debug!(
+                "main::run() -- track::Number of segments: {} / waypoints: {}",
+                track.num_segments,
+                track.num_waypoints
+            );
+
+            log::trace!("\nmain::run() -- track = {:?}", track);
+            activity.tracks.push(track);
+        }
+
+        // Export the data
+        activity.metadata.export_json()?;
+        exporters::export_tracks_csv(&activity)?;
+    }
 
     // Everything is a-okay in the end
     Ok(())
