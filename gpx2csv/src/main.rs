@@ -12,8 +12,8 @@ use simple_logger::SimpleLogger;
 use gpx::Gpx;
 
 // Local modules
-pub mod exporters;
 pub mod types;
+use crate::types::activities::Activities;
 use crate::types::activity::Activity;
 use crate::types::gpxmetadata::GpxMetadata;
 use crate::types::track::Track;
@@ -58,13 +58,15 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Print summary detail for each session processed.")
                 .takes_value(false)
         )
-        .arg( // Don't print any information
+        .arg( // Output summary file only
             Arg::with_name("summary-only")
-                .short("o")
-                .long("summary-only")
-                .multiple(false)
-                .help("Don't produce detail files for each session processed. Only create the summary file sessions.csv")
-                .takes_value(false)
+            .short("o")
+            .value_name("summary output file name")
+            .long("summary-only")
+            .multiple(false)
+            .help("Don't produce detail files for each session processed. Only create the summary file.")
+            .takes_value(true)
+            .default_value("gpx-sessions.csv")
         )
         .get_matches();
 
@@ -89,6 +91,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         "main::run() -- File argument: {:?}",
         cli_args.values_of("read").unwrap()
     );
+
+    // Find the name of the session output file
+    let sessionfile = cli_args
+        .value_of("summary-only")
+        .unwrap_or("fit-sessions.csv");
+    log::debug!("main::run() -- session output file: {}", sessionfile);
+
+    // Create an empty placeholder for all the activities
+    let mut activities = Activities::new();
 
     // Do the parsing
     for filename in cli_args.values_of("read").unwrap() {
@@ -125,10 +136,17 @@ fn run() -> Result<(), Box<dyn Error>> {
         activity.set_duration()?;
 
         // Export the data
-        activity.metadata.export_json()?;
-        exporters::export_tracks_csv(&activity)?;
-        exporters::export_waypoints_csv(&activity)?;
+        if !cli_args.is_present("summary-only") {
+            activity.metadata.export_json()?;
+            activity.export_tracks_csv()?;
+            activity.export_waypoints_csv()?;
+        }
+
+        // Add the current activity to the list of activities and destroy the activity
+        activities.activities_list.push(activity);
     }
+
+    activities.export_csv(&sessionfile)?;
 
     // Everything is a-okay in the end
     Ok(())

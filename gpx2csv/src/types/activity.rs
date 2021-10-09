@@ -1,4 +1,6 @@
+use csv::WriterBuilder;
 use std::error::Error;
+use std::path::PathBuf;
 
 use crate::types::duration::Duration;
 use crate::types::gpxmetadata::GpxMetadata;
@@ -45,6 +47,58 @@ impl Activity {
 
         // Set the total duration
         self.metadata.duration = Some(duration);
+
+        // Return safely
+        Ok(())
+    }
+
+    /// Export the tracks to CSV
+    pub fn export_tracks_csv(&self) -> Result<(), Box<dyn Error>> {
+        let tracks = &self.tracks;
+        if tracks.len() == 0 {
+            return Err("track::export_tracks_csv() -- No Tracks in the Activity.".into());
+        }
+
+        // Change the file extension
+        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap());
+        outfile.set_extension("tracks.csv");
+
+        // Create a buffer for the CSV
+        let mut writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
+
+        // Export the tracks sans the waypoints
+        for curr_track in tracks {
+            writer.serialize(curr_track)?;
+        }
+
+        writer.flush()?;
+
+        // Return safely
+        Ok(())
+    }
+
+    /// Export all the waypoints for each track to CSV
+    pub fn export_waypoints_csv(&self) -> Result<(), Box<dyn Error>> {
+        let tracks = &self.tracks;
+        if tracks.len() == 0 {
+            return Err("track::export_waypoints_csv() -- No Tracks in the Activity.".into());
+        }
+
+        // Change the file extension
+        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap());
+        outfile.set_extension("waypoints.csv");
+
+        // Create a buffer for the CSV
+        let mut writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
+
+        // Export the tracks sans the waypoints
+        for curr_track in tracks {
+            for curr_wpt in &curr_track.waypoints {
+                writer.serialize(curr_wpt)?;
+            }
+        }
+
+        writer.flush()?;
 
         // Return safely
         Ok(())
