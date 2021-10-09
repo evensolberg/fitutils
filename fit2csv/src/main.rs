@@ -15,10 +15,10 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Import our own modules and types
-pub mod exporters;
 pub mod parsers;
-pub mod print_details;
 pub mod types;
+
+use crate::types::activities::Activities;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -110,7 +110,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     ///////////////////////////////////
     // Working section
 
-    let mut session_vec = Vec::new();
+    let mut activities = Activities::new();
 
     for fitfile_name in fitfiles {
         // If not quiet, indicate which file we're processing
@@ -124,21 +124,19 @@ fn run() -> Result<(), Box<dyn Error>> {
         // If requested, print the summary information for the session
         log::trace!("main:run() -- Printing the header_struct if requested.");
         if cli_args.is_present("print-summary") {
-            print_details::print_session(&my_activity.session);
+            my_activity.session.print_session();
         }
-
-        // Push the session onto the summary vector
-        let my_session = my_activity.session.clone();
-        session_vec.push(my_session);
-        log::debug!("main:run() -- Session vector length: {}", session_vec.len());
 
         // Write the data
         if !cli_args.is_present("summary-only") {
-            exporters::export_activity(&my_activity)?;
+            my_activity.export()?;
         }
-        exporters::export_sessions_csv(&session_vec, &sessionfile)?;
+
+        // Push the session onto the summary vector
+        activities.activities_list.push(my_activity);
     }
 
+    activities.export_csv(&sessionfile)?;
     // Everything is a-okay in the end
     Ok(())
 } // fn run()

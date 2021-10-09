@@ -12,8 +12,13 @@ use uom::si::{
 };
 
 // Local modules
-use super::types;
-use crate::types::{Activity, Duration, HrZones, TimeStamp};
+use crate::types::activity::Activity;
+use crate::types::duration::Duration;
+use crate::types::hrzones::HrZones;
+use crate::types::lap::Lap;
+use crate::types::record::Record;
+use crate::types::session::Session;
+use crate::types::timestamp::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Used in calculating latitudes and longitudes.
@@ -58,7 +63,7 @@ map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 ///
 ///    let my_activity = parsers::parse_fitfile("fitfile.fit")?;
 ///   ```
-pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> {
+pub fn parse_fitfile(filename: &str) -> Result<Activity, Box<dyn Error>> {
     // open the file - return error if unable.
     let mut fp = File::open(filename).expect("FIT file corrupt or not found.");
     log::trace!(
@@ -87,7 +92,7 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
     );
 
     log::trace!("parsers::parse_fitfile() -- Creating empty session.");
-    let mut my_session = types::Session::new();
+    let mut my_session = Session::new();
     my_session.filename = Some(filename.to_string());
 
     // This is the main file parsing loop. This will definitely get expanded.
@@ -95,8 +100,8 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
     let mut num_records = 0;
     let mut num_sessions = 0;
     let mut num_laps = 0;
-    let mut lap_vec: Vec<types::Lap> = Vec::new(); // Lap information vector
-    let mut records_vec: Vec<types::Record> = Vec::new();
+    let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
+    let mut records_vec: Vec<Record> = Vec::new();
 
     // This is where the actual parsing happens
     log::debug!("parsers::parse_fitfile() -- Parsing data.");
@@ -119,7 +124,7 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
                 my_session.num_sessions = Some(num_sessions);
             }
             MesgNum::Lap => {
-                let mut lap = types::Lap::default(); // Create an empty lap instance
+                let mut lap = Lap::default(); // Create an empty lap instance
                 parse_lap(data.fields(), &mut lap, &my_session); // parse lap data
                 num_laps += 1;
                 lap.lap_num = Some(num_laps);
@@ -128,7 +133,7 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
             }
             MesgNum::Record => {
                 // FIXME: This is inefficient since we're instantiating this for every record
-                let mut record = types::Record::default();
+                let mut record = Record::default();
                 parse_record(data.fields(), &mut record, &my_session);
                 log::debug!("parsers::parse_fitfile() -- Record: {:?}", record);
                 records_vec.push(record);
@@ -161,7 +166,7 @@ pub fn parse_fitfile(filename: &str) -> Result<types::Activity, Box<dyn Error>> 
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-fn parse_header(fields: &[FitDataField], session: &mut types::Session) {
+fn parse_header(fields: &[FitDataField], session: &mut Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
     log::trace!(
@@ -186,7 +191,7 @@ fn parse_header(fields: &[FitDataField], session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `session` struct.
-fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
+fn parse_session(fields: &[FitDataField], session: &mut Session) {
     let field_map: HashMap<&str, &fitparser::Value> =
         fields.iter().map(|x| (x.name(), x.value())).collect();
     log::trace!(
@@ -258,15 +263,15 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
     session.duration = field_map
         .get("total_elapsed_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
     session.duration_active = field_map
         .get("total_timer_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
     session.duration_moving = field_map
         .get("total_moving_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
 
     session.start_time = field_map.get("start_time").and_then(map_timestamp);
     session.finish_time = field_map.get("timestamp").and_then(map_timestamp);
@@ -288,7 +293,7 @@ fn parse_session(fields: &[FitDataField], session: &mut types::Session) {
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `lap` struct.
-fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Session) {
+fn parse_lap(fields: &[FitDataField], lap: &mut Lap, session: &Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
@@ -310,7 +315,7 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     lap.stance_time_avg = field_map
         .get("avg_stance_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
     lap.vertical_oscillation_avg = field_map
         .get("avg_vertical_oscillation")
         .and_then(map_float64);
@@ -370,7 +375,7 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
     lap.duration_moving = field_map
         .get("total_moving_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
 
     lap.start_time = field_map.get("start_time").and_then(map_timestamp);
     lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
@@ -390,7 +395,7 @@ fn parse_lap(fields: &[FitDataField], lap: &mut types::Lap, session: &types::Ses
 /// **Returns:**
 ///
 ///    Nothing. The data is put into the `record` struct.
-fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &types::Session) {
+fn parse_record(fields: &[FitDataField], record: &mut Record, session: &Session) {
     // Collect the fields into a HashMap which we can then dig details out of.
     // x.name is the key and x.value is the value
     // Note that the value is an enum and contain a number of different types
@@ -429,7 +434,7 @@ fn parse_record(fields: &[FitDataField], record: &mut types::Record, session: &t
     record.stance_time = field_map
         .get("stance_time")
         .and_then(map_float64)
-        .map(types::Duration::from_secs_f64);
+        .map(Duration::from_secs_f64);
     record.vertical_oscillation = field_map.get("vertical_oscillation").and_then(map_float64);
 
     record.lat = field_map
