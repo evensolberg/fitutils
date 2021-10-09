@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
+use crate::types::duration::Duration;
 use crate::types::timestamp::TimeStamp;
 use crate::types::ExportJSON;
 
@@ -24,6 +25,7 @@ pub struct GpxMetadata {
     pub links_text: Option<String>,
     pub keywords: Option<String>,
     pub time: Option<TimeStamp>,
+    pub duration: Option<Duration>,
     pub copyright_author: Option<String>,
     pub copyright_year: Option<i32>,
     pub copyright_license: Option<String>,
@@ -142,6 +144,7 @@ impl Default for GpxMetadata {
             links_text: None,
             keywords: None,
             time: None,
+            duration: None,
             copyright_author: None,
             copyright_year: None,
             copyright_license: None,

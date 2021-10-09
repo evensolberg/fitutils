@@ -37,7 +37,7 @@ pub fn export_waypoints_csv(activity: &Activity) -> Result<(), Box<dyn Error>> {
 
     // Change the file extension
     let mut outfile = PathBuf::from(activity.metadata.filename.as_ref().unwrap());
-    outfile.set_extension("waypointss.csv");
+    outfile.set_extension("waypoints.csv");
 
     // Create a buffer for the CSV
     let mut writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;

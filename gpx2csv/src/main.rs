@@ -121,6 +121,9 @@ fn run() -> Result<(), Box<dyn Error>> {
             activity.tracks.push(track);
         }
 
+        // Set the total duration to be the sum of the track durations
+        activity.set_duration()?;
+
         // Export the data
         activity.metadata.export_json()?;
         exporters::export_tracks_csv(&activity)?;
