@@ -22,21 +22,22 @@ alias fmt := format
     cargo lcheck  --color 'always'
 
 # Only compiles the project
-@build: format
-   - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
+@build: format changelog
    cargo lbuild --color 'always'
 
 # Compile a release version of the project without moving the binaries
-@buildr: format
-    - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
+@buildr: format changelog
     cargo lbuild --release --color 'always'
     cargo strip
 
 # Cleans and builds again
-@rebuild: format
-    - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
+@rebuild: format changelog
     cargo clean
     cargo lbuild --color 'always'
+
+# Updates the CHANGELOG.md file
+@changelog:
+   git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
 
 # Cleans up the project directory
 @clean:

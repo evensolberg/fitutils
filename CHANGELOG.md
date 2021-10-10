@@ -1,4 +1,20 @@
 
+<a name="v0.3.2"></a>
+## [v0.3.2](https://github.com/evensolberg/firparser/compare/v0.3.1...v0.3.2) (2021-10-09)
+
+### F2C
+
+* Big refactor
+
+### F2c
+
+* Cosmetics
+
+### G2c
+
+* All Activities summary export
+
+
 <a name="v0.3.1"></a>
 ## [v0.3.1](https://github.com/evensolberg/firparser/compare/v0.3.0...v0.3.1) (2021-10-09)
 
