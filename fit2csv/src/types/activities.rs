@@ -1,23 +1,47 @@
+//! Defines the `Activities` struct which is used to hold a list of all activities, and associated functions.
+
 use csv::WriterBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
 use crate::types::activity::Activity;
 
-/// Holds a list of all activities. Used to export session totals
+/// Holds a list of all activities. Used to export session totals.
 #[derive(Debug)]
 pub struct Activities {
-    /// A list of activities
+    /// A list of activities.
     pub activities_list: Vec<Activity>,
 }
 
 impl Activities {
-    /// Create a new, empty Activities list
+    /// Create a new, empty Activities list.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use crate::types::activities::Activities;
+    ///
+    /// activities = Activities::new();
+    /// ```
     pub fn new() -> Self {
         Activities::default()
     }
 
-    /// Export the summary list of session information to a CSV file
+    /// Export the summary list of session information to a CSV file.
+    ///
+    /// # Parameters
+    ///
+    /// `sessionfile: &str`: The name of the file into which the sessions summary information is to be written.
+    ///
+    /// # Returns
+    ///
+    /// `Result<(), Box<dyn Error>>`: Nothing if everying went OK, or an `Error` if not.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// activities.export_summary_csv("session_summary.csv")?;
+    /// ```
     pub fn export_summary_csv(&self, sessionfile: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV
         let outfile = PathBuf::from(sessionfile);

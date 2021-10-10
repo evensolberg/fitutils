@@ -1,3 +1,5 @@
+//! Contains the various types used in the parsing of FIT files, and their associated functions.
+
 pub mod activities;
 pub mod activity;
 mod constfunc;

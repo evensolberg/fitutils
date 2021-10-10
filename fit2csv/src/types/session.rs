@@ -1,3 +1,5 @@
+//! Defines the `Session` struct which holds summary information about the workout session, and assoicated functions.
+
 use crate::types::constfunc::*;
 use crate::types::duration::Duration;
 use crate::types::hrzones::HrZones;
@@ -65,6 +67,13 @@ impl Session {
     /// Initialize Session with default empty values
     pub fn new() -> Self {
         Session::default()
+    }
+
+    pub fn from_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
+        let mut session = Self::new();
+        session.filename = Some(filename.to_string());
+
+        Ok(session)
     }
 
     /// Output details about the session
@@ -235,8 +244,7 @@ impl Session {
         );
 
         // Write the session data to JSON
-        serde_json::to_writer_pretty(&File::create(&export_path)?, &self)
-            .expect("Unable to write session info to JSON file.");
+        serde_json::to_writer_pretty(&File::create(&export_path)?, &self)?;
 
         // Everything is OK
         Ok(())

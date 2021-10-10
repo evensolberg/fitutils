@@ -1,3 +1,5 @@
+//! Defines the `Record` struct which ontains etailed information about each record/data point in the workout session.
+
 use crate::types::constfunc::*;
 use crate::types::duration::Duration;
 use crate::types::session::Session;
@@ -15,18 +17,43 @@ use uom::si::{length::meter, velocity::meter_per_second};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
 pub struct Record {
+    /// Record timestamp.
     pub timestamp: Option<TimeStamp>,
+
+    /// How far into the current session are we (Seconds)
     pub duration: Option<Duration>,
+
+    /// Distance covered since last record entry (Meters).
     pub distance: Option<Length_f64>,
+
+    /// Altiude (Meters).
     pub altitude: Option<Length_f64>,
+
+    /// Stance time (Seconds).
     pub stance_time: Option<Duration>,
+
+    /// Vertical oscillation.
     pub vertical_oscillation: Option<f64>,
+
+    /// Cadence in beats (or revolutions) per minute.
     pub cadence: Option<u8>,
+
+    /// Speed (Meters per Second).
     pub speed: Option<Velocity>,
+
+    /// Power (Watts).
     pub power: Option<u16>,
+
+    /// Heart rate (Beats per Minute).
     pub heartrate: Option<u8>,
+
+    /// Calories burned/
     pub calories: Option<u16>,
+
+    /// Latitude (Degrees).
     pub lat: Option<f64>,
+
+    /// Longitude (Degrees).
     pub lon: Option<f64>,
 }
 
@@ -39,15 +66,28 @@ impl Record {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Parses record information into more detail.
     ///
-    /// **Parameters:**
+    /// # Parameters
     ///
-    ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
-    ///    `record: &mut types::Record` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.
-    ///    `session: &types::Session` -- Session summary information. Currently used to calculate duration.
+    /// `fields: &[FitDataField]` -- A `FitBitDataField` with `MsgNum::Record`
     ///
-    /// **Returns:**
+    /// `session: &Session` -- Session summary information. Currently used to calculate duration from start.
     ///
-    ///    `Result<Record, Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
+    /// # Returns
+    ///
+    /// `Result<Record, Box<dyn Error>>` -- Returns a new `Record` if OK, `Error` otherwise.
+    ///
+    /// # Example
+    ///
+    /// - Assume `my_session` has been parsed and filled already.
+    /// - Assume `data` is a `FitDataField` with `data.kind() == MesgNum::Record`.
+    ///
+    /// ```
+    /// let record = Record::from_fit_record(data.fields(), &my_session)?;
+    /// ```
+    ///
+    /// # References
+    ///
+    /// Struct [`FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
     pub fn from_fit_record(
         fields: &[FitDataField],
         session: &Session,
@@ -110,6 +150,7 @@ impl Record {
 }
 
 impl Default for Record {
+    /// Returns a `Record` struct with no values.
     fn default() -> Self {
         Self {
             timestamp: None,

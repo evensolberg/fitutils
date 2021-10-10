@@ -55,23 +55,32 @@ fn run() -> Result<(), Box<dyn Error>> {
         )
         .arg( // Print summary information
             Arg::with_name("print-summary")
-                .short("s")
+                .short("p")
                 .long("print-summary")
                 .multiple(false)
                 .help("Print summary detail for each session processed.")
                 .takes_value(false)
         )
-        .arg( // Output summary file only
-            Arg::with_name("summary-only")
+        .arg( // Don't export detail information
+            Arg::with_name("detail-off")
                 .short("o")
-                .value_name("summary output file name")
-                .long("summary-only")
+                .long("detail-off")
                 .multiple(false)
-                .help("Don't produce detail files for each session processed. Only create the summary file.")
+                .help("Don't export detailed information from each file parsed.")
+                .takes_value(false)
+        )
+        .arg( // Summary file name
+            Arg::with_name("summary-file")
+                .short("s")
+                .value_name("summary output file name")
+                .long("summary-file")
+                .multiple(false)
+                .help("Summary output file name.")
                 .takes_value(true)
-                .default_value("fit-sessions.csv")
         )
         .get_matches();
+
+    log::debug!("main::run() -- CLI args: {:?}", cli_args);
 
     // Set up logging according to the number of times the debug flag has been supplied
     let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
@@ -103,7 +112,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Find the name of the session output file
     let sessionfile = cli_args
-        .value_of("summary-only")
+        .value_of("summary-file")
         .unwrap_or("fit-sessions.csv");
     log::debug!("main::run() -- session output file: {}", sessionfile);
 
@@ -120,11 +129,13 @@ fn run() -> Result<(), Box<dyn Error>> {
         // Parse the FIT file
         let my_activity = Activity::from_fitfile(fitfile_name)?;
 
+        // Output the files
         if cli_args.is_present("print-summary") {
             my_activity.session.print_summary();
         }
 
-        if !cli_args.is_present("summary-only") {
+        if !cli_args.is_present("detail-off") {
+            log::debug!("main::run() - exporting details.");
             my_activity.export()?;
         }
 
@@ -133,7 +144,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Export the summary information
-    activities.export_summary_csv(sessionfile)?;
+    if cli_args.is_present("summary-file") {
+        activities.export_summary_csv(sessionfile)?;
+    }
 
     // Everything is a-okay in the end
     Ok(())

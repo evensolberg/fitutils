@@ -1,6 +1,7 @@
-use fitparser::Value;
+//! Constants and functions used in other parts of the types system.
 
 use crate::types::timestamp::TimeStamp;
+use fitparser::Value;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
@@ -24,5 +25,5 @@ map_value!(map_string, String, Value::String(x) => x.to_string());
 map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Used in calculating latitudes and longitudes.
+/// Used in calculating latitudes and longitudes. You do not need to worry about this.
 pub const LATLON_MULTIPLIER: f64 = 180_f64 / (2_u32 << 30) as f64;

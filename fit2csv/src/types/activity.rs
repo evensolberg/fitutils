@@ -1,3 +1,5 @@
+//! Defines the `Activity` struct which holds the information contained in a .FIT file, and associated functions.
+
 use crate::types::lap::Lap;
 use crate::types::record::Record;
 use crate::types::session::Session;
@@ -10,16 +12,20 @@ use std::fs::File;
 use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Holds the all the information about the file and its contents
+/// Holds the all the information about a FIT file and its contents
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
 pub struct Activity {
+    /// High-level session information and summary.
     pub session: Session,
+    /// Lists all the `Lap`s.
     pub laps: Vec<Lap>,
+    /// Lists all the `Record`s.
     pub records: Vec<Record>,
 }
 
 impl Activity {
+    /// Creates a new, empty `Activity`.
     pub fn new() -> Self {
         Self::default()
     }
@@ -27,43 +33,28 @@ impl Activity {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Parses the input file into its constituent parts.
     ///
-    /// **Parameters:***
+    /// # Parameters
     ///
     ///    `filename: &str` -- The filename for the FIT file to be parsed.
     ///
-    /// **Returns:**
+    /// # Returns
     ///
-    ///    `Result<Activity, Box<dyn Error>>` -- Ok(Activity) if succesful, otherwise an error.
+    ///    `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if succesful, otherwise an `Error`.
     ///
-    /// **Example:**
+    /// # Example
     ///
     ///   ```rust
-    ///    mod parsers;
+    ///    use crate::types::activity::Activity;
     ///
-    ///    let my_activity = parsers::parse_fitfile("fitfile.fit")?;
+    ///    let my_activity = Activity::from_fitfile("fitfile.fit")?;
     ///   ```
     pub fn from_fitfile(filename: &str) -> Result<Activity, Box<dyn Error>> {
-        // open the file - return error if unable.
+        // open the file and deserialize it - return error if unable.
         let mut fp = File::open(filename)?;
-        log::trace!(
-            "parsers::parse_fitfile() -- {} was read OK. File pointer name: {:?}",
-            filename,
-            fp
-        );
-
-        // Deserialize the file contents
-        log::trace!("parsers::parse_fitfile() -- Deserializing file.");
         let file = fitparser::from_reader(&mut fp)?;
 
-        log::debug!(
-            "parsers::parse_fitfile() -- Data was deserialized. Total number of records: {}",
-            file.len()
-        );
-
-        let mut my_session = Session::new();
-        my_session.filename = Some(filename.to_string());
-
-        // This is the main file parsing loop. This will definitely get expanded.
+        // Create a bunch of placeholder variables.
+        let mut my_session = Session::from_filename(filename)?;
         let mut num_records = 0;
         let mut num_sessions = 0;
         let mut lap_num = 0;
@@ -71,7 +62,6 @@ impl Activity {
         let mut records_vec: Vec<Record> = Vec::new();
 
         // This is where the actual parsing happens
-        log::debug!("parsers::parse_fitfile() -- Parsing data.");
         for data in file {
             // for each FitDataRecord
             match data.kind() {
@@ -79,14 +69,9 @@ impl Activity {
                 MesgNum::FileId => {
                     // File header
                     my_session.parse_header(data.fields())?;
-                    log::debug!(
-                        "parsers::parse_fitfile() -- Session after parsing header: {:?}",
-                        my_session
-                    );
                 }
                 MesgNum::Session => {
                     my_session.parse_session(data.fields())?;
-                    log::debug!("parsers::parse_fitfile() -- Session: {:?}", my_session);
                     num_sessions += 1;
                     my_session.num_sessions = Some(num_sessions);
                 }
@@ -94,42 +79,42 @@ impl Activity {
                     let mut lap = Lap::from_fit_lap(data.fields(), &my_session)?;
                     lap_num += 1;
                     lap.lap_num = Some(lap_num);
-                    log::debug!("parsers::parse_fitfile() -- Lap {:3}: {:?}", lap_num, lap);
                     lap_vec.push(lap); // push the lap onto the vector
                 }
                 MesgNum::Record => {
-                    // FIXME: This is inefficient since we're instantiating this for every record
                     let record = Record::from_fit_record(data.fields(), &my_session)?;
-                    log::debug!("parsers::parse_fitfile() -- Record: {:?}", record);
                     records_vec.push(record);
                     num_records += 1;
-                    my_session.num_records = Some(num_records);
                 }
                 _ => (),
             } // match
         } // for data
 
-        // Build the activity
-        let my_activity = Activity {
+        // Set the total number of records for the session
+        my_session.num_records = Some(num_records);
+
+        // Build and return the activity
+        Ok(Activity {
             session: my_session,
             laps: lap_vec,
             records: records_vec,
-        };
-
-        // Return the activity struct
-        Ok(my_activity)
+        })
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Export the activity into its constituent JSON and CSV parts:
     ///
-    ///    _Session_ gets exported to `fitfilename.session.json`
-    ///    _Laps_ get exported to `fitfilename.laps.csv`
-    ///   _Records_ get exported to `fitfilename.records.csv`
+    /// - _Session_ gets exported to `fitfilename.session.json`
+    /// - _Laps_ get exported to `fitfilename.laps.csv`
+    /// - _Records_ get exported to `fitfilename.records.csv`
     ///
-    /// **Returns:**
+    /// # Parameters
     ///
-    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
+    /// `&self` - The current activity.
+    ///
+    /// # Returns
+    ///
+    /// `Result<(), Box<dyn Error>>` -- OK if successful, `Error` otherwise.
     pub fn export(&self) -> Result<(), Box<dyn Error>> {
         self.session.export_json()?;
         Self::export_laps_csv(self)?;
@@ -142,14 +127,14 @@ impl Activity {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Export the laps information to a CSV file named after the FIT file with the _.fit_ extension replaced by _.laps.csv_
     ///
-    /// **Parameters:**
+    /// # Parameters
     ///
-    ///    `activity: &types::Activity` -- A struct containing all the information parsed from the FIT file.
+    /// `&self` -- The current activity.
     ///
-    /// **Returns:**
+    /// # Returns
     ///
-    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
-    fn export_laps_csv(&self) -> Result<(), Box<dyn Error>> {
+    /// `Result<(), Box<dyn Error>>` -- `Ok(())` if successful, `Error` otherwise.
+    pub fn export_laps_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
         let mut outfile = PathBuf::from(&self.session.filename.as_ref().unwrap());
         outfile.set_extension("laps.csv");
@@ -210,13 +195,17 @@ impl Activity {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Export the records information to a CSV file named after the FIT file with the _.fit_ extension replaced by _.records.csv_
     ///
-    /// **Returns:**
+    /// # Parameters
     ///
-    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
+    /// `&self` -- The current activity.
+    ///
+    /// # Returns
+    ///
+    /// `Result<(), Box<dyn Error>>` -- `Ok(())` if successful, `Error` otherwise.
     pub fn export_records_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
         let mut outfile = PathBuf::from(&self.session.filename.as_ref().unwrap());
-        outfile.set_extension("laps.csv");
+        outfile.set_extension("records.csv");
         log::trace!(
             "exporter::export_records_csv() -- Writing records CSV file {}",
             &outfile.to_str().unwrap()
@@ -257,6 +246,7 @@ impl Activity {
 }
 
 impl Default for Activity {
+    /// Returns an empty `Activity`.
     fn default() -> Self {
         Self {
             session: Session::new(),

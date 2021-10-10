@@ -1,3 +1,5 @@
+//! Re-implements `chrono::DateTime<Local>` so it can be serialized.
+
 use chrono::{offset::Local, DateTime};
 use serde::{Deserialize, Serialize};
 

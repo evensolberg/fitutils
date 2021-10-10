@@ -1,3 +1,5 @@
+//! Defines the `Lap` struct which contains summary information per lap, and associated functions.
+
 use crate::types::constfunc::*;
 use crate::types::duration::Duration;
 use crate::types::hrzones::HrZones;
@@ -20,54 +22,122 @@ use uom::si::{
 #[derive(Serialize, Deserialize, Debug, Clone)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
 pub struct Lap {
+    /// The name of the .FIT file in which the lap information is found.
     pub filename: Option<String>,
+
+    /// Lap number.
     pub lap_num: Option<u64>,
+
+    /// Average cadence (running, walking, biking, ...).
     pub cadence_avg: Option<u8>,
+
+    /// Maximum cadence (running, walking, biking, ...).
     pub cadence_max: Option<u8>,
+
+    /// Minimum heart rate (Beats per Minute).
     pub heartrate_min: Option<u8>,
+
+    /// Average heart rate (Beats per Minute).
     pub heartrate_avg: Option<u8>,
+
+    /// Maximum heart rate (Beats per Minute).
     pub heartrate_max: Option<u8>,
+
+    /// Average speed (Meter per Second).
     pub speed_avg: Option<Velocity>,
+
+    /// Maximum speed (Meter per Second).
     pub speed_max: Option<Velocity>,
+
+    /// Average power (Watt).
     pub power_avg: Option<u16>,
+
+    /// Maxmimum power (Watt).
     pub power_max: Option<u16>,
+
+    /// Latitude of lap start.
     pub lat_start: Option<f64>,
+
+    /// Longitude of lap start.
     pub lon_start: Option<f64>,
+
+    /// Latitude of lap end.
     pub lat_end: Option<f64>,
+
+    /// Longitude of lap end.
     pub lon_end: Option<f64>,
+
+    /// Average stance time.
     pub stance_time_avg: Option<Duration>,
+
+    /// Vertical oscillation.
     pub vertical_oscillation_avg: Option<f64>,
+
+    /// Total ascent (Meter).
     pub ascent: Option<Length_u16>,
+
+    //l Total descent (Meter).
     pub descent: Option<Length_u16>,
+
+    /// Calories burned.
     pub calories: Option<u16>,
+
+    /// Distance covered (Meter).
     pub distance: Option<Length_f64>,
+
+    /// Lap total duration including pauses.
     pub duration: Option<Duration>,
+
+    /// Lap active duration without pauses.
     pub duration_active: Option<Duration>,
+
+    /// Lap moving duration.
     pub duration_moving: Option<Duration>,
+
+    /// Lap start time.
     pub start_time: Option<TimeStamp>,
+
+    /// Lap finish time.
     pub finish_time: Option<TimeStamp>,
+
+    /// Time spent in each heart rate zone.
     pub time_in_hr_zones: HrZones,
 }
 
 impl Lap {
-    /// Return a new, empty Lap struct
+    /// Return a new, empty `Lap` struct
     pub fn new() -> Self {
         Self::default()
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Parses lap information into more detail.
+    /// Parses lap information from `FitDataRecord` into more detail and returns a new `Lap`.
     ///
-    /// **Parameters:**
+    /// # Parameters
     ///
-    ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
-    ///    `lap: &mut types::Lap` -- An empty record struct to be filled in. See `types.rs` for details on this stuct.`
-    ///    `session: &types::Session` -- Session summary information. Currently used to get the file name.
+    /// `fields: &[FitDataField]` -- See the References for details.
     ///
-    /// **Returns:**
+    /// `session: &Session` -- Session summary information. Currently only used to get the file name.
     ///
-    ///    `Result<Lap, Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
-    pub fn from_fit_lap(fields: &[FitDataField], session: &Session) -> Result<Lap, Box<dyn Error>> {
+    /// # Returns
+    ///
+    /// `Result<Self, Box<dyn Error>>` -- Returns `Ok(Lap)` if everything went well, `Error` if not.
+    ///
+    /// # Example
+    ///
+    /// - Assume `my_session` has been parsed and filled already.
+    /// - Assume `data` is a `FitDataField` with `data.kind() == MesgNum::Lap`.
+    ///
+    /// ```
+    /// let lap = Lap::from_fit_lap(data.fields(), &my_session)?;
+    /// ```
+    /// # References
+    ///
+    /// Struct [`fitparser::FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
+    pub fn from_fit_lap(
+        fields: &[FitDataField],
+        session: &Session,
+    ) -> Result<Self, Box<dyn Error>> {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
@@ -75,11 +145,9 @@ impl Lap {
         let mut lap = Lap::new();
 
         lap.filename = session.filename.to_owned();
-        log::trace!("parsers::parse_lap() -- Lap filename = {:?}", lap.filename);
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
-        log::trace!("parsers::parse_lap() -- Lap field_map = {:?}", field_map);
 
         lap.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
         lap.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
@@ -160,10 +228,12 @@ impl Lap {
 
         Ok(lap)
     }
+
     // end impl Lap
 }
 
 impl Default for Lap {
+    /// Return a `Lap` struct with all empty values.
     fn default() -> Self {
         Lap {
             filename: None,

@@ -1,3 +1,5 @@
+//! Defines the `HrZones` struct which contains heart rate zones information, and associated functions.
+
 use crate::types::duration::Duration;
 
 use serde::ser::{SerializeStruct, Serializer};
@@ -9,29 +11,38 @@ use serde::{Deserialize, Serialize};
 /// The actual zones are defined as the training levels based on your maximum heart rate, which is usually calculated
 /// as 220 - your age in years.
 ///
-/// **HR Zones:**
+/// # Heart Rate Zones
 ///
-///    **0**: Warmup<br>
-///    **1**: Fat Burn<br>
-///    **2**: Aerobic<br>
-///    **3**: Anaerobic<br>
-///    **4**: Speed/Power<br>
+/// **0**: Warmup<br>
+/// **1**: Fat Burn<br>
+/// **2**: Aerobic<br>
+/// **3**: Anaerobic<br>
+/// **4**: Speed/Power<br>
 ///
-/// **Reference:**
+/// # References
 ///
-///    <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
+/// <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates><br>
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(default)]
 pub struct HrZones {
+    /// Time spent in Heart Rate zone 0 (Warmup).
     pub hr_zone_0: Option<Duration>,
+
+    /// Time spent in Heart Rate zone 1 (Fat Burn).
     pub hr_zone_1: Option<Duration>,
+
+    /// Time spent in Heart Rate zone 2 (Aerobic).
     pub hr_zone_2: Option<Duration>,
+
+    /// Time spent in Heart Rate zone 3 (Anaerobic).
     pub hr_zone_3: Option<Duration>,
+
+    /// Time spent in Heart Rate zone 4 (Speed/Power).
     pub hr_zone_4: Option<Duration>,
 }
 
 impl HrZones {
-    /// Initialize HrZones with default empty values
+    /// Initialize HrZones with default empty (`None`) values
     pub fn new() -> Self {
         HrZones::default()
     }
@@ -39,20 +50,26 @@ impl HrZones {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Initialize HrZones from a HrZone array from the fitparser
     ///
-    /// **Parameters:**
+    /// # Parameters
     ///
-    ///    `src: Option<&&fitparser::Value>` -- A fitparser array value containing the HR Zone information: <https://docs.rs/fitparser/0.4.0/fitparser/enum.Value.html>
+    ///    `src: Option<&&fitparser::Value>` -- A fitparser array value containing the HR Zone information. See References for details.
     ///
-    /// **Returns:**
+    /// # Returns
     ///
-    ///   `Self` -- Returns a new HrZones struct, which may or may not have values in its elements.
+    ///   `Self` -- Returns a new `HrZones` struct, which may or may not have values in its elements, depending on whether anything was found in the input.
     ///
-    /// **Example:**
+    /// # Example
     ///
     ///   ```rust
-    ///   lap.time_in_hr_zones = HzZones::from(field_map.get("time_in_hr_zone"));
+    ///   let field_map: HashMap<&str, &fitparser::Value> =
+    ///       fields.iter().map(|x| (x.name(), x.value())).collect();
+    ///
+    ///   time_in_hr_zones = HzZones::from(field_map.get("time_in_hr_zone"));
     ///   ```
     ///
+    /// # Reference
+    ///
+    /// Struct [`fitparser::Value`](https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html)
     pub fn from(src: Option<&&fitparser::Value>) -> Self {
         let mut hr_zones = HrZones::new();
 
@@ -78,7 +95,7 @@ impl HrZones {
 }
 
 impl Default for HrZones {
-    /// Set defaults to be all `None`.
+    /// Set each heart rate zone value to be `None`.
     fn default() -> Self {
         HrZones {
             hr_zone_0: None,
@@ -91,6 +108,7 @@ impl Default for HrZones {
 }
 
 impl Serialize for HrZones {
+    /// Serializes the `HrZones` struct so it can be exported to CSV or JSON formats.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
