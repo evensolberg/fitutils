@@ -10,6 +10,7 @@ application := "fit2csv"
 # ALIASES
 alias b := build
 alias br := buildr
+alias fmt := format
 
 # SHORTCUTS AND COMMANDS
 
@@ -22,15 +23,18 @@ alias br := buildr
 
 # Only compiles the project
 @build: format
+   - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
    cargo lbuild --color 'always'
 
 # Compile a release version of the project without moving the binaries
 @buildr: format
+    - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
     cargo lbuild --release --color 'always'
     cargo strip
 
 # Cleans and builds again
 @rebuild: format
+    - git-chglog --silent --output {{invocation_directory()}}/CHANGELOG.md
     cargo clean
     cargo lbuild --color 'always'
 
@@ -142,5 +146,6 @@ alias br := buildr
     -cargo install tokei
     -cargo install cargo-semver --vers 1.0.0-alpha.3
     -cargo install cargo-deny
+    -brew tap git-chglog/git-chglog && brew install git-chglog
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     echo "Make sure to also install Graphviz."
