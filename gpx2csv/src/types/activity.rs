@@ -33,7 +33,7 @@ impl Activity {
         let mut duration = Duration::from_secs_f64(0.0);
 
         // If there are no tracks, protest!
-        if self.tracks.len() == 0 {
+        if self.tracks.is_empty() {
             return Err("Activity::set_total_duration() -- Unable to set Activity duration. No tracks found.".into());
         }
 
@@ -55,7 +55,7 @@ impl Activity {
     /// Export the tracks to CSV
     pub fn export_tracks_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
-        if tracks.len() == 0 {
+        if tracks.is_empty() {
             return Err("track::export_tracks_csv() -- No Tracks in the Activity.".into());
         }
 
@@ -80,7 +80,7 @@ impl Activity {
     /// Export all the waypoints for each track to CSV
     pub fn export_waypoints_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
-        if tracks.len() == 0 {
+        if tracks.is_empty() {
             return Err("track::export_waypoints_csv() -- No Tracks in the Activity.".into());
         }
 

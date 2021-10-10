@@ -63,7 +63,7 @@ impl Track {
 
     pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Self {
         let mut dest = Self::new();
-        dest.set_filename(&filename);
+        dest.set_filename(filename);
 
         if let Some(name) = &src.name {
             dest.name = Some(name.to_string())
@@ -82,7 +82,7 @@ impl Track {
         }
 
         // See if we have links
-        if src.links.len() > 0 {
+        if !src.links.is_empty() {
             dest.links_href = Some(src.links[0].href.to_string());
             if let Some(text) = &src.links[0].text {
                 dest.links_text = Some(text.to_string());
@@ -98,7 +98,7 @@ impl Track {
             segnum += 1;
             let mut wptnum: usize = 0;
             for curr_wpt in &curr_seg.points {
-                let mut wpt = Waypoint::from_gpx_waypoint(&curr_wpt);
+                let mut wpt = Waypoint::from_gpx_waypoint(curr_wpt);
                 wptnum += 1;
                 wpt.segment_num = segnum;
                 wpt.waypoint_mum = wptnum;
@@ -115,7 +115,7 @@ impl Track {
                 .unwrap();
             let t_first = &dest.waypoints[0].time.as_ref().unwrap();
 
-            dest.duration = Some(Duration::between(&t_first, &t_last));
+            dest.duration = Some(Duration::between(t_first, t_last));
         }
 
         // return it

@@ -48,7 +48,7 @@ impl GpxMetadata {
     /// Create a new Session instance based on the original metadata and file name.
     pub fn from_header(src: &gpx::Gpx, filename: &str) -> Self {
         let mut dest = Self::new();
-        dest.set_filename(&filename);
+        dest.set_filename(filename);
 
         // Parse the GPX header
         log::trace!("parsers::parse_gpx_header() -- Parsing the GPX header information.");
@@ -73,7 +73,7 @@ impl GpxMetadata {
         }
 
         // For now, only read the first href in the list of links (if there is one)
-        if src_meta.links.len() > 0 {
+        if !src_meta.links.is_empty() {
             dest.links_href = Some(src_meta.links[0].href.to_string());
             if let Some(text) = &src_meta.links[0].text {
                 dest.links_text = Some(text.to_string());

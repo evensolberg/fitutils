@@ -113,14 +113,14 @@ fn run() -> Result<(), Box<dyn Error>> {
         let mut activity = Activity::new();
 
         // Fill the GPX Header info so we can serialize it later
-        activity.metadata = GpxMetadata::from_header(&gpx, &filename);
+        activity.metadata = GpxMetadata::from_header(&gpx, filename);
         log::trace!(
             "main::run() -- GPX Metadata header: {:?}",
             activity.metadata
         );
 
         for curr_track in gpx.tracks {
-            let mut track = Track::from_gpx_track(&curr_track, &filename);
+            let mut track = Track::from_gpx_track(&curr_track, filename);
             track.track_num += 1;
             log::debug!(
                 "main::run() -- track::Number of segments: {} / waypoints: {}",
@@ -146,7 +146,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         activities.activities_list.push(activity);
     }
 
-    activities.export_csv(&sessionfile)?;
+    activities.export_csv(sessionfile)?;
 
     // Everything is a-okay in the end
     Ok(())

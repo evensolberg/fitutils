@@ -127,7 +127,7 @@ impl Waypoint {
             dest._type = Some(_type.to_string())
         }
 
-        if src.links.len() > 0 {
+        if !src.links.is_empty() {
             dest.links_href = Some(src.links[0].href.to_string());
             if let Some(text) = &src.links[0].text {
                 dest.links_text = Some(text.to_string());
@@ -135,7 +135,7 @@ impl Waypoint {
         }
 
         if let Some(fix) = &src.fix {
-            dest.fix = Some(fix_to_string(&fix))
+            dest.fix = Some(fix_to_string(fix))
         }
 
         dest.sat = src.sat;
