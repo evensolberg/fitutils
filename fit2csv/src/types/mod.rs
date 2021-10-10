@@ -1,5 +1,6 @@
 pub mod activities;
 pub mod activity;
+mod constfunc;
 pub mod duration;
 pub mod hrzones;
 pub mod lap;
@@ -10,6 +11,7 @@ pub mod timestamp;
 /*
 use crate::types::activities::Activities;
 use crate::types::activity::Activity;
+use crate:;types::constfunc::*;
 use crate::types::duration::Duration;
 use crate::types::hzones::HrZones;
 use crate::types::lap::Lap;

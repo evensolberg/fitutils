@@ -1,7 +1,14 @@
+use crate::types::constfunc::*;
 use crate::types::duration::Duration;
 use crate::types::hrzones::HrZones;
 use crate::types::timestamp::TimeStamp;
 
+use std::collections::HashMap;
+use std::error::Error;
+use std::fs::File;
+use std::path::PathBuf;
+
+use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
@@ -61,7 +68,7 @@ impl Session {
     }
 
     /// Output details about the session
-    pub fn print_session(&self) {
+    pub fn print_summary(&self) {
         println!("\n{} summary:\n", self.filename.as_ref().unwrap());
         println!(
             "Manufacturer: {}    Time created: {}",
@@ -86,6 +93,156 @@ impl Session {
         println!("Fat Burning: {}", self.time_in_hr_zones.hr_zone_1.unwrap());
         println!("Warmup:      {}", self.time_in_hr_zones.hr_zone_0.unwrap());
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Extract manufacturer and session creation time from the FIT data file header
+    ///
+    /// **Parameters:**
+    ///
+    ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+    ///
+    /// **Returns:**
+    ///
+    ///    `Result<(), Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
+    pub fn parse_header(&mut self, fields: &[FitDataField]) -> Result<(), Box<dyn Error>> {
+        let field_map: HashMap<&str, &fitparser::Value> =
+            fields.iter().map(|x| (x.name(), x.value())).collect();
+
+        self.manufacturer = field_map.get("manufacturer").and_then(map_string);
+        self.product = field_map.get("product").and_then(map_string);
+        self.serial_number = field_map.get("serial_number").and_then(map_string);
+        self.time_created = field_map.get("time_created").and_then(map_timestamp);
+
+        // return safely
+        Ok(())
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Parses session information into more detail.
+    ///
+    /// **Parameters:**
+    ///
+    ///    `session: &mut types::Session` -- An empty session struct to be filled in. See `types.rs` for details on this stuct.
+    ///
+    /// **Returns:**
+    ///
+    ///    `Result<(), Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
+    pub fn parse_session(&mut self, fields: &[FitDataField]) -> Result<(), Box<dyn Error>> {
+        let field_map: HashMap<&str, &fitparser::Value> =
+            fields.iter().map(|x| (x.name(), x.value())).collect();
+        log::trace!(
+            "Sparsers::parse_session() -- ession field_map = {:?}",
+            field_map
+        );
+
+        self.activity_type = field_map.get("sport").and_then(map_string);
+        self.activity_detailed = field_map.get("sub_sport").and_then(map_string);
+
+        self.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
+        self.cadence_max = field_map.get("max_cadence").and_then(map_uint8);
+
+        self.heartrate_avg = field_map.get("avg_heart_rate").and_then(map_uint8);
+        self.heartrate_max = field_map.get("max_heart_rate").and_then(map_uint8);
+        self.heartrate_min = field_map.get("min_heart_rate").and_then(map_uint8);
+
+        self.stance_time_avg = field_map.get("avg_stance_time").and_then(map_float64);
+        self.vertical_oscillation_avg = field_map
+            .get("avg_vertical_oscillation")
+            .and_then(map_float64);
+
+        self.speed_avg = field_map
+            .get("enhanced_avg_speed")
+            .and_then(map_float64)
+            .map(Velocity::new::<meter_per_second>);
+        self.speed_max = field_map
+            .get("enhanced_max_speed")
+            .and_then(map_float64)
+            .map(Velocity::new::<meter_per_second>);
+
+        self.power_avg = field_map.get("avg_power").and_then(map_uint16);
+        self.power_max = field_map.get("max_power").and_then(map_uint16);
+        self.power_threshold = field_map.get("threshold_power").and_then(map_uint16);
+
+        // GPS - NEC = North East Corner, SWC = South West Corner
+        self.nec_lat = field_map
+            .get("nec_lat")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * LATLON_MULTIPLIER);
+        self.nec_lon = field_map
+            .get("nec_long")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * LATLON_MULTIPLIER);
+        self.swc_lat = field_map
+            .get("swc_lat")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * LATLON_MULTIPLIER);
+        self.swc_lon = field_map
+            .get("swc_long")
+            .and_then(map_sint32)
+            .map(|x| f64::from(x) * LATLON_MULTIPLIER);
+
+        self.ascent = field_map
+            .get("total_ascent")
+            .and_then(map_uint16)
+            .map(Length_u16::new::<meter>);
+        self.descent = field_map
+            .get("total_descent")
+            .and_then(map_uint16)
+            .map(Length_u16::new::<meter>);
+
+        self.calories = field_map.get("total_calories").and_then(map_uint16);
+        self.distance = field_map
+            .get("total_distance")
+            .and_then(map_float64)
+            .map(Length_f64::new::<meter>);
+
+        self.duration = field_map
+            .get("total_elapsed_time")
+            .and_then(map_float64)
+            .map(Duration::from_secs_f64);
+        self.duration_active = field_map
+            .get("total_timer_time")
+            .and_then(map_float64)
+            .map(Duration::from_secs_f64);
+        self.duration_moving = field_map
+            .get("total_moving_time")
+            .and_then(map_float64)
+            .map(Duration::from_secs_f64);
+
+        self.start_time = field_map.get("start_time").and_then(map_timestamp);
+        self.finish_time = field_map.get("timestamp").and_then(map_timestamp);
+
+        self.num_laps = field_map.get("num_laps").and_then(map_uint16);
+
+        self.time_in_hr_zones = HrZones::from(field_map.get("time_in_hr_zone"));
+
+        Ok(())
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Export the session infromation to a JSON file name based on the FIT file name.
+    ///
+    /// **Returns:**
+    ///
+    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
+    pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
+        // Change the file extension
+        let mut export_path = PathBuf::from(&self.filename.as_ref().unwrap());
+        export_path.set_extension("session.json");
+        log::trace!(
+            "exporter::export_session_json() -- Writing JSON file {}",
+            &export_path.to_str().unwrap()
+        );
+
+        // Write the session data to JSON
+        serde_json::to_writer_pretty(&File::create(&export_path)?, &self)
+            .expect("Unable to write session info to JSON file.");
+
+        // Everything is OK
+        Ok(())
+    }
+
+    // end impl Session
 }
 
 impl Default for Session {

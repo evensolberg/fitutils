@@ -3,6 +3,7 @@ use crate::types::record::Record;
 use crate::types::session::Session;
 
 use csv::WriterBuilder;
+use fitparser::profile::field_types::MesgNum;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
@@ -24,6 +25,102 @@ impl Activity {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Parses the input file into its constituent parts.
+    ///
+    /// **Parameters:***
+    ///
+    ///    `filename: &str` -- The filename for the FIT file to be parsed.
+    ///
+    /// **Returns:**
+    ///
+    ///    `Result<Activity, Box<dyn Error>>` -- Ok(Activity) if succesful, otherwise an error.
+    ///
+    /// **Example:**
+    ///
+    ///   ```rust
+    ///    mod parsers;
+    ///
+    ///    let my_activity = parsers::parse_fitfile("fitfile.fit")?;
+    ///   ```
+    pub fn from_fitfile(filename: &str) -> Result<Activity, Box<dyn Error>> {
+        // open the file - return error if unable.
+        let mut fp = File::open(filename)?;
+        log::trace!(
+            "parsers::parse_fitfile() -- {} was read OK. File pointer name: {:?}",
+            filename,
+            fp
+        );
+
+        // Deserialize the file contents
+        log::trace!("parsers::parse_fitfile() -- Deserializing file.");
+        let file = fitparser::from_reader(&mut fp)?;
+
+        log::debug!(
+            "parsers::parse_fitfile() -- Data was deserialized. Total number of records: {}",
+            file.len()
+        );
+
+        let mut my_session = Session::new();
+        my_session.filename = Some(filename.to_string());
+
+        // This is the main file parsing loop. This will definitely get expanded.
+        let mut num_records = 0;
+        let mut num_sessions = 0;
+        let mut lap_num = 0;
+        let mut lap_vec: Vec<Lap> = Vec::new(); // Lap information vector
+        let mut records_vec: Vec<Record> = Vec::new();
+
+        // This is where the actual parsing happens
+        log::debug!("parsers::parse_fitfile() -- Parsing data.");
+        for data in file {
+            // for each FitDataRecord
+            match data.kind() {
+                // Figure out what kind it is and parse accordingly
+                MesgNum::FileId => {
+                    // File header
+                    my_session.parse_header(data.fields())?;
+                    log::debug!(
+                        "parsers::parse_fitfile() -- Session after parsing header: {:?}",
+                        my_session
+                    );
+                }
+                MesgNum::Session => {
+                    my_session.parse_session(data.fields())?;
+                    log::debug!("parsers::parse_fitfile() -- Session: {:?}", my_session);
+                    num_sessions += 1;
+                    my_session.num_sessions = Some(num_sessions);
+                }
+                MesgNum::Lap => {
+                    let mut lap = Lap::from_fit_lap(data.fields(), &my_session)?;
+                    lap_num += 1;
+                    lap.lap_num = Some(lap_num);
+                    log::debug!("parsers::parse_fitfile() -- Lap {:3}: {:?}", lap_num, lap);
+                    lap_vec.push(lap); // push the lap onto the vector
+                }
+                MesgNum::Record => {
+                    // FIXME: This is inefficient since we're instantiating this for every record
+                    let record = Record::from_fit_record(data.fields(), &my_session)?;
+                    log::debug!("parsers::parse_fitfile() -- Record: {:?}", record);
+                    records_vec.push(record);
+                    num_records += 1;
+                    my_session.num_records = Some(num_records);
+                }
+                _ => (),
+            } // match
+        } // for data
+
+        // Build the activity
+        let my_activity = Activity {
+            session: my_session,
+            laps: lap_vec,
+            records: records_vec,
+        };
+
+        // Return the activity struct
+        Ok(my_activity)
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Export the activity into its constituent JSON and CSV parts:
     ///
     ///    _Session_ gets exported to `fitfilename.session.json`
@@ -34,34 +131,11 @@ impl Activity {
     ///
     ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
     pub fn export(&self) -> Result<(), Box<dyn Error>> {
-        Self::export_session_json(&self)?;
-        Self::export_laps_csv(&self)?;
-        Self::export_records_csv(&self)?;
+        self.session.export_json()?;
+        Self::export_laps_csv(self)?;
+        Self::export_records_csv(self)?;
 
         // return safely
-        Ok(())
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Export the session infromation to a JSON file name based on the FIT file name.
-    ///
-    /// **Returns:**
-    ///
-    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
-    fn export_session_json(&self) -> Result<(), Box<dyn Error>> {
-        // Change the file extension
-        let mut export_path = PathBuf::from(&self.session.filename.as_ref().unwrap());
-        export_path.set_extension("session.json");
-        log::trace!(
-            "exporter::export_session_json() -- Writing JSON file {}",
-            &export_path.to_str().unwrap()
-        );
-
-        // Write the session data to JSON
-        serde_json::to_writer_pretty(&File::create(&export_path)?, &self.session)
-            .expect("Unable to write session info to JSON file.");
-
-        // Everything is OK
         Ok(())
     }
 

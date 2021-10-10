@@ -15,10 +15,10 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 // Import our own modules and types
-pub mod parsers;
 pub mod types;
 
 use crate::types::activities::Activities;
+use crate::types::activity::Activity;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -113,21 +113,17 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut activities = Activities::new();
 
     for fitfile_name in fitfiles {
-        // If not quiet, indicate which file we're processing
         if !cli_args.is_present("quiet") {
-            log::info!("Processing: {}", fitfile_name);
+            log::info!("Processing file: {}", fitfile_name);
         }
 
         // Parse the FIT file
-        let my_activity = parsers::parse_fitfile(fitfile_name)?;
+        let my_activity = Activity::from_fitfile(fitfile_name)?;
 
-        // If requested, print the summary information for the session
-        log::trace!("main:run() -- Printing the header_struct if requested.");
         if cli_args.is_present("print-summary") {
-            my_activity.session.print_session();
+            my_activity.session.print_summary();
         }
 
-        // Write the data
         if !cli_args.is_present("summary-only") {
             my_activity.export()?;
         }
@@ -136,7 +132,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         activities.activities_list.push(my_activity);
     }
 
-    activities.export_csv(&sessionfile)?;
+    // Export the summary information
+    activities.export_summary_csv(sessionfile)?;
+
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
@@ -145,9 +143,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory
+        Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            // Houston, This file contains a problem
             log::error!("{}", Box::new(err)); // Say what's wrong and
             1 // exit with a non-zero return code, indicating a problem
         }

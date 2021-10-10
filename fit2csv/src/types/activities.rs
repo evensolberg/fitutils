@@ -17,8 +17,8 @@ impl Activities {
         Activities::default()
     }
 
-    /// Export the list of session information to a CSV file
-    pub fn export_csv(&self, sessionfile: &str) -> Result<(), Box<dyn Error>> {
+    /// Export the summary list of session information to a CSV file
+    pub fn export_summary_csv(&self, sessionfile: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV
         let outfile = PathBuf::from(sessionfile);
         let mut sess_writer = WriterBuilder::new()

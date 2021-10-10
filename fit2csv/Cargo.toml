@@ -1,6 +1,6 @@
 [package]
 name = "fit2csv"
-version = "0.2.8"
+version = "0.2.9"
 description = "Parses .FIT files to .JSON and .CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]

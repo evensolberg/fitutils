@@ -31,7 +31,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         .output
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
-    if opt.files.is_empty() {
+    if !opt.files.is_empty() {
         let mut stdin = io::stdin();
         let data = fitparser::from_reader(&mut stdin)?;
         output_loc.write_json_file(&PathBuf::from("<stdin>"), data)?;
