@@ -91,7 +91,7 @@ impl Track {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```text
     /// for curr_track in gpx.tracks {
     ///   let mut track = Track::from_gpx_track(&curr_track, filename);
     ///   ...
