@@ -5,7 +5,7 @@
 # https://github.com/casey/just
 
 # VARIABLES
-application := "fit2csv"
+application := "fitparser"
 
 # ALIASES
 alias b := build
@@ -52,7 +52,7 @@ alias fmt := format
 @release: format
     cargo lbuild --release  --color 'always'
     cargo strip
-    cp {{invocation_directory()}}/target/release/{{application}}/usr/local/bin/
+    cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
     cargo clean
 
 # Build the documentation
@@ -127,9 +127,15 @@ alias fmt := format
 @runddt:
     cargo lrun  --color 'always' -- --debug --debug | tee trace.txt
 
+# Check for new versions of crates and upgrade accordingly
+@upgrade:
+    cargo update
+    cargo upgrade --workspace
+
 # Copy this settings files to the templates directory
 @just:
     cp {{invocation_directory()}}/justfile ~/CloudStation/Source/_Templates/justfile.template
+    -sd {{application}} fitparser ~/CloudStation/Source/_Templates/justfile.template
     cp {{invocation_directory()}}/deny.toml ~/CloudStation/Source/_Templates/deny.toml
 
 # Check, but verbose
