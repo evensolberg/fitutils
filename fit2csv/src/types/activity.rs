@@ -48,7 +48,7 @@ impl Activity {
     ///
     ///    let my_activity = Activity::from_fitfile("fitfile.fit")?;
     ///   ```
-    pub fn from_fitfile(filename: &str) -> Result<Activity, Box<dyn Error>> {
+    pub fn from_file(filename: &str) -> Result<Activity, Box<dyn Error>> {
         // open the file and deserialize it - return error if unable.
         let mut fp = File::open(filename)?;
         let file = fitparser::from_reader(&mut fp)?;

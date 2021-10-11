@@ -11,8 +11,8 @@ use clap::{App, Arg}; // Command line
 use std::error::Error;
 
 // Logging
+use env_logger::{Builder, Target};
 use log::LevelFilter;
-use simple_logger::SimpleLogger;
 
 // Import our own modules and types
 pub mod types;
@@ -80,15 +80,28 @@ fn run() -> Result<(), Box<dyn Error>> {
         )
         .get_matches();
 
-    log::debug!("main::run() -- CLI args: {:?}", cli_args);
-
-    // Set up logging according to the number of times the debug flag has been supplied
-    let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
-    match log_level {
-        0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
-        1 => SimpleLogger::new().with_level(LevelFilter::Debug).init()?,
-        _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
+    // If the user specifies that they don't want detail and the summary detail is off, nothing gets written.
+    // This kinda defeats the purpose, so we let the user know.
+    if cli_args.is_present("detail-off") && !cli_args.is_present("summary-file") {
+        return Err("--detail-off and no --summary-file parameter means there is nothing to write. Exiting.".into());
     }
+
+    // create a log builder
+    let mut logbuilder = Builder::new();
+
+    // Figure out what log level to use.
+    if cli_args.is_present("quiet") {
+        logbuilder.filter_level(LevelFilter::Off);
+    } else {
+        match cli_args.occurrences_of("debug") {
+            0 => logbuilder.filter_level(LevelFilter::Info),
+            1 => logbuilder.filter_level(LevelFilter::Debug),
+            _ => logbuilder.filter_level(LevelFilter::Trace),
+        };
+    }
+
+    // Initialize logging
+    logbuilder.target(Target::Stdout).init();
 
     if !cli_args.is_present("read") {
         log::error!(
@@ -103,48 +116,48 @@ fn run() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    let fitfiles = cli_args.values_of("read").unwrap();
-    log::debug!("main::run() -- Input files: {:?}", fitfiles);
-    log::trace!(
-        "main:run() -- Parsing FIT files using Profile version: {}",
-        fitparser::profile::VERSION
-    );
-
     // Find the name of the session output file
     let sessionfile = cli_args
         .value_of("summary-file")
         .unwrap_or("fit-sessions.csv");
     log::debug!("main::run() -- session output file: {}", sessionfile);
 
+    // Let the user know if we're writing
+    if !cli_args.is_present("detail-off") {
+        log::info!("Writing detail files.");
+    } else {
+        log::info!("Writing summary file {} only.", &sessionfile)
+    }
+
     ///////////////////////////////////
     // Working section
 
+    // Create an empty placeholder for all the activities
     let mut activities = Activities::new();
 
-    for fitfile_name in fitfiles {
-        if !cli_args.is_present("quiet") {
-            log::info!("Processing file: {}", fitfile_name);
-        }
+    for filename in cli_args.values_of("read").unwrap() {
+        log::info!("Processing file: {}", filename);
 
         // Parse the FIT file
-        let my_activity = Activity::from_fitfile(fitfile_name)?;
+        let activity = Activity::from_file(filename)?;
 
         // Output the files
         if cli_args.is_present("print-summary") {
-            my_activity.session.print_summary();
+            activity.session.print_summary();
         }
 
+        // Export the data if requested
         if !cli_args.is_present("detail-off") {
-            log::debug!("main::run() - exporting details.");
-            my_activity.export()?;
+            activity.export()?;
         }
 
         // Push the session onto the summary vector
-        activities.activities_list.push(my_activity);
+        activities.activities_list.push(activity);
     }
 
     // Export the summary information
     if cli_args.is_present("summary-file") {
+        log::info!("Summary information written to: {}", &sessionfile);
         activities.export_summary_csv(sessionfile)?;
     }
 
@@ -158,7 +171,8 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", Box::new(err)); // Say what's wrong and
+            log::error!("{}", err.to_string().replace("\"", "")); // Say what's wrong and
+            println!("ERROR: {}", err.to_string().replace("\"", "")); // Say what's wrong and
             1 // exit with a non-zero return code, indicating a problem
         }
     });

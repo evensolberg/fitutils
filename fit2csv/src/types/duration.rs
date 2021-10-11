@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Wrapper for std::time::Duration so we can derive Serialize and Deserialize traits
+/// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits
 #[derive(Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Duration(pub std::time::Duration);
 
@@ -89,11 +89,11 @@ impl std::fmt::Display for Duration {
 }
 
 impl Serialize for Duration {
+    /// Serializes the Duration for output into various types of files.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("Duration", 1)?;
         state.serialize_field("secs", &self.0.as_secs_f32())?;
         state.end()
