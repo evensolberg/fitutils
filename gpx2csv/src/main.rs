@@ -67,7 +67,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // If the user specifies that they don't want detail and the summary detail is off, nothing gets written.
     // This kinda defeats the purpose, so we let the user know.
     if cli_args.is_present("detail-off") && !cli_args.is_present("summary-file") {
-        return Err("--detail-off and no --summary-file parameter means there is nothing to write. Exiting.".into());
+        return Err("Supplied --detail-off parameter with no --summary-file parameter means there is nothing to write. Exiting.".into());
     }
 
     // create a log builder
@@ -157,7 +157,11 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory
         Err(err) => {
-            println!("ERROR: {}", err.to_string().replace("\"", ""));
+            Builder::new()
+                .filter_level(LevelFilter::Error)
+                .target(Target::Stdout)
+                .init();
+            log::error!("{}", err.to_string().replace("\"", ""));
             1 // exit with a non-zero return code, indicating a problem
         }
     });
