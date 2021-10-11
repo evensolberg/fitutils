@@ -45,12 +45,12 @@ impl Activities {
     pub fn export_summary_csv(&self, sessionfile: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV
         let outfile = PathBuf::from(sessionfile);
-        let mut sess_writer = WriterBuilder::new()
+        let mut writer = WriterBuilder::new()
             .has_headers(false)
             .from_path(&outfile)?;
 
         // Write the header separately since types::Duration doesn't get serialized properly
-        sess_writer.write_record(&[
+        writer.write_record(&[
             "filename",
             "manufacturer",
             "product",
@@ -95,11 +95,14 @@ impl Activities {
 
         // Now write the actual laps
         for activity in self.activities_list.iter() {
-            sess_writer.serialize(&activity.session)?;
+            log::trace!("activities::export_summary_csv() -- serializing: {:?}", activity);
+            writer.serialize(&activity.session)?;
         }
 
+        log::trace!("activities::export_summary_csv() -- session information to be written: {:?}", writer);
+
         // Write the file
-        sess_writer.flush()?;
+        writer.flush()?;
 
         // Return safely
         Ok(())

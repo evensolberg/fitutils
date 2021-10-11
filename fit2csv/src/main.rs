@@ -171,7 +171,6 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", err.to_string().replace("\"", "")); // Say what's wrong and
             println!("ERROR: {}", err.to_string().replace("\"", "")); // Say what's wrong and
             1 // exit with a non-zero return code, indicating a problem
         }
