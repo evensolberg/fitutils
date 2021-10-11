@@ -1,3 +1,5 @@
+//! Contains types used in the serialization and output selection for the data.
+
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -13,6 +15,7 @@ pub struct FitDataMap {
 }
 
 impl FitDataMap {
+    /// Instantiates a new datamap from a `FitDataRecord`
     fn new(record: fitparser::FitDataRecord) -> Self {
         FitDataMap {
             kind: record.kind(),
@@ -25,15 +28,24 @@ impl FitDataMap {
     }
 }
 
+/// Output location alternatives
 #[derive(Clone, Debug)]
 pub enum OutputLocation {
+    /// Put the output in the same place as the input
     Inplace,
+
+    /// Put the output into a separate directory
     LocalDirectory(PathBuf),
+
+    /// Collate all outputs into a single file
     LocalFile(PathBuf),
+
+    /// Output to `stdout`
     Stdout,
 }
 
 impl OutputLocation {
+    /// Create a new output location based on the location specified.
     pub fn new(location: PathBuf) -> Self {
         if location.is_dir() {
             OutputLocation::LocalDirectory(location)
@@ -44,6 +56,18 @@ impl OutputLocation {
         }
     }
 
+    /// Write to a JSON file
+    ///
+    /// # Parameters
+    ///
+    /// `filename: &Path` -- The file(s) or directory where we wish to save.
+    ///
+    /// `data: Vec<fitparser::FitDataRecord>` -- A vector (list) of FitDataRecords
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(()` if everything went well.
+    /// - `Error` if problems occurred.
     pub fn write_json_file(
         &self,
         filename: &Path,
@@ -53,6 +77,7 @@ impl OutputLocation {
         let data: Vec<FitDataMap> = data.into_iter().map(FitDataMap::new).collect();
         let json = serde_json::to_string(&data)?;
 
+        // Figure out where to send the output
         let outname = match self {
             Self::Inplace => filename.with_extension("json"),
             Self::LocalDirectory(dest) => dest
@@ -65,6 +90,8 @@ impl OutputLocation {
                 return Ok(());
             }
         };
+
+        // Write the data to the selected output and return the result.
         let mut fp = File::create(outname)?;
         match fp.write_all(json.as_bytes()) {
             Ok(_) => Ok(()),

@@ -1,4 +1,5 @@
 //! Read one or more FIT files and dump their contents as JSON
+
 use std::error::Error;
 use std::fs::File;
 use std::io;
@@ -8,7 +9,7 @@ use structopt::StructOpt;
 // Application-specific types
 pub mod types;
 
-/// Parse FIT formatted files and output their data in the JSON format
+/// Command-line options
 #[derive(Debug, StructOpt)]
 #[structopt(name = "fit2json")]
 struct Cli {
@@ -25,12 +26,15 @@ struct Cli {
     output: Option<PathBuf>,
 }
 
+/// Performs the actual work.
 fn run() -> Result<(), Box<dyn Error>> {
     let opt = Cli::from_args();
     let output_loc = opt
         .output
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
+
+    // If no files have been provided, read from STDIN
     if !opt.files.is_empty() {
         let mut stdin = io::stdin();
         let data = fitparser::from_reader(&mut stdin)?;
@@ -60,6 +64,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Main executable entry point. Hands off to the `run` function.
 fn main() {
     std::process::exit(match run() {
         Ok(_) => 0,
