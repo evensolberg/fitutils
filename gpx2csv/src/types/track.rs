@@ -1,8 +1,11 @@
+//! Defines the `Track` struct which holds information about each track, including summary data and waypoint details.
+
 use crate::types::duration::Duration;
 use crate::types::timestamp::TimeStamp;
 use crate::types::waypoint::Waypoint;
 
 use serde::Serialize;
+use std::error::Error;
 use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,8 +37,10 @@ pub struct Track {
     /// Source of data. Included to give user some idea of reliability and accuracy of data.
     pub source: Option<String>,
 
-    /// Links to external information about the track.
+    /// The URL of the first link to external information about the track.
     pub links_href: Option<String>,
+
+    /// The description of the first link to external information about the track.
     pub links_text: Option<String>,
 
     /// Type (classification) of track.
@@ -43,25 +48,55 @@ pub struct Track {
 
     /// Number of track segments within this track
     pub num_segments: usize,
+
     /// Total number of waypoints within this track
     pub num_waypoints: usize,
 
-    /// The list of waypoints in this track
+    /// The list of waypoints in this track (not serialized)
     #[serde(skip)] // Do not serialize - we'll handle it in the export. Maybe.
     pub waypoints: Vec<Waypoint>,
 }
 
 impl Track {
+    /// Instantiate a new, empty `Track`
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new Session instance with the filename set from the parameter
+    /// Sets the filename in the `Track` struct.
+    ///
+    /// # Parameters
+    ///
+    /// `filename: &str` -- The file name of the GPX file from which the track is taken.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// track.set_filename("running.gpx");
     pub fn set_filename(&mut self, filename: &str) {
         self.filename = Some(PathBuf::from(filename));
     }
 
-    pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Self {
+    /// Returns a new `Track` instance with data filled from the parameters given.
+    ///
+    /// # Parameters
+    ///
+    /// `src: &gpx::Track` -- A `gpx::Track` struct from the original file.
+    ///
+    /// `filename: &str` -- The name of the GPX file from which the Track was taken.
+    ///
+    /// # Returns
+    ///
+    /// `Self` -- A `Track` struct instance.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// for curr_track in gpx.tracks {
+    ///   let mut track = Track::from_gpx_track(&curr_track, filename);
+    ///   ...
+    /// ```
+    pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut dest = Self::new();
         dest.set_filename(filename);
 
@@ -119,7 +154,7 @@ impl Track {
         }
 
         // return it
-        dest
+        Ok(dest)
     }
 }
 

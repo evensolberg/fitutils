@@ -1,5 +1,5 @@
+/// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
 use gpx;
-
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
@@ -7,30 +7,64 @@ use std::path::PathBuf;
 
 use crate::types::duration::Duration;
 use crate::types::timestamp::TimeStamp;
-use crate::types::ExportJSON;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Holds the src_meta information about the file and its contents
+/// Holds the metadata information about the file and its contents
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct GpxMetadata {
+    /// THe name of the GPX file from which the information was read.
     pub filename: Option<PathBuf>,
+
+    /// Gpx version used (`Gpx10`, `Gpx11`, or `Unknown`) in this file.
     pub version: Option<String>,
+
+    /// Creator name or URL of the software that created the GPX document.
     pub creator: Option<String>,
+
+    /// The name of the GPX file -- this usually corresponds to an activity.
     pub activity: Option<String>,
+
+    /// A description of the contents of the GPX file.
     pub description: Option<String>,
+
+    /// The name of the person or organization who created the GPX file.
     pub author_name: Option<String>,
+
+    /// The email address for the person or organization who created the GPX file.
     pub author_email: Option<String>,
+
+    /// The first URL associated with the location described in the file.
     pub links_href: Option<String>,
+
+    /// The descriptive text for the first URL associated with this file.
     pub links_text: Option<String>,
+
+    /// Keywords associated with the file. Search engines or databases can use this information to classify the data.
     pub keywords: Option<String>,
+
+    /// The creation date of the file.
     pub time: Option<TimeStamp>,
+
+    /// The total duration of the activities found in this file.
     pub duration: Option<Duration>,
+
+    /// The name of the person or company the holds the copyright for this GPX file.
     pub copyright_author: Option<String>,
+
+    /// The year the copyright for this file was put in place.
     pub copyright_year: Option<i32>,
+
+    /// The license terms for the GPX file.
     pub copyright_license: Option<String>,
+
+    /// The total number of waypoints (in tracks) found in this GPX file.
     pub num_waypoints: usize,
+
+    /// The number of tracks found in this file.
     pub num_tracks: usize,
+
+    /// The number of routes found in this file.
     pub num_routes: usize,
 }
 
@@ -40,18 +74,39 @@ impl GpxMetadata {
         Self::default()
     }
 
-    /// Create a new Session instance with the filename set from the parameter
+    /// Sets the `filename` field in the struct to the value provided.
+    ///
+    /// # Parameters
+    ///
+    /// `filename: &str` -- The name of the GPX file being read.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let input_file = "running.gpx";
+    ///
+    /// gpx_meta.set_filename(input_file);
+    /// ```
     pub fn set_filename(&mut self, filename: &str) {
         self.filename = Some(PathBuf::from(&filename));
     }
 
     /// Create a new Session instance based on the original metadata and file name.
-    pub fn from_header(src: &gpx::Gpx, filename: &str) -> Self {
+    ///
+    /// # Parameters
+    ///
+    /// `src: &gpx::Gpx` -- The original contents of the GPX file being parsed.
+    ///
+    /// `filename: &str` -- The filename of the GPX file being read.
+    ///
+    /// # Returns
+    ///
+    /// `Self` -- A `GpxMetadata` struct filled with the metadata and copyright contents from the orginal `Gpx` struct.
+    pub fn from_header(src: &gpx::Gpx, filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut dest = Self::new();
         dest.set_filename(filename);
 
         // Parse the GPX header
-        log::trace!("parsers::parse_gpx_header() -- Parsing the GPX header information.");
         dest.version = Some(gpx_ver_to_string(&src.version));
         if let Some(creator) = &src.creator {
             dest.creator = Some(creator.to_string());
@@ -83,7 +138,6 @@ impl GpxMetadata {
         // Parse the copyright information if there is any.
         match &src_meta.copyright {
             Some(cr_data) => {
-                log::trace!("parsers::parse_gpx_header() -- Copyright information found. Parsing.");
                 if let Some(author) = &cr_data.author {
                     dest.copyright_author = Some(author.to_string())
                 };
@@ -104,7 +158,6 @@ impl GpxMetadata {
         // Parse src_meta.author if there is anything there.
         match &src_meta.author {
             Some(author) => {
-                log::trace!("parsers::parse_gpx_header() -- Author information found. Parsing.");
                 if let Some(name) = &author.name {
                     dest.author_name = Some(name.to_string())
                 };
@@ -124,8 +177,34 @@ impl GpxMetadata {
         dest.num_tracks = src.tracks.len();
         dest.num_routes = src.routes.len();
 
+        log::debug!("GpxMetadata::from_header() -- Metadata: {:?}", dest);
+
         // return the src_meta struct
-        dest
+        Ok(dest)
+    }
+
+    /// Export the session data to a JSON file using the filename specified in the struct,
+    /// with the extension changed to `.session.json`.
+    ///
+    /// # Parameters
+    ///
+    /// None (`&self` is implied)
+    ///
+    /// # Returns
+    ///
+    /// Nothing if OK, otherwise `Error`.
+    pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
+        let mut filename = self.filename.as_ref().unwrap().to_path_buf();
+        filename.set_extension("session.json");
+        log::trace!(
+            "exporter::export_session_json() -- Writing JSON file {:?}",
+            &filename.to_str()
+        );
+
+        // Write the session data to JSON
+        serde_json::to_writer_pretty(&File::create(&filename)?, &self)?;
+
+        Ok(())
     }
 }
 
@@ -152,62 +231,6 @@ impl Default for GpxMetadata {
             num_tracks: 0,
             num_routes: 0,
         }
-    }
-}
-
-impl ExportJSON for GpxMetadata {
-    /// Export the session data to a JSON file using the filename specified in the struct,
-    /// with the extension changed to `.session.json`.
-    ///
-    /// **Parameters:**
-    ///
-    /// None (`&self` is implied)
-    ///
-    /// **Returns:**<br>
-    ///
-    /// Nothing if OK<br>
-    /// `Error` if not OK
-    fn export_json(&self) -> Result<(), Box<dyn Error>> {
-        let mut filename = self.filename.as_ref().unwrap().to_path_buf();
-        filename.set_extension("session.json");
-        log::trace!(
-            "exporter::export_session_json() -- Writing JSON file {:?}",
-            &filename.to_str()
-        );
-
-        // Write the session data to JSON
-        serde_json::to_writer_pretty(&File::create(&filename)?, &self)?;
-
-        Ok(())
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Converts the Gpx::Fix struct to a string for easier export
-///
-/// **Parameters**:
-///     `src: &gpx::Fix` a [Gpx Fix](https://docs.rs/gpx/0.8.3/gpx/enum.Fix.html) enum
-///
-/// **Returns**:
-///     `String` -- A String containing the name of the Enum value as a string.
-///
-/// **Example**:
-///
-/// ```rust
-/// let src: = &gpx::Fix;
-///
-/// if let Some(fix) = &src.fix {
-///    dest.fix = Some(fix_to_string(&fix))
-/// }
-/// ```
-pub fn fix_to_string(src: &gpx::Fix) -> String {
-    match src {
-        gpx::Fix::None => "None".to_string(),
-        gpx::Fix::TwoDimensional => "TwoDimensional".to_string(),
-        gpx::Fix::ThreeDimensional => "ThreeDimensional".to_string(),
-        gpx::Fix::DGPS => "DGPS".to_string(),
-        gpx::Fix::PPS => "PPS".to_string(),
-        gpx::Fix::Other(str) => format!("Other({})", str.to_owned()),
     }
 }
 

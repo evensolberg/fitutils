@@ -1,4 +1,4 @@
-use std::error::Error;
+//! Defines types used in the collection and serialization of the GPX data.
 
 // Submodules
 pub mod activities;
@@ -12,14 +12,3 @@ pub mod route;
 pub mod timestamp;
 pub mod track;
 pub mod waypoint;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Provides the capability to export the contents of a data type in JSON format.
-pub trait ExportJSON {
-    fn export_json(&self) -> Result<(), Box<dyn Error>>;
-}
-
-/// Provides the capability to export the contents of a data type in CSV format.
-pub trait ExportCSV {
-    fn export_csv(&self) -> Result<(), Box<dyn Error>>;
-}

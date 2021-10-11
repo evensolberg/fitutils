@@ -1,5 +1,9 @@
+//! Defines the `Activity` struct which contains the parsed contents of a GPX file, and associated functions.
 use csv::WriterBuilder;
+use gpx::Gpx;
 use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
 
 use crate::types::duration::Duration;
@@ -13,10 +17,13 @@ use crate::types::waypoint::Waypoint;
 pub struct Activity {
     /// High-level metadata about the activity such as start time, duration, number of tracks, etc.
     pub metadata: GpxMetadata,
+
     /// A list of waypoints that we have marked special.
     pub waypoints: Vec<Waypoint>,
+
     /// A list of routes, each with a list of point-by-point directions.
     pub routes: Vec<Route>,
+
     /// A list of tracks with waypoints indicating point-in-time position and other data.
     pub tracks: Vec<Track>,
 }
@@ -25,6 +32,67 @@ impl Activity {
     /// Create a new, empty Activity.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Read the activity and associated tracks and waypoints from the file given.
+    ///
+    /// # Parameters
+    ///
+    /// `filename: &str` -- The name of the GPX file we wish to read.
+    ///
+    /// # Returns
+    ///
+    /// `Result<Self, Box<dyn Error>> -- Returns an instance of the `Activity` struct if successful, otherwise an `Error`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use crate::types::activity::Activity;
+    ///
+    /// let my_activity = Activity::from_file("running.gpx")?;
+    /// ```
+    pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
+        let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+        log::debug!("activity::from_file() -- gpx.metadata = {:?}", gpx.metadata);
+        log::trace!("\nactivity::from_file() -- gpx = {:?}", gpx);
+
+        let mut activity = Self::new();
+
+        // Fill the GPX Header info so we can serialize it later
+        activity.metadata = GpxMetadata::from_header(&gpx, filename)?;
+        log::trace!(
+            "main::run() -- GPX Metadata header: {:?}",
+            activity.metadata
+        );
+
+        for curr_track in gpx.tracks {
+            let mut track = Track::from_gpx_track(&curr_track, filename)?;
+            track.track_num += 1;
+            log::debug!(
+                "main::run() -- track::Number of segments: {} / waypoints: {}",
+                track.num_segments,
+                track.num_waypoints
+            );
+
+            log::trace!("\nmain::run() -- track = {:?}", track);
+            activity.tracks.push(track);
+        }
+
+        // Set the total duration to be the sum of the track durations
+        activity.set_duration()?;
+
+        Ok(activity)
+    }
+
+    /// Exports all the relevant data for the activity.
+    /// Calls the `GpxMetadata::export_json()` function and its own
+    /// `export_tracks_csv()` and `export_waypoints_csv()` functions.
+    pub fn export(&self) -> Result<(), Box<dyn Error>> {
+        self.metadata.export_json()?;
+        self.export_tracks_csv()?;
+        self.export_waypoints_csv()?;
+
+        Ok(())
     }
 
     /// Iterates through the tracks and calculates a total activity duration.

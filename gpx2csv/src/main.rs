@@ -1,24 +1,19 @@
+//! The main program file.
+
 use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
 
 use clap::{App, Arg}; // Command line
 
 // Logging
+use env_logger::{Builder, Target};
 use log::LevelFilter;
-use simple_logger::SimpleLogger;
-
-// Read GPX
-use gpx::Gpx;
 
 // Local modules
 pub mod types;
 use crate::types::activities::Activities;
 use crate::types::activity::Activity;
-use crate::types::gpxmetadata::GpxMetadata;
-use crate::types::track::Track;
-use crate::types::ExportJSON;
 
+/// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = App::new(clap::crate_name!())
@@ -50,33 +45,47 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Don't produce any output except errors while working.")
                 .takes_value(false)
         )
-        .arg( // Print summary information
-            Arg::with_name("print-summary")
-                .short("s")
-                .long("print-summary")
+        .arg( // Don't export detail information
+            Arg::with_name("detail-off")
+                .short("o")
+                .long("detail-off")
                 .multiple(false)
-                .help("Print summary detail for each session processed.")
+                .help("Don't export detailed information from each file parsed.")
                 .takes_value(false)
         )
-        .arg( // Output summary file only
-            Arg::with_name("summary-only")
-            .short("o")
-            .value_name("summary output file name")
-            .long("summary-only")
-            .multiple(false)
-            .help("Don't produce detail files for each session processed. Only create the summary file.")
-            .takes_value(true)
-            .default_value("gpx-sessions.csv")
+        .arg( // Summary file name
+            Arg::with_name("summary-file")
+                .short("s")
+                .value_name("summary output file name")
+                .long("summary-file")
+                .multiple(false)
+                .help("Summary output file name.")
+                .takes_value(true)
         )
         .get_matches();
 
-    // Set up logging according to the number of times the debug flag has been supplied
-    let log_level = cli_args.occurrences_of("debug"); // Will pass this to functions in the future.
-    match log_level {
-        0 => SimpleLogger::new().with_level(LevelFilter::Info).init()?,
-        1 => SimpleLogger::new().with_level(LevelFilter::Debug).init()?,
-        _ => SimpleLogger::new().with_level(LevelFilter::Trace).init()?, // More than 1
+    // If the user specifies that they don't want detail and the summary detail is off, nothing gets written.
+    // This kinda defeats the purpose, so we let the user know.
+    if cli_args.is_present("detail-off") && !cli_args.is_present("summary-file") {
+        return Err("--detail-off and no --summary-file parameter means there is nothing to write. Exiting.".into());
     }
+
+    // create a log builder
+    let mut logbuilder = Builder::new();
+
+    // Figure out what log level to use.
+    if cli_args.is_present("quiet") {
+        logbuilder.filter_level(LevelFilter::Off);
+    } else {
+        match cli_args.occurrences_of("debug") {
+            0 => logbuilder.filter_level(LevelFilter::Info),
+            1 => logbuilder.filter_level(LevelFilter::Debug),
+            _ => logbuilder.filter_level(LevelFilter::Trace),
+        };
+    }
+
+    // Initialize logging
+    logbuilder.target(Target::Stdout).init();
 
     // Check if we have file arguments. Exit oout if not.
     if !cli_args.is_present("read") {
@@ -84,7 +93,12 @@ fn run() -> Result<(), Box<dyn Error>> {
             "Missing file argument. Try again with -h for assistance.\n{}",
             cli_args.usage()
         );
-        return Err("Input files missing.".into());
+        std::process::exit(1);
+    } else {
+        log::trace!(
+            "main::run() -- File argument: {:?}",
+            cli_args.values_of("read").unwrap()
+        );
     }
 
     log::trace!(
@@ -96,57 +110,42 @@ fn run() -> Result<(), Box<dyn Error>> {
     let sessionfile = cli_args
         .value_of("summary-only")
         .unwrap_or("fit-sessions.csv");
-    log::debug!("main::run() -- session output file: {}", sessionfile);
+    log::trace!("main::run() -- session output file: {}", sessionfile);
+
+    // Let the user know if we're writing
+    if !cli_args.is_present("detail-off") {
+        log::info!("Writing detail files.");
+    } else {
+        log::info!("Writing summary file {} only.", &sessionfile)
+    }
+
+    ///////////////////////////////////
+    // Working section
 
     // Create an empty placeholder for all the activities
     let mut activities = Activities::new();
 
     // Do the parsing
     for filename in cli_args.values_of("read").unwrap() {
-        log::debug!("main::run() -- filname = {}", filename);
+        log::info!("Processing file: {}", filename);
 
-        let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
-        log::debug!("main::run() -- gpx.metadata = {:?}", gpx.metadata);
-        log::trace!("\nmain::run() -- gpx = {:?}", gpx);
+        // Extract the activity from the file
+        let activity = Activity::from_file(filename)?;
 
-        // Create the overall activity placeholder
-        let mut activity = Activity::new();
-
-        // Fill the GPX Header info so we can serialize it later
-        activity.metadata = GpxMetadata::from_header(&gpx, filename);
-        log::trace!(
-            "main::run() -- GPX Metadata header: {:?}",
-            activity.metadata
-        );
-
-        for curr_track in gpx.tracks {
-            let mut track = Track::from_gpx_track(&curr_track, filename);
-            track.track_num += 1;
-            log::debug!(
-                "main::run() -- track::Number of segments: {} / waypoints: {}",
-                track.num_segments,
-                track.num_waypoints
-            );
-
-            log::trace!("\nmain::run() -- track = {:?}", track);
-            activity.tracks.push(track);
-        }
-
-        // Set the total duration to be the sum of the track durations
-        activity.set_duration()?;
-
-        // Export the data
-        if !cli_args.is_present("summary-only") {
-            activity.metadata.export_json()?;
-            activity.export_tracks_csv()?;
-            activity.export_waypoints_csv()?;
+        // Export the data if requested
+        if !cli_args.is_present("detail-off") {
+            activity.export()?; // metadata, tracks, waypoints
         }
 
         // Add the current activity to the list of activities and destroy the activity
         activities.activities_list.push(activity);
     }
 
-    activities.export_csv(sessionfile)?;
+    // Export the summary list of activities
+    if cli_args.is_present("summary-file") {
+        log::info!("Summary information written to: {}", &sessionfile);
+        activities.export_csv(sessionfile)?;
+    }
 
     // Everything is a-okay in the end
     Ok(())
@@ -158,8 +157,8 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory
         Err(err) => {
-            // Houston, This file contains a problem
-            log::error!("{}", Box::new(err)); // Say what's wrong and
+            log::error!("{}", err.to_string().replace("\"", "")); // Say what's wrong and
+                                                                  // println!("ERROR: {}", err.to_string().replace("\"", "")); // Say what's wrong and
             1 // exit with a non-zero return code, indicating a problem
         }
     });

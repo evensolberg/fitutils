@@ -1,3 +1,5 @@
+//! Defines the type of GPS fix used in the file.
+
 use gpx;
 use serde::{Deserialize, Serialize};
 

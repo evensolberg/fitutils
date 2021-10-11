@@ -1,3 +1,5 @@
+//! A list of all the `Activity` structs (i.e.. GPX files) parsed, and associated functions.
+
 use csv::WriterBuilder;
 use std::error::Error;
 use std::path::PathBuf;
@@ -18,6 +20,22 @@ impl Activities {
     }
 
     /// Export the list of session information to a CSV file
+    ///
+    /// # Parameters
+    ///
+    /// `filename: &str` -- The name of the summary file for all the activity data.
+    ///
+    /// # Returns
+    ///
+    /// `Result<(), Box<dyn Error>> -- Returns `Ok(())` if everything went well, otherwise `Error.
+    ///
+    /// # Example
+    ///
+    /// - Assumes one or more GPX file(s) already parsed.
+    ///
+    /// ```
+    /// activities.export_csv("gpx-summary.csv")?;
+    /// ```
     pub fn export_csv(&self, filename: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV. Assume that the filename is valid.
         let mut writer = WriterBuilder::new()

@@ -1,4 +1,5 @@
-use crate::types::gpxmetadata::fix_to_string;
+//! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
+
 use crate::types::timestamp::TimeStamp;
 use serde::Serialize;
 
@@ -6,13 +7,22 @@ use serde::Serialize;
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Waypoint {
+    /// Track number to which this waypoint belongs - `0` if part of Route or separate Waypoint.
     pub track_num: usize,
+
+    /// Route number - `0` if not relevant.
     pub route_num: usize,
+
+    /// Segment number - `0` if not relevant.
     pub segment_num: usize,
+
+    /// Waypoint number - Typically incremeents in fixed time durations.
     pub waypoint_mum: usize,
 
-    /// The geographical point.
+    /// The geographical point - longitude.
     pub longitude: Option<f64>,
+
+    /// The geographical point - latitude.
     pub latitude: Option<f64>,
 
     /// Elevation (in meters) of the point.
@@ -44,9 +54,13 @@ pub struct Waypoint {
     /// accuracy of data. "Garmin eTrex", "USGS quad Boston North", e.g.
     pub source: Option<String>,
 
-    /// Links to additional information about the waypoint.
+    /// Number of links to additional information about the waypoint.
     pub num_links: usize,
+
+    /// URL for the first link to additional information about the waypoint.
     pub links_href: Option<String>,
+
+    /// Descriptive text about the first link to additional information about the waypoint.
     pub links_text: Option<String>,
 
     /// Text of GPS symbol name. For interchange with other programs, use the
@@ -85,10 +99,10 @@ pub struct Waypoint {
     /// ID of DGPS station used in differential correction, in the range [0, 1023].
     pub dgpsid: Option<u16>,
 
-    /// Placeholder: Heart Rate
+    /// Placeholder: Heart Rate in Beats per Minute.
     pub heart_rate: Option<u16>,
 
-    /// Placeholder: Cadence
+    /// Placeholder: Cadence in Beats/Revolutions/Strokes per Minute
     pub cadence: Option<u16>,
 }
 
@@ -185,5 +199,40 @@ impl Default for Waypoint {
             heart_rate: None,
             cadence: None,
         }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Converts the Gpx::Fix struct to a string for easier export
+///
+/// # Parameters
+///
+/// `src: &gpx::Fix` a `Gpx::Fox` enum
+///
+/// # Returns
+///
+/// `String` -- A String containing the name of the Enum value as a string.
+///
+/// # Example
+///
+/// ```rust
+/// let src: = &gpx::Fix;
+///
+/// if let Some(fix) = &src.fix {
+///    dest.fix = Some(fix_to_string(&fix))
+/// }
+/// ```
+///
+/// # References
+///
+/// - [Gpx Fix](https://docs.rs/gpx/0.8.3/gpx/enum.Fix.html) enum documentation.
+fn fix_to_string(src: &gpx::Fix) -> String {
+    match src {
+        gpx::Fix::None => "None".to_string(),
+        gpx::Fix::TwoDimensional => "TwoDimensional".to_string(),
+        gpx::Fix::ThreeDimensional => "ThreeDimensional".to_string(),
+        gpx::Fix::DGPS => "DGPS".to_string(),
+        gpx::Fix::PPS => "PPS".to_string(),
+        gpx::Fix::Other(str) => format!("Other({})", str.to_owned()),
     }
 }
