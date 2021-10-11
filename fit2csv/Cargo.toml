@@ -9,19 +9,19 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 # Activity-related
-fitparser = "0.4"  # Fitbit
+fitparser = "0.4.2"
 
 # System utilities
-clap =  { version = "2.3.3" }
+clap = "2.33.3"
 log = "0.4.14"
 
 # Time and measurement
-chrono = "0.4.19" # Improved Time and Date
+chrono = "0.4.19"
 uom = { version = "0.31.1", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
 
 # Serialization and export
 serde = { version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.67"
+serde_json = "1.0.68"
 csv = "1.1.6"
 env_logger = "0.9.0"
 
