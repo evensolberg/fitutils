@@ -9,6 +9,10 @@ use structopt::StructOpt;
 // Application-specific types
 pub mod types;
 
+// Logging
+use env_logger::{Builder, Target};
+use log::LevelFilter;
+
 /// Command-line options
 #[derive(Debug, StructOpt)]
 #[structopt(name = "fit2json")]
@@ -28,6 +32,12 @@ struct Cli {
 
 /// Performs the actual work.
 fn run() -> Result<(), Box<dyn Error>> {
+    // Configure logging
+    Builder::new()
+        .filter_level(LevelFilter::Info)
+        .target(Target::Stdout)
+        .init();
+
     let opt = Cli::from_args();
     let output_loc = opt
         .output
@@ -35,7 +45,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
     // If no files have been provided, read from STDIN
-    if !opt.files.is_empty() {
+    if opt.files.is_empty() {
+        log::info!("No files supplied. Reading from STDIN.");
         let mut stdin = io::stdin();
         let data = fitparser::from_reader(&mut stdin)?;
         output_loc.write_json_file(&PathBuf::from("<stdin>"), data)?;
@@ -46,6 +57,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut all_fit_data: Vec<fitparser::FitDataRecord> = Vec::new();
     for file in opt.files {
         // open file and parse data
+        log::info!("Processing file: {}", &file.to_str().unwrap());
         let mut fp = File::open(&file)?;
         let mut data = fitparser::from_reader(&mut fp)?;
 
@@ -58,6 +70,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
     // output fit data from all files into a single file
     if collect_all {
+        log::info!("Summary information collected in specified output location.");
         output_loc.write_json_file(&PathBuf::new(), all_fit_data)?;
     }
 
@@ -69,7 +82,11 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0,
         Err(err) => {
-            eprintln!("{}", err);
+            Builder::new()
+                .filter_level(LevelFilter::Error)
+                .target(Target::Stdout)
+                .init();
+            log::error!("{}", err.to_string().replace("\"", ""));
             1
         }
     });
