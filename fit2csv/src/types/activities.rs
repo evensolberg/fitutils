@@ -95,11 +95,17 @@ impl Activities {
 
         // Now write the actual laps
         for activity in self.activities_list.iter() {
-            log::trace!("activities::export_summary_csv() -- serializing: {:?}", activity);
+            log::trace!(
+                "activities::export_summary_csv() -- serializing: {:?}",
+                activity
+            );
             writer.serialize(&activity.session)?;
         }
 
-        log::trace!("activities::export_summary_csv() -- session information to be written: {:?}", writer);
+        log::trace!(
+            "activities::export_summary_csv() -- session information to be written: {:?}",
+            writer
+        );
 
         // Write the file
         writer.flush()?;
