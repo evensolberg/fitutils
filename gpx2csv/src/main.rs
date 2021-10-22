@@ -1,8 +1,6 @@
 //! The main program file.
-
-use std::error::Error;
-
-use clap::{App, Arg}; // Command line
+use clap::{App, Arg};
+use std::error::Error; // Command line
 
 // Logging
 use env_logger::{Builder, Target};
@@ -10,8 +8,7 @@ use log::LevelFilter;
 
 // Local modules
 pub mod types;
-use crate::types::activities::Activities;
-use crate::types::activity::Activity;
+use crate::types::{Activities, Activity};
 
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {

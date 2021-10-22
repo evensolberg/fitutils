@@ -6,7 +6,7 @@ use serde::{
 };
 use std::ops::{Add, AddAssign, Sub};
 
-use crate::types::timestamp::TimeStamp;
+use crate::types::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits

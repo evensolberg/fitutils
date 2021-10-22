@@ -1,16 +1,9 @@
 //! Defines the `Activity` struct which contains the parsed contents of a GPX file, and associated functions.
 use csv::WriterBuilder;
 use gpx::Gpx;
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
+use std::{error::Error, fs::File, io::BufReader, path::PathBuf};
 
-use crate::types::duration::Duration;
-use crate::types::gpxmetadata::GpxMetadata;
-use crate::types::route::Route;
-use crate::types::track::Track;
-use crate::types::waypoint::Waypoint;
+use crate::types::{Duration, GpxMetadata, Route, Track, Waypoint};
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]

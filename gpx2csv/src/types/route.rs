@@ -1,7 +1,6 @@
-use crate::types::link::Link;
-use crate::types::waypoint::Waypoint;
-
 use serde::Serialize;
+
+use crate::types::{Link, Waypoint};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Route repdestents an ordered list of waypoints representing a series of turn points leading to a destination.

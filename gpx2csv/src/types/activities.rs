@@ -4,7 +4,7 @@ use csv::WriterBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::types::activity::Activity;
+use crate::types::Activity;
 
 /// Holds a list of all activities. Used to export session totals
 #[derive(Debug)]

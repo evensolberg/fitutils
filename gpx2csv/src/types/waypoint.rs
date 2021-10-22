@@ -1,6 +1,6 @@
 //! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
 
-use crate::types::timestamp::TimeStamp;
+use crate::types::TimeStamp;
 use serde::Serialize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

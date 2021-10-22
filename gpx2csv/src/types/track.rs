@@ -1,12 +1,10 @@
 //! Defines the `Track` struct which holds information about each track, including summary data and waypoint details.
 
-use crate::types::duration::Duration;
-use crate::types::timestamp::TimeStamp;
-use crate::types::waypoint::Waypoint;
-
 use serde::Serialize;
 use std::error::Error;
 use std::path::PathBuf;
+
+use crate::types::{Duration, TimeStamp, Waypoint};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.

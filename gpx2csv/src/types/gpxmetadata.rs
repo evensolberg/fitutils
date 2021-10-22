@@ -1,12 +1,9 @@
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
 use gpx;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fs::File;
-use std::path::PathBuf;
+use std::{error::Error, fs::File, path::PathBuf};
 
-use crate::types::duration::Duration;
-use crate::types::timestamp::TimeStamp;
+use crate::types::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
