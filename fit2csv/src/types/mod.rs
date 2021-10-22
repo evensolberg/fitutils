@@ -1,23 +1,18 @@
 //! Contains the various types used in the parsing of FIT files, and their associated functions.
 
-pub mod activities;
-pub mod activity;
-mod constfunc;
-pub mod duration;
-pub mod hrzones;
-pub mod lap;
-pub mod record;
-pub mod session;
-pub mod timestamp;
+// publish the types
+pub use crate::types::{
+    activities::Activities, activity::Activity, duration::Duration, hrzones::HrZones, lap::Lap,
+    record::Record, session::Session, timestamp::TimeStamp,
+};
 
-/*
-use crate::types::activities::Activities;
-use crate::types::activity::Activity;
-use crate:;types::constfunc::*;
-use crate::types::duration::Duration;
-use crate::types::hzones::HrZones;
-use crate::types::lap::Lap;
-use crate::types::record::Record;
-use crate::types::session::Session;
-use crate::types::timestamp::TimeStamp;
-*/
+// This is where the types are defined
+mod activities;
+mod activity;
+mod constfunc;
+mod duration;
+mod hrzones;
+mod lap;
+mod record;
+mod session;
+mod timestamp;

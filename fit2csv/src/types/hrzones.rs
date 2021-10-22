@@ -1,9 +1,11 @@
 //! Defines the `HrZones` struct which contains heart rate zones information, and associated functions.
 
-use crate::types::duration::Duration;
+use crate::types::Duration;
 
-use serde::ser::{SerializeStruct, Serializer};
-use serde::{Deserialize, Serialize};
+use serde::{
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Detailed information about how much time is spent in each heart rate zone.

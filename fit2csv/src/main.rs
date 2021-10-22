@@ -17,8 +17,8 @@ use log::LevelFilter;
 // Import our own modules and types
 pub mod types;
 
-use crate::types::activities::Activities;
-use crate::types::activity::Activity;
+use types::Activities;
+use types::Activity;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.

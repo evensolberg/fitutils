@@ -1,9 +1,6 @@
 //! Defines the `Record` struct which ontains etailed information about each record/data point in the workout session.
 
-use crate::types::constfunc::*;
-use crate::types::duration::Duration;
-use crate::types::session::Session;
-use crate::types::timestamp::TimeStamp;
+use crate::types::{constfunc::*, Duration, Session, TimeStamp};
 
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};

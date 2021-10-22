@@ -1,9 +1,11 @@
 //! Redefines `std::time::Duration` to allow for additional functionality.
 
-use crate::types::timestamp::TimeStamp;
+use crate::types::TimeStamp;
 
-use serde::ser::{SerializeStruct, Serializer};
-use serde::{Deserialize, Serialize};
+use serde::{
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
+};
 use std::ops::{Add, AddAssign, Sub};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

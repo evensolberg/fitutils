@@ -1,8 +1,6 @@
 //! Defines the `Activity` struct which holds the information contained in a .FIT file, and associated functions.
 
-use crate::types::lap::Lap;
-use crate::types::record::Record;
-use crate::types::session::Session;
+use crate::types::{Lap, Record, Session};
 
 use csv::WriterBuilder;
 use fitparser::profile::field_types::MesgNum;

@@ -1,10 +1,7 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
 use crate::types::constfunc::*;
-use crate::types::duration::Duration;
-use crate::types::hrzones::HrZones;
-use crate::types::session::Session;
-use crate::types::timestamp::TimeStamp;
+use crate::types::{Duration, HrZones, Session, TimeStamp};
 
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
