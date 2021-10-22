@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "Parses .FIT files to .JSON and .CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
-edition = "2018"
+edition = "2021"
 include = ["src/**/*", "README.md"]
 
 [dependencies]

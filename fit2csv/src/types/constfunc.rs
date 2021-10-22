@@ -6,7 +6,7 @@ use fitparser::Value;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function scaffold macro to map from a value in the FIT parser to a "real" value
 macro_rules! map_value {
-    ($function_name:ident, $return_type:ident, $( $pattern:pat ) |+ => $mapping:expr) => {
+    ($function_name:ident, $return_type:ident, $( $pattern:pat_param ) |+ => $mapping:expr) => {
         pub fn $function_name(v: &&fitparser::Value) -> Option<$return_type> {
             match v {
                 $( $pattern )|+ => ::std::option::Option::Some($mapping),
