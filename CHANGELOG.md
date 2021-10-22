@@ -1,4 +1,28 @@
 
+<a name="v0.3.3"></a>
+## [v0.3.3](https://github.com/evensolberg/firparser/compare/v0.3.2...v0.3.3) (2021-10-11)
+
+### F2C
+
+* Better logging
+* Additional logging
+* Rework logging
+* Documentation and Params
+* Refactor and clean up
+
+### F2J
+
+* Improved logging
+* Documentation update
+
+### G2C
+
+* Improved logging
+* Error output
+* Document and rework logging
+* Cleaned up code based on Clippy feedback
+
+
 <a name="v0.3.2"></a>
 ## [v0.3.2](https://github.com/evensolberg/firparser/compare/v0.3.1...v0.3.2) (2021-10-09)
 
