@@ -18,7 +18,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))
-        .long_about("This program will read one or more .gpx file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
+        .long_about("This program will read one or more .tcx file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
         .arg(
             Arg::with_name("read")
                 .value_name("FILE(S)")
@@ -169,3 +169,6 @@ fn main() {
         }
     });
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Export function
