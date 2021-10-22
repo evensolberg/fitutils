@@ -1,11 +1,13 @@
 //! Contains types used in the serialization and output selection for the data.
 
 use serde::Serialize;
-use std::collections::BTreeMap;
-use std::error::Error;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    error::Error,
+    fs::File,
+    io::prelude::*,
+    path::{Path, PathBuf},
+};
 
 /// Alternate serialization format
 #[derive(Clone, Debug, Serialize)]

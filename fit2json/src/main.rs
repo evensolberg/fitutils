@@ -1,13 +1,10 @@
 //! Read one or more FIT files and dump their contents as JSON
 
-use std::error::Error;
-use std::fs::File;
-use std::io;
-use std::path::PathBuf;
+use std::{error::Error, fs::File, path::PathBuf};
 use structopt::StructOpt;
 
 // Application-specific types
-pub mod types;
+mod types;
 
 // Logging
 use env_logger::{Builder, Target};
@@ -47,9 +44,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     // If no files have been provided, read from STDIN
     if opt.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
-        let mut stdin = io::stdin();
-        let data = fitparser::from_reader(&mut stdin)?;
-        output_loc.write_json_file(&PathBuf::from("<stdin>"), data)?;
+        output_loc.write_json_file(
+            &PathBuf::from("<stdin>"),
+            fitparser::from_reader(&mut std::io::stdin())?,
+        )?;
         return Ok(());
     }
 
