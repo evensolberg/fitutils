@@ -10,7 +10,7 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gpx = "0.8.3"
+gpx = "0.8.5"
 csv = "1.1.6"
 log = "0.4.14"
 clap = "2.33.3"
