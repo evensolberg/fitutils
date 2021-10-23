@@ -7,6 +7,7 @@ use std::io::BufReader;
 use tcx;
 
 pub mod types;
+use crate::types::set_extension;
 
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
@@ -103,49 +104,68 @@ fn run() -> Result<(), Box<dyn Error>> {
     );
 
     // Find the name of the session output file
-    let sessionfile = cli_args
-        .value_of("summary-only")
-        .unwrap_or("fit-sessions.csv");
-    log::trace!("main::run() -- session output file: {}", sessionfile);
+    let summaryfile = cli_args
+        .value_of("summary-file")
+        .unwrap_or("tcx-activities.csv");
+    log::trace!("main::run() -- session output file: {}", summaryfile);
 
     // Let the user know if we're writing
     if !cli_args.is_present("detail-off") {
         log::debug!("Writing detail files.");
     } else {
-        log::debug!("Writing summary file {} only.", &sessionfile)
+        log::debug!("Writing summary file {} only.", &summaryfile)
     }
 
-    ///////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Working section
     // Do the parsing
+
+    let mut act_list = types::ActivitiesList::new();
+
     for filename in cli_args.values_of("read").unwrap() {
         log::info!("Processing file: {}", filename);
 
-        let tcxfile = tcx::read(&mut BufReader::new(File::open(&filename).unwrap()))?;
+        let mut tcdb = tcx::read(&mut BufReader::new(File::open(&filename).unwrap()))?;
+        tcdb.calc_heartrates();
 
-        log::trace!("main::run() -- tcxfile = {:?}", tcxfile);
-        if let Some(activities) = tcxfile.activities {
-            log::debug!(
-                "main::run() -- number of activities: {}",
-                activities.activities.len()
+        // If -d then export the activity to JSON
+        if cli_args.is_present("debug") {
+            let outfile = set_extension(&filename, "json").as_str().to_owned();
+            log::trace!(
+                "main::run() -- Exporting {} to {} for debugging purposes.",
+                filename,
+                outfile
             );
-            for activity in activities.activities {
-                log::debug!("main::run() -- number of laps: {}", activity.laps.len());
-                for lap in activity.laps {
-                    log::debug!("main::run() -- number of tracks: {}", lap.tracks.len());
-                    for track in lap.tracks {
-                        log::debug!(
-                            "main::run() -- number of trackpoints: {}",
-                            track.trackpoints.len()
-                        );
-                        for trackpoint in track.trackpoints {
-                            log::trace!("main::run() -- trackpoint info: {:?}", trackpoint);
-                        }
-                    }
-                }
+            tcdb.export_json(&outfile)?;
+        }
+
+        log::trace!("main::run() -- tcxfile = {:?}", tcdb);
+        if let Some(activities) = tcdb.activities {
+            let mut curr_activities = types::ActivitiesSummary::from_activities(&activities);
+            curr_activities.filename = filename.to_string();
+
+            log::trace!("main::run() -- activities summary: {:?}", curr_activities);
+            if !cli_args.is_present("detail-off") {
+                // Export the activity summary to JSON
+                log::debug!(
+                    "main::run() -- Writing activity summary for {}",
+                    &curr_activities.filename
+                );
+                curr_activities.export_json()?;
             }
+
+            act_list.activities.push(curr_activities);
         }
     }
+
+    // If we're tracing, export the summary in JSON format
+    if cli_args.occurrences_of("debug") > 1 {
+        log::trace!("main::run() -- Exporting summary JSON file.");
+        act_list.export_json(&set_extension(&summaryfile, "json"))?;
+    }
+
+    log::debug!("main::run() -- Exporting summary CSV file.");
+    act_list.export_csv(&summaryfile)?;
 
     // Everything is a-okay in the end
     Ok(())
@@ -166,6 +186,3 @@ fn main() {
         }
     });
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Export summary information for the whole file

@@ -1,5 +1,11 @@
+use csv::WriterBuilder;
 use serde::Serialize;
+use serde_json;
+use std::error::Error;
+use std::path::PathBuf;
 use tcx;
+
+use crate::types::addons::set_extension;
 
 /// Holds a summary of the activities in the file
 #[derive(Serialize, Debug, Clone)]
@@ -71,8 +77,9 @@ impl ActivitiesSummary {
         ActivitiesSummary::default()
     }
 
-    /// Generates a summary from a set of activities in the TCX file
-    pub fn from_activity(activities: &tcx::Activities) -> Self {
+    /// Generates a summary from a set of activities in the TCX file.
+    /// Assumes that tcx::TrainingCenterDatabase::calc_heartrates() has been run.
+    pub fn from_activities(activities: &tcx::Activities) -> Self {
         let mut act_s = Self::new();
 
         let mut hr: f64 = 0.0;
@@ -94,50 +101,59 @@ impl ActivitiesSummary {
 
         for activity in &activities.activities {
             act_s.num_activities += 1;
-
-            // Find the distance of the last trackpoint in the last track of the last lap - hopefully it doesn't reset for each lap or track.
-            if let Some(lap) = activity.laps.last() {
-                if let Some(track) = lap.tracks.last() {
-                    if let Some(tp) = track.trackpoints.last() {
-                        if let Some(num) = tp.distance_meters {
-                            act_s.distance_meters += num;
-                        }
-                    }
-                }
-            }
+            act_s.sport = activity.sport.clone();
+            act_s.start_time = activity.id.clone(); // TODO: https://github.com/evensolberg/fitparser/projects/6#card-71437698
+            act_s.notes = activity.notes.clone();
 
             for lap in &activity.laps {
                 act_s.num_laps += 1;
+                act_s.total_time_seconds += lap.total_time_seconds;
+                act_s.distance_meters += lap.distance_meters;
+                act_s.calories += lap.calories;
+                if let Some(max_speed) = lap.maximum_speed {
+                    if act_s.maximum_speed < max_speed {
+                        act_s.maximum_speed = max_speed;
+                    }
+                }
+
                 for track in &lap.tracks {
                     act_s.num_tracks += 1;
                     act_s.num_trackpoints += track.trackpoints.len();
+                    // Check to see if max HR for the lap > current recorded max
+                    if let Some(mhr) = lap.maximum_heart_rate {
+                        if act_s.maximum_heart_rate < mhr {
+                            act_s.maximum_heart_rate = mhr;
+                        }
+                    }
+
                     for trackpoint in &track.trackpoints {
                         // Check if there is a cadence and if it's greater than the current max
                         if let Some(curr_cad) = trackpoint.cadence {
-                            if curr_cad > act_s.maximum_cadence {
+                            if act_s.maximum_cadence < curr_cad {
                                 act_s.maximum_cadence = curr_cad;
-                                cad += curr_cad as f64;
                             }
+                            cad += curr_cad as f64;
                         }
 
                         // Check if there is a heart rate and record it
                         if let Some(curr_hr) = &trackpoint.heart_rate {
-                            if curr_hr.value > act_s.maximum_heart_rate {
-                                act_s.maximum_heart_rate = curr_hr.value;
-                            }
                             hr += curr_hr.value;
                         }
 
                         // Check if there is altitude data and calculate
                         if let Some(altitude) = trackpoint.altitude_meters {
-                            if altitude > act_s.max_altitude {
+                            if act_s.max_altitude < altitude {
                                 act_s.max_altitude = altitude;
-                                act_s.ascent_meters = act_s.max_altitude - act_s.start_altitude;
                             }
                         }
                     }
                 }
             }
+        }
+
+        act_s.ascent_meters = act_s.max_altitude - act_s.start_altitude;
+        if act_s.total_time_seconds != 0.0 {
+            act_s.average_speed = act_s.distance_meters / act_s.total_time_seconds;
         }
 
         // Calculate averages for the whole activity set
@@ -147,6 +163,21 @@ impl ActivitiesSummary {
         }
         // return it
         act_s
+    } // pub fn from_activities
+
+    /// Export the activity summary as a JSON file
+    pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
+        if self.filename.is_empty() {
+            return Err("No filename specified in the ActivitySummary. Unable to export.".into());
+        }
+
+        let out_file = set_extension(&self.filename, "activity.json");
+        serde_json::to_writer_pretty(
+            &std::fs::File::create(&std::path::PathBuf::from(&out_file))?,
+            &self,
+        )?;
+
+        Ok(())
     }
 }
 
@@ -175,5 +206,56 @@ impl Default for ActivitiesSummary {
             average_cadence: 0.0,
             maximum_cadence: 0,
         }
+    }
+}
+
+/// A list of the summarized activities
+#[derive(Serialize, Debug)]
+pub struct ActivitiesList {
+    /// The list of activities
+    pub activities: Vec<ActivitiesSummary>,
+}
+
+impl ActivitiesList {
+    /// Create a new, empty `ActivitiesList`.
+    pub fn new() -> Self {
+        ActivitiesList {
+            activities: Vec::new(),
+        }
+    }
+
+    /// Export the activity summary as a JSON file
+    pub fn export_json(&self, filename: &str) -> Result<(), Box<dyn Error>> {
+        serde_json::to_writer_pretty(
+            &std::fs::File::create(&std::path::PathBuf::from(filename))?,
+            &self,
+        )?;
+
+        Ok(())
+    }
+
+    /// Export the activity summary as a CSV file
+    pub fn export_csv(&self, filename: &str) -> Result<(), Box<dyn Error>> {
+        // Create a buffer for the CSV
+        let outfile = PathBuf::from(filename);
+        let mut writer = WriterBuilder::new().has_headers(true).from_path(&outfile)?;
+
+        for activity in self.activities.iter() {
+            log::trace!(
+                "ActivitiesList::export_summary_csv() -- serializing: {:?}",
+                activity
+            );
+            writer.serialize(&activity)?;
+        }
+
+        log::trace!(
+            "ActivitiesList::export_csv() -- session information to be written: {:?}",
+            writer
+        );
+
+        // Write the file
+        writer.flush()?;
+
+        Ok(())
     }
 }
