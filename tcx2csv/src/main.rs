@@ -1,15 +1,12 @@
-use tcx;
-
-use std::fs::File;
-use std::io::BufReader;
-
-use std::error::Error;
-
 use clap::{App, Arg}; // Command line
-
-// Logging
 use env_logger::{Builder, Target};
 use log::LevelFilter;
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use tcx;
+
+pub mod types;
 
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
@@ -171,4 +168,4 @@ fn main() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Export function
+// Export summary information for the whole file
