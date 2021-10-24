@@ -1,4 +1,8 @@
 
+<a name="v0.3.4"></a>
+## [v0.3.4](https://github.com/evensolberg/firparser/compare/v0.1.1...v0.3.4) (2021-10-23)
+
+
 <a name="v0.1.1"></a>
 ## [v0.1.1](https://github.com/evensolberg/firparser/compare/v0.3.3...v0.1.1) (2021-10-23)
 

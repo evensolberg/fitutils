@@ -219,7 +219,7 @@ pub struct ActivitiesList {
 impl ActivitiesList {
     /// Create a new, empty `ActivitiesList`.
     pub fn new() -> Self {
-        ActivitiesList {
+        Self {
             activities: Vec::new(),
         }
     }
@@ -242,14 +242,14 @@ impl ActivitiesList {
 
         for activity in self.activities.iter() {
             log::trace!(
-                "ActivitiesList::export_summary_csv() -- serializing: {:?}",
+                "ActivitiesList::export_csv() -- serializing: {:?}",
                 activity
             );
             writer.serialize(&activity)?;
         }
 
         log::trace!(
-            "ActivitiesList::export_csv() -- session information to be written: {:?}",
+            "ActivitiesList::export_csv() -- information to be written: {:?}",
             writer
         );
 

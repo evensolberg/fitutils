@@ -152,6 +152,11 @@ fn run() -> Result<(), Box<dyn Error>> {
                     &curr_activities.filename
                 );
                 curr_activities.export_json()?;
+
+                // Export the Trackpoints to CSV
+                log::debug!("main::run() -- Parsing and exporting TrackpointList.");
+                let curr_trackpoints = types::TrackpointList::from_activities(&activities);
+                curr_trackpoints.export_csv(&set_extension(filename, "trackpoints.csv"))?;
             }
 
             act_list.activities.push(curr_activities);
@@ -177,10 +182,10 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory
         Err(err) => {
-            Builder::new()
-                .filter_level(LevelFilter::Error)
-                .target(Target::Stdout)
-                .init();
+            // Builder::new()
+            //     .filter_level(LevelFilter::Error)
+            //     .target(Target::Stdout)
+            //     .init();
             log::error!("{}", err.to_string().replace("\"", ""));
             1 // exit with a non-zero return code, indicating a problem
         }
