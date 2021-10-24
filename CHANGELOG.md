@@ -1,4 +1,24 @@
 
+<a name="v0.3.5"></a>
+## [v0.3.5](https://github.com/evensolberg/firparser/compare/v0.3.4...v0.3.5) (2021-10-24)
+
+
+<a name="v0.3.4"></a>
+## [v0.3.4](https://github.com/evensolberg/firparser/compare/v0.1.1...v0.3.4) (2021-10-23)
+
+
+<a name="v0.1.1"></a>
+## [v0.1.1](https://github.com/evensolberg/firparser/compare/v0.3.3...v0.1.1) (2021-10-23)
+
+### F2C
+
+* Crate version updates
+
+### G2C
+
+* Minor documentation update
+
+
 <a name="v0.3.3"></a>
 ## [v0.3.3](https://github.com/evensolberg/firparser/compare/v0.3.2...v0.3.3) (2021-10-11)
 
