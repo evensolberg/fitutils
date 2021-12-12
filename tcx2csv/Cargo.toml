@@ -11,10 +11,10 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 chrono = "0.4.19"
-clap = "2.33.3"
+clap = "2.34.0"
 csv = "1.1.6"
 env_logger = "0.9.0"
 log = "0.4.14"
-serde = {version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.68"
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.72"
 tcx = "0.9.3"
