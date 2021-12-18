@@ -10,6 +10,7 @@ application := "fitparser"
 # ALIASES
 alias b := build
 alias br := buildr
+alias bra := buildra
 alias fmt := format
 
 # SHORTCUTS AND COMMANDS
@@ -30,6 +31,11 @@ alias fmt := format
     cargo lbuild --release --color 'always'
     cargo strip
 
+# Compile a release version of the project for Apple ARM64 without moving the binaries
+@buildra: format changelog
+    cargo lbuild --release --color 'always' --target aarch64-apple-darwin
+    cargo strip --target aarch64-apple-darwin
+
 # Cleans and builds again
 @rebuild: format changelog
     cargo clean
@@ -49,10 +55,17 @@ alias fmt := format
     -rm bom.txt > /dev/null 2>&1
 
 # Documents the project, builds and installs the release version, and cleans up
-@release: format
+@release: format changelog
     cargo lbuild --release  --color 'always'
     cargo strip
     cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
+    cargo clean
+
+# Documents the project, builds and installs the release version, and cleans up
+@releasea: format changelog
+    cargo lbuild --release  --color 'always' --target aarch64-apple-darwin
+    cargo strip --target aarch64-apple-darwin
+    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/{{application}} /usr/local/bin/
     cargo clean
 
 # Build the documentation
@@ -85,6 +98,7 @@ alias fmt := format
 @test:
     cargo test
 
+
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint
     cargo deny check
@@ -98,6 +112,12 @@ alias fmt := format
 # Initialize directory for various services such as cargo deny
 @init:
     cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
+    cp ~/CloudStation/Source/_Templates/main_template.rs {{invocation_directory()}}/src/main.rs
+    cargo add clap
+    cargo add log
+    cargo add env_logger
+    git-chglog --init
+    git tag Initialt
 
 # Read the documentation
 @read:
@@ -149,6 +169,8 @@ alias fmt := format
     -cargo install cargo-depgraph
     -cargo install cargo-audit
     -cargo install cargo-bloat
+    -cargo install cargo-edit
+    -cargo install cargo-strip
     -cargo install --locked cargo-outdated
     -cargo install tokei
     -cargo install cargo-semver --vers 1.0.0-alpha.3
