@@ -23,6 +23,6 @@ log = "0.4.14"
 # Serialization and export
 serde = { version = "1.0.133", features = ["derive"] }
 serde_json = "1.0.74"
-uom = { version = "0.31.1", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
+uom = { version = "0.32.0", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
 
 [features]
