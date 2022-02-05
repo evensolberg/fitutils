@@ -8,17 +8,15 @@
 
 use clap::{App, Arg}; // Command line
 
-use std::error::Error;
+// use std::io::Write; // needed for the log formatting
+use std::{collections::HashMap, error::Error};
 
 // Logging
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
-// Import our own modules and types
-pub mod types;
-
-use types::Activities;
-use types::Activity;
+mod fit;
+mod shared;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -28,21 +26,31 @@ fn run() -> Result<(), Box<dyn Error>> {
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))
-        .long_about("This program will read a .fit file and output session information to a .json file, the lap information (if any is found) to a .laps.csv file, and the individual records to a .records.csv file. Additionally, a summary sessions.csv file will be produced.")
+        .long_about("This program will rename FIT, GPX and TCX files based on metadata about the activity in the file and a pattern provided for the file name.")
         .arg(
             Arg::new("read")
                 .value_name("FILE(S)")
-                .help("One or more .fit file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.fit) are supported.")
+                .help("One or more .fit, .gpx or .tcx file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.gpx) are supported.")
                 .takes_value(true)
                 .required(true)
                 .multiple_occurrences(true),
+        )
+        .arg( // Rename pattern}
+            Arg::new("pattern")
+                .short('p')
+                .long("pattern")
+                .help("The pattern for new file names.")
+                .multiple_occurrences(false)
+                .takes_value(true)
+                .required(true)
+                .hide(false),
         )
         .arg( // Hidden debug parameter
             Arg::new("debug")
                 .short('d')
                 .long("debug")
-                .multiple_occurrences(true)
                 .help("Output debug information as we go. Supply it twice for trace-level logs.")
+                .multiple_occurrences(true)
                 .takes_value(false)
                 .hide(true),
         )
@@ -56,36 +64,21 @@ fn run() -> Result<(), Box<dyn Error>> {
         )
         .arg( // Print summary information
             Arg::new("print-summary")
-                .short('p')
-                .long("print-summary")
-                .multiple_occurrences(false)
-                .help("Print summary detail for each session processed.")
-                .takes_value(false)
-        )
-        .arg( // Don't export detail information
-            Arg::new("detail-off")
-                .short('o')
-                .long("detail-off")
-                .multiple_occurrences(false)
-                .help("Don't export detailed information from each file parsed.")
-                .takes_value(false)
-        )
-        .arg( // Summary file name
-            Arg::new("summary-file")
                 .short('s')
-                .value_name("summary output file name")
-                .long("summary-file")
+                .long("print-summary")
+                .help("Print a summary of the number of files processed, errors, etc.")
                 .multiple_occurrences(false)
-                .help("Summary output file name.")
-                .takes_value(true)
+                .takes_value(false)
+        )
+        .arg( // Dry-run
+            Arg::new("dry-run")
+                .short('r')
+                .long("dry-run")
+                .help("Perform a dry-run. This will output what the result will be without performing the actual rename operation.")
+                .multiple_occurrences(false)
+                .takes_value(false)
         )
         .get_matches();
-
-    // If the user specifies that they don't want detail and the summary detail is off, nothing gets written.
-    // This kinda defeats the purpose, so we let the user know.
-    if cli_args.is_present("detail-off") && !cli_args.is_present("summary-file") {
-        return Err("Supplied --detail-off parameter with no --summary-file parameter means there is nothing to write. Exiting.".into());
-    }
 
     // create a log builder
     let mut logbuilder = Builder::new();
@@ -101,6 +94,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         };
     }
 
+    // TODO: Expand on this to improve the log format.
+    // logbuilder.format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()));
+
     // Initialize logging
     logbuilder.target(Target::Stdout).init();
 
@@ -108,49 +104,36 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::trace!("main::run() -- Arguments: {:?}", argument);
     }
 
-    // Find the name of the session output file
-    let sessionfile = cli_args
-        .value_of("summary-file")
-        .unwrap_or("fit-sessions.csv");
-    log::debug!("main::run() -- session output file: {}", sessionfile);
-
-    // Let the user know if we're writing
-    if !cli_args.is_present("detail-off") {
-        log::info!("Writing detail files.");
-    } else {
-        log::info!("Writing summary file {} only.", &sessionfile)
+    let dry_run = cli_args.is_present("dry-run");
+    if dry_run {
+        log::info!("Dry-run. Will not perform actual rename.");
     }
+
+    let pattern = cli_args.value_of("pattern").unwrap();
 
     ///////////////////////////////////
     // Working section
-
-    // Create an empty placeholder for all the activities
-    let mut activities = Activities::new();
-
     for filename in cli_args.values_of("read").unwrap() {
-        log::info!("Processing file: {}", filename);
+        log::debug!("Processing file: {}", filename);
+        let ext = shared::get_extension(&filename);
 
-        // Parse the FIT file
-        let activity = Activity::from_file(filename)?;
+        let mut values = HashMap::new();
 
-        // Output the files
-        if cli_args.is_present("print-summary") {
-            activity.session.print_summary();
+        match ext.as_ref() {
+            "fit" => {
+                values = fit::process_fit(&filename)?;
+                log::debug!("FIT: {:?}", values);
+            }
+            "gpx" => log::debug!("GPX"),
+            "tcx" => log::debug!("TCX"),
+            _ => log::warn!("Unknown file type: {}.", &ext),
         }
 
-        // Export the data if requested
-        if !cli_args.is_present("detail-off") {
-            activity.export()?;
+        if let Ok(res) = shared::rename_file(filename, &pattern, &values, dry_run) {
+            log::info!("{} --> {}", filename, res);
+        } else {
+            log::warn!("Unable to rename {} using the {}", filename, pattern);
         }
-
-        // Push the session onto the summary vector
-        activities.activities_list.push(activity);
-    }
-
-    // Export the summary information
-    if cli_args.is_present("summary-file") {
-        log::info!("Summary information written to: {}", &sessionfile);
-        activities.export_summary_csv(sessionfile)?;
     }
 
     // Everything is a-okay in the end
@@ -163,6 +146,10 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
+            Builder::new()
+                .filter_level(LevelFilter::Error)
+                .target(Target::Stdout)
+                .init();
             log::error!("{}", err.to_string().replace("\"", ""));
             1 // exit with a non-zero return code, indicating a problem
         }

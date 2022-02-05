@@ -155,9 +155,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.0.0"
+version = "3.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d17bf219fcd37199b9a29e00ba65dfb8cd5b2688b7297ec14ff829c40ac50ca9"
+checksum = "b63edc3f163b3c71ec8aa23f9bd6070f77edbf3d1d198b164afa90ff00e4ec62"
 dependencies = [
  "atty",
  "bitflags",
@@ -246,7 +246,7 @@ name = "fit2csv"
 version = "0.3.1"
 dependencies = [
  "chrono",
- "clap 3.0.0",
+ "clap 3.0.14",
  "csv",
  "env_logger",
  "fitparser",
@@ -278,6 +278,21 @@ dependencies = [
  "chrono",
  "nom",
  "serde",
+]
+
+[[package]]
+name = "fitrename"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "clap 3.0.14",
+ "env_logger",
+ "fitparser",
+ "gpx",
+ "log",
+ "serde",
+ "tcx",
+ "uom",
 ]
 
 [[package]]
@@ -326,7 +341,7 @@ name = "gpx2csv"
 version = "0.1.4"
 dependencies = [
  "chrono",
- "clap 3.0.0",
+ "clap 3.0.14",
  "csv",
  "env_logger",
  "gpx",
@@ -367,9 +382,9 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "indexmap"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
+checksum = "282a6247722caba404c065016bbfa522806e51714c34f5dfc3e4a3a46fcb4223"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -453,9 +468,9 @@ dependencies = [
 
 [[package]]
 name = "num-rational"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
+checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
 dependencies = [
  "autocfg",
  "num-integer",
@@ -610,9 +625,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.74"
+version = "1.0.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2bb9cd061c5865d345bb02ca49fcef1391741b672b54a0bf7b679badec3142"
+checksum = "c059c05b48c5c0067d4b4b2b4f0732dd65feb52daf7e0ea09cd87e7dadc1af79"
 dependencies = [
  "itoa 1.0.1",
  "ryu",
@@ -657,9 +672,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.84"
+version = "1.0.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecb2e6da8ee5eb9a61068762a32fa9619cc591ceb055b3687f4cd4051ec2e06b"
+checksum = "a684ac3dcd8913827e18cd09a68384ee66c1de24157e3c556c9ab16d85695fb7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -684,7 +699,7 @@ name = "tcx2csv"
 version = "0.2.1"
 dependencies = [
  "chrono",
- "clap 3.0.0",
+ "clap 3.0.14",
  "csv",
  "env_logger",
  "log",
@@ -774,9 +789,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "uom"
-version = "0.31.1"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1ee6bfd0a27bf614353809a035cf6880b74239ec6c5e39a7b2860ca16809137"
+checksum = "ffcb443c899d2adc34f4ae4c64d6e9867b6d3ead2fad03979a8732a4ab6d396f"
 dependencies = [
  "num-rational",
  "num-traits",

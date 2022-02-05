@@ -35,10 +35,10 @@ not_any_na <- function(x) all(!is.na(x))
 
 # Read Data ---------------------------------------------------------------
 # Change this to point to where ever your sessions.csv can be found.
-sessions <- read_csv(here("data/sessions.csv")) %>%
+sessions <- read_csv(here("/Users/evensolberg/CloudStation/Source/Rust/fitparser/data/sessions.csv")) %>%
     select_if(not_all_na) # Remove empty columns
 
-laps <- read_csv(here("data/test.laps.csv")) %>%
+laps <- read_csv(here("/Users/evensolberg/CloudStation/Source/Rust/fitparser/data/test.laps.csv")) %>%
     select_if(not_all_na) %>% # Remove empty columns
     rename(Lap = lap_num,
            "0: Warmup" = heart_rate_zone0_sec, 
@@ -47,7 +47,7 @@ laps <- read_csv(here("data/test.laps.csv")) %>%
            "3: Anaerobic" = heart_rate_zone3_sec,
            "4: Speed/Power" = heart_rate_zone4_sec)
 
-records = read_csv(here("data/test.records.csv")) %>%
+records = read_csv(here("/Users/evensolberg/CloudStation/Source/Rust/fitparser/data/test.records.csv")) %>%
   select_if(not_all_na) # Remove empty columns
 ```
 
