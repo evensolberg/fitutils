@@ -16,7 +16,12 @@ use env_logger::{Builder, Target};
 use log::LevelFilter;
 
 mod fit;
+mod gpxx;
 mod shared;
+mod tcxx;
+
+mod duration;
+mod timestamp;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -117,25 +122,41 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::debug!("Processing file: {}", filename);
         let ext = shared::get_extension(&filename);
 
-        let mut values = HashMap::new();
+        let mut value_res = Ok(HashMap::<String, String>::new());
 
+        // Read the metadata from files
         match ext.as_ref() {
             "fit" => {
-                values = fit::process_fit(&filename)?;
-                log::debug!("FIT: {:?}", values);
+                value_res = fit::process_fit(&filename);
+                log::debug!("FIT: {:?}", value_res);
             }
-            "gpx" => log::debug!("GPX"),
-            "tcx" => log::debug!("TCX"),
-            _ => log::warn!("Unknown file type: {}.", &ext),
+            "gpx" => {
+                value_res = gpxx::process_gpx(&filename);
+                log::debug!("GPX: {:?}", value_res);
+            }
+            "tcx" => {
+                value_res = tcxx::process_tcx(&filename);
+                log::debug!("TCX {:?}", value_res);
+            }
+            _ => log::warn!("Unknown file type: {}.", &filename),
         }
 
-        if let Ok(res) = shared::rename_file(filename, &pattern, &values, dry_run) {
-            log::info!("{} --> {}", filename, res);
-        } else {
-            log::warn!("Unable to rename {} using the {}", filename, pattern);
+        match value_res {
+            // Metadata read OK - try to rename
+            Ok(values) => {
+                let result = shared::rename_file(filename, &pattern, &values, dry_run);
+                match result {
+                    // How did the rename go?
+                    Ok(r) => log::info!("{} --> {}", filename, r),
+                    Err(rename_err) => {
+                        log::error!("Unable to rename {} : {}", filename, rename_err.to_string())
+                    }
+                }
+            }
+            // Problem reading metadata - let the user know.
+            Err(read_err) => log::error!("Unable to read {} : {}", filename, read_err.to_string()),
         }
     }
-
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
@@ -146,10 +167,10 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            Builder::new()
-                .filter_level(LevelFilter::Error)
-                .target(Target::Stdout)
-                .init();
+            // Builder::new()
+            //     .filter_level(LevelFilter::Error)
+            //     .target(Target::Stdout)
+            //     .init();
             log::error!("{}", err.to_string().replace("\"", ""));
             1 // exit with a non-zero return code, indicating a problem
         }

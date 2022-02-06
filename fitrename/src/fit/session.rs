@@ -1,6 +1,8 @@
 //! Defines the `Session` struct which holds summary information about the workout session, and assoicated functions.
 
-use crate::fit::{constfunc::*, Duration, TimeStamp};
+use crate::duration::Duration;
+use crate::fit::constfunc::*;
+use crate::timestamp::TimeStamp;
 
 use std::collections::HashMap;
 use std::error::Error;

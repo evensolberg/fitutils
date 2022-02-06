@@ -1,4 +1,4 @@
-# fitparser
+# fitutils
 
 This is a project consisting of several sub-modules:
 
@@ -8,6 +8,7 @@ This is a project consisting of several sub-modules:
 **fit2json**|Dumps a FIT file to JSON. This is mostly meant for debugging and digging out information for use in *fit2csv*
 **gpx2csv**|Converts GPX files to CSV, exporting metadata, tracks and segments, routes, and waypoints into separate files.
 **tcx2csv**|Converts TCX files to CSV, exporting activities summaries and laps into separate files.
+**fitrename**|Renames FIT, GPX and TCX files based on metadata information in the files.
 
 More files may come in the future. :smile:
 

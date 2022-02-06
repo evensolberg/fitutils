@@ -6,4 +6,5 @@ members = [
     "fitrename",
     "gpx2csv",
     "tcx2csv",
+    # "utilities"
 ]

@@ -45,4 +45,4 @@ The following tokens can be used. Note that date and times indicate the *start* 
 `%duration`|`%du`|The duration of the activity in seconds.
 `%manufacturer`|`%mf`|The manufacturer of the product that crated the file, eg. "Garmin", "Wahoo".
 `%product`|`%pr`|The product that created the file eg. "Fenix 7X".
-`%serial_number`|`%sn`|The product that created the file eg. "Fenix 7X".
+`%serial_number`|`%sn -`|The product that created the file eg. "Fenix 7X".

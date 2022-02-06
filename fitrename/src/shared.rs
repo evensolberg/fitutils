@@ -2,7 +2,7 @@ use std::{collections::HashMap, error::Error, path::Path};
 
 /// Get the extension part of the filename and return it as a string
 pub fn get_extension(filename: &str) -> String {
-    Path::new(&filename)
+    std::path::Path::new(&filename)
         .extension()
         .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
         .to_ascii_lowercase()
@@ -11,6 +11,7 @@ pub fn get_extension(filename: &str) -> String {
         .to_string()
 }
 
+/// Renames the target file based on the provided patterntar
 pub fn rename_file(
     filename: &str,
     pattern: &str,
@@ -29,8 +30,8 @@ pub fn rename_file(
 
         // Fix a few things we know will give us trouble later.
         new_filename = new_filename.replace('/', "-");
-        new_filename = new_filename.replace(':', " -");
-        new_filename = new_filename.replace('.', "");
+        // new_filename = new_filename.replace(':', " -");
+        // new_filename = new_filename.replace('.', "");
 
         // Remove leading or trailing spaces
         new_filename = new_filename.trim().to_string();
