@@ -5,7 +5,7 @@ use serde::Serialize;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Default, Clone, Debug, PartialEq, Serialize)]
 pub struct Waypoint {
     /// Track number to which this waypoint belongs - `0` if part of Route or separate Waypoint.
     pub track_num: usize,
@@ -167,40 +167,40 @@ impl Waypoint {
     }
 }
 
-impl Default for Waypoint {
-    fn default() -> Self {
-        Self {
-            track_num: 0,
-            route_num: 0,
-            segment_num: 0,
-            waypoint_mum: 0,
-            longitude: None,
-            latitude: None,
-            elevation: None,
-            speed: None,
-            time: None,
-            name: None,
-            comment: None,
-            description: None,
-            source: None,
-            num_links: 0,
-            links_href: None,
-            links_text: None,
-            symbol: None,
-            _type: None,
-            geoidheight: None,
-            fix: None,
-            sat: None,
-            hdop: None,
-            vdop: None,
-            pdop: None,
-            age: None,
-            dgpsid: None,
-            heart_rate: None,
-            cadence: None,
-        }
-    }
-}
+// impl Default for Waypoint {
+//     fn default() -> Self {
+//         Self {
+//             track_num: 0,
+//             route_num: 0,
+//             segment_num: 0,
+//             waypoint_mum: 0,
+//             longitude: None,
+//             latitude: None,
+//             elevation: None,
+//             speed: None,
+//             time: None,
+//             name: None,
+//             comment: None,
+//             description: None,
+//             source: None,
+//             num_links: 0,
+//             links_href: None,
+//             links_text: None,
+//             symbol: None,
+//             _type: None,
+//             geoidheight: None,
+//             fix: None,
+//             sat: None,
+//             hdop: None,
+//             vdop: None,
+//             pdop: None,
+//             age: None,
+//             dgpsid: None,
+//             heart_rate: None,
+//             cadence: None,
+//         }
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Converts the Gpx::Fix struct to a string for easier export

@@ -1,6 +1,5 @@
 use chrono::Local;
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
-use gpx;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, path::PathBuf};
 

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Start on fitrename
+- Fitrename FIT and GPX done
 
 ### Miscellaneous Tasks
 

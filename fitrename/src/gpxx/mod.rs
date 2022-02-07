@@ -12,7 +12,7 @@ pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     let gpxmeta = GpxMetadata::from_header(&gpx, filename)?;
 
     let mut values = HashMap::<String, String>::new();
-    let mf = gpxmeta.creator.unwrap_or("unknown".to_string());
+    let mf = gpxmeta.creator.unwrap_or_else(|| "unknown".to_string());
     values.insert("%manufacturer".to_string(), mf.clone());
     values.insert("%mf".to_string(), mf.clone());
     values.insert("%product".to_string(), mf.clone());
@@ -20,14 +20,14 @@ pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
 
     let sn = gpxmeta
         .description
-        .unwrap_or("unknown".to_string())
+        .unwrap_or_else(|| "unknown".to_string())
         .replace("GPX File Created by ", "")
         .trim()
         .to_string();
     values.insert("%serial_number".to_string(), sn.clone());
     values.insert("%sn".to_string(), sn);
 
-    let ac = gpxmeta.activity.unwrap_or("unknown".to_string());
+    let ac = gpxmeta.activity.unwrap_or_else(|| "unknown".to_string());
     values.insert("%activity".to_string(), ac.clone());
     values.insert("%ac".to_string(), ac);
 

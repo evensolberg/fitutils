@@ -3,7 +3,7 @@ use serde::Serialize;
 use serde_json;
 use std::error::Error;
 use std::path::PathBuf;
-use tcx;
+use tcx::{self};
 
 use crate::types::addons::set_extension;
 
@@ -214,6 +214,12 @@ impl Default for ActivitiesSummary {
 pub struct ActivitiesList {
     /// The list of activities
     pub activities: Vec<ActivitiesSummary>,
+}
+
+impl Default for ActivitiesList {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ActivitiesList {

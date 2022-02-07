@@ -99,6 +99,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         };
     }
 
+    logbuilder.filter_module("serde_xml_rs::de", LevelFilter::Warn);
+
     // TODO: Expand on this to improve the log format.
     // logbuilder.format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()));
 
@@ -115,27 +117,30 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     let pattern = cli_args.value_of("pattern").unwrap();
+    let mut total_files: usize = 0;
+    let mut prcoessed_files: usize = 0;
+    let mut skipped_files: usize = 0;
 
     ///////////////////////////////////
     // Working section
     for filename in cli_args.values_of("read").unwrap() {
         log::debug!("Processing file: {}", filename);
-        let ext = shared::get_extension(&filename);
+        let ext = shared::get_extension(filename);
 
         let mut value_res = Ok(HashMap::<String, String>::new());
 
         // Read the metadata from files
         match ext.as_ref() {
             "fit" => {
-                value_res = fit::process_fit(&filename);
+                value_res = fit::process_fit(filename);
                 log::debug!("FIT: {:?}", value_res);
             }
             "gpx" => {
-                value_res = gpxx::process_gpx(&filename);
+                value_res = gpxx::process_gpx(filename);
                 log::debug!("GPX: {:?}", value_res);
             }
             "tcx" => {
-                value_res = tcxx::process_tcx(&filename);
+                value_res = tcxx::process_tcx(filename);
                 log::debug!("TCX {:?}", value_res);
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
@@ -144,19 +149,31 @@ fn run() -> Result<(), Box<dyn Error>> {
         match value_res {
             // Metadata read OK - try to rename
             Ok(values) => {
-                let result = shared::rename_file(filename, &pattern, &values, dry_run);
+                let result = shared::rename_file(filename, pattern, &values, dry_run);
                 match result {
                     // How did the rename go?
-                    Ok(r) => log::info!("{} --> {}", filename, r),
+                    Ok(r) => {
+                        log::info!("{} --> {}", filename, r);
+                        prcoessed_files += 1;
+                    }
                     Err(rename_err) => {
-                        log::error!("Unable to rename {} : {}", filename, rename_err.to_string())
+                        log::error!("Unable to rename {} : {}", filename, rename_err.to_string());
+                        skipped_files += 1;
                     }
                 }
             }
             // Problem reading metadata - let the user know.
             Err(read_err) => log::error!("Unable to read {} : {}", filename, read_err.to_string()),
         }
+        total_files += 1;
     }
+
+    if cli_args.is_present("print-summary") {
+        log::info!("Total files examined:        {:6}", total_files);
+        log::info!("Files processed:             {:6}", prcoessed_files);
+        log::info!("Files skipped due to errors: {:6}", skipped_files);
+    }
+
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
@@ -167,10 +184,6 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            // Builder::new()
-            //     .filter_level(LevelFilter::Error)
-            //     .target(Target::Stdout)
-            //     .init();
             log::error!("{}", err.to_string().replace("\"", ""));
             1 // exit with a non-zero return code, indicating a problem
         }

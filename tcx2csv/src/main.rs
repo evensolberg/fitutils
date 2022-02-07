@@ -4,7 +4,6 @@ use log::LevelFilter;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use tcx;
 
 pub mod types;
 use crate::types::set_extension;
@@ -115,7 +114,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // If -d then export the activity to JSON
         if cli_args.is_present("debug") {
-            let outfile = set_extension(&filename, "json").as_str().to_owned();
+            let outfile = set_extension(filename, "json").as_str().to_owned();
             log::trace!(
                 "main::run() -- Exporting {} to {} for debugging purposes.",
                 filename,
@@ -151,11 +150,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     // If we're tracing, export the summary in JSON format
     if cli_args.occurrences_of("debug") > 1 {
         log::trace!("main::run() -- Exporting summary JSON file.");
-        act_list.export_json(&set_extension(&summaryfile, "json"))?;
+        act_list.export_json(&set_extension(summaryfile, "json"))?;
     }
 
     log::info!("Exporting summary CSV file: {}", summaryfile);
-    act_list.export_csv(&summaryfile)?;
+    act_list.export_csv(summaryfile)?;
 
     // Everything is a-okay in the end
     Ok(())

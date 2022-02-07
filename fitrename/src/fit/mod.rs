@@ -40,25 +40,31 @@ pub fn process_fit(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     } // for data
 
     // Push the data into the HashMap for later use.
-    let mf = my_session.manufacturer.unwrap_or("unknown".to_string());
+    let mf = my_session
+        .manufacturer
+        .unwrap_or_else(|| "unknown".to_string());
     values.insert("%manufacturer".to_string(), mf.clone());
     values.insert("%mf".to_string(), mf);
 
-    let pr = my_session.product.unwrap_or("unknown".to_string());
+    let pr = my_session.product.unwrap_or_else(|| "unknown".to_string());
     values.insert("%product".to_string(), pr.clone());
     values.insert("%pr".to_string(), pr);
 
-    let sn = my_session.serial_number.unwrap_or("unknown".to_string());
+    let sn = my_session
+        .serial_number
+        .unwrap_or_else(|| "unknown".to_string());
     values.insert("%serial_number".to_string(), sn.clone());
     values.insert("%sn".to_string(), sn);
 
-    let ac = my_session.activity_type.unwrap_or("unknown".to_string());
+    let ac = my_session
+        .activity_type
+        .unwrap_or_else(|| "unknown".to_string());
     values.insert("%activity".to_string(), ac.clone());
     values.insert("%ac".to_string(), ac);
 
     let ad = my_session
         .activity_detailed
-        .unwrap_or("unknown".to_string());
+        .unwrap_or_else(|| "unknown".to_string());
     values.insert("%activity_detailed".to_string(), ad.clone());
     values.insert("%ad".to_string(), ad);
 
