@@ -16,7 +16,6 @@ use log::LevelFilter;
 
 // Import our own modules and types
 pub mod types;
-
 use types::Activities;
 use types::Activity;
 

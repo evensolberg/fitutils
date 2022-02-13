@@ -9,7 +9,7 @@
 use clap::{App, Arg}; // Command line
 
 // use std::io::Write; // needed for the log formatting
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, path::Path};
 
 // Logging
 use env_logger::{Builder, Target};
@@ -125,12 +125,16 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
     for filename in cli_args.values_of("read").unwrap() {
         log::debug!("Processing file: {}", filename);
-        let ext = shared::get_extension(filename);
 
-        let mut value_res = Ok(HashMap::<String, String>::new());
+        // Check if the target file exists, otherwise just continue
+        if !Path::new(&filename).exists() {
+            log::warn!("No such file or directory: {}", filename);
+            continue;
+        }
 
         // Read the metadata from files
-        match ext.as_ref() {
+        let mut value_res = Ok(HashMap::<String, String>::new());
+        match shared::get_extension(filename).as_ref() {
             "fit" => {
                 value_res = fit::process_fit(filename);
                 log::debug!("FIT: {:?}", value_res);
@@ -146,24 +150,25 @@ fn run() -> Result<(), Box<dyn Error>> {
             _ => log::warn!("Unknown file type: {}.", &filename),
         }
 
+        // Process the result of reading metadata
         match value_res {
             // Metadata read OK - try to rename
             Ok(values) => {
-                let result = shared::rename_file(filename, pattern, &values, dry_run);
+                let result = shared::rename_file(filename, pattern, &values, total_files, dry_run);
                 match result {
                     // How did the rename go?
-                    Ok(r) => {
-                        log::info!("{} --> {}", filename, r);
+                    Ok(result) => {
+                        log::info!("{} --> {}", filename, result);
                         prcoessed_files += 1;
                     }
-                    Err(rename_err) => {
-                        log::error!("Unable to rename {} : {}", filename, rename_err.to_string());
+                    Err(err) => {
+                        log::error!("Unable to rename {} : {}", filename, err.to_string());
                         skipped_files += 1;
                     }
                 }
             }
             // Problem reading metadata - let the user know.
-            Err(read_err) => log::error!("Unable to read {} : {}", filename, read_err.to_string()),
+            Err(err) => log::error!("Unable to process {} : {}", filename, err.to_string()),
         }
         total_files += 1;
     }

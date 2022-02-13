@@ -1,14 +1,19 @@
-use std::{collections::HashMap, error::Error, fs::File, io::BufReader};
-
-use chrono::{DateTime, Datelike, Timelike};
+use std::{collections::HashMap, error::Error};
 
 use crate::tcxx::activities::ActivitiesSummary;
+use chrono::{DateTime, Datelike, Timelike};
 mod activities;
 
 pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
+    let tcdb;
 
-    let tcdb = tcx::read(&mut BufReader::new(File::open(&filename).unwrap()))?;
+    // Make sure we can open the file correctly
+    let tcdb_res = tcx::read_file(&filename);
+    match tcdb_res {
+        Ok(res) => tcdb = res,
+        Err(err) => return Err(format!("Unable to open {}. Error: {}", filename, err).into()),
+    }
 
     if let Some(activities) = tcdb.activities {
         let mut act = ActivitiesSummary::from_activities(&activities);
@@ -37,10 +42,10 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
 
             values.insert("%year".to_string(), format!("{:04}", tc.year()));
             values.insert("%yr".to_string(), format!("{:04}", tc.year()));
-            values.insert("%month".to_string(), format!("{:02}", tc.month0()));
-            values.insert("%mo".to_string(), format!("{:02}", tc.month0()));
-            values.insert("%day".to_string(), format!("{:02}", tc.day0()));
-            values.insert("%dy".to_string(), format!("{:02}", tc.day0()));
+            values.insert("%month".to_string(), format!("{:02}", tc.month()));
+            values.insert("%mo".to_string(), format!("{:02}", tc.month()));
+            values.insert("%day".to_string(), format!("{:02}", tc.day()));
+            values.insert("%dy".to_string(), format!("{:02}", tc.day()));
 
             values.insert("%hour".to_string(), format!("{:02}", tc.hour()));
             values.insert("%hr".to_string(), format!("{:02}", tc.hour()));
@@ -97,5 +102,6 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
         }
     }
 
+    // Return safely
     Ok(values)
 }

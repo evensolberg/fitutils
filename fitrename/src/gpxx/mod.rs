@@ -38,10 +38,10 @@ pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     if let Some(tc) = gpxmeta.time {
         values.insert("%year".to_string(), format!("{:04}", tc.0.year()));
         values.insert("%yr".to_string(), format!("{:04}", tc.0.year()));
-        values.insert("%month".to_string(), format!("{:02}", tc.0.month0()));
-        values.insert("%mo".to_string(), format!("{:02}", tc.0.month0()));
-        values.insert("%day".to_string(), format!("{:02}", tc.0.day0()));
-        values.insert("%dy".to_string(), format!("{:02}", tc.0.day0()));
+        values.insert("%month".to_string(), format!("{:02}", tc.0.month()));
+        values.insert("%mo".to_string(), format!("{:02}", tc.0.month()));
+        values.insert("%day".to_string(), format!("{:02}", tc.0.day()));
+        values.insert("%dy".to_string(), format!("{:02}", tc.0.day()));
 
         values.insert("%hour".to_string(), format!("{:02}", tc.0.hour()));
         values.insert("%hr".to_string(), format!("{:02}", tc.0.hour()));

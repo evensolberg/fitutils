@@ -3,10 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Day and Month were off by 1
+
 ### Features
 
 - Start on fitrename
 - Fitrename FIT and GPX done
+- Fitrename TCX support
+- Add utilities crate - not yet working
 
 ### Miscellaneous Tasks
 
