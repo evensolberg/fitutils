@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 - Start on fitrename
 - Fitrename FIT and GPX done
+- Fitrename TCX support
+- Add utilities crate - not yet working
 
 ### Miscellaneous Tasks
 

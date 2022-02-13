@@ -16,6 +16,7 @@ pub fn rename_file(
     filename: &str,
     pattern: &str,
     values: &HashMap<String, String>,
+    unique_val: usize,
     dry_run: bool,
 ) -> Result<String, Box<dyn Error>> {
     let mut new_filename = pattern.to_string();
@@ -43,13 +44,25 @@ pub fn rename_file(
         .unwrap_or_else(|| Path::new("."));
 
     // Create the new filename
-    let new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+    let mut new_path =
+        parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
+    // Check if a file with the new filename already exists - make the filename unique if it does.
+    if Path::new(&new_path).exists() {
+        log::warn!(
+            "{} already exists. Appending unique identifier.",
+            new_filename
+        );
+        new_filename = format!("{} ({})", new_filename, unique_val);
+        new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+    }
+
+    // Perform the actual rename
     if dry_run {
         log::debug!("dr: {} --> {}", filename, new_path.display());
     } else {
-        // Get parent dir
+        // Perform rename
         let rn_res = std::fs::rename(&filename, &new_path);
         match rn_res {
             Ok(_) => log::debug!("{} --> {}", filename, new_path.to_string_lossy()),

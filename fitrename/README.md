@@ -4,11 +4,11 @@ This program will rename the input file(s) based on metadata from the files and 
 
 For example,
 
-`fitrename *.fit -p "%year-%month-%day %hour.%minute.%second %activity %duration-minutes.%duration-seconds"`
+`fitrename *.fit -p "%year-%month-%day %hour.%minute.%second %activity %duration"`
 
-will rename the file based on the date and time when the activity started, the activity name, and the duration in minutes and seconds. This may yield something like:
+will rename the file based on the date and time when the activity started, the activity name, and the duration in seconds. This may yield something like:
 
-`2022-02-10 06.50.10 Indoor Rowing 30.04.fit`
+`2022-02-10 06.50.10 Indoor Rowing 1200.fit`
 
 ## Command Line Flags
 
@@ -18,7 +18,7 @@ The application takes the following form:
 
 Wildcards and mutiple file names are supported, eg.
 
-`fitrename *.fit *.gpx -p "%year-%month-%day %hour.%minute.%second %activity %duration-minutes.%duration-seconds"`
+`fitrename *.fit *.gpx -p "%year-%month-%day %hour.%minute.%second %activity"`
 
 |Flag|Required|Descriptio |
 |:---|:------:|:----------|
@@ -28,7 +28,7 @@ Wildcards and mutiple file names are supported, eg.
 
 The following tokens can be used. Note that date and times indicate the *start* of the activity:
 
-|Token Long|Token Short|FIT|GPX|TCX|Descriptio |
+|Token Long|Token Short|FIT|GPX|TCX|Description|
 |:----|:----|:---:|:---:|:---:|:----------|
 `%year`|`%yr`|Y|Y|Y|The year.
 `%month`|`%mo`|Y|Y|Y|The month (01-12).
@@ -49,4 +49,6 @@ The following tokens can be used. Note that date and times indicate the *start* 
 
 * Note that for `%serial_number` some GPX files may have this in notes, and the application will attempt to extract a value.
 
-> **NOTE:** You should do a dry run before attempting to rename files to ensure you get the expected result.
+> **NOTE:** Not all file types contain all of this information. Notably, FIT tends to be the most data-rich. You should do a dry run before attempting to rename files to ensure you get the expected result.
+
+If a file before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unqiue_id)` where `filename` is the duplicate name.
