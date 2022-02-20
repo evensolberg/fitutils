@@ -3,7 +3,8 @@ use csv::WriterBuilder;
 use gpx::Gpx;
 use std::{error::Error, fs::File, io::BufReader, path::PathBuf};
 
-use crate::types::{Duration, GpxMetadata, Route, Track, Waypoint};
+use crate::types::{GpxMetadata, Route, Track, Waypoint};
+use utilities::Duration;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]

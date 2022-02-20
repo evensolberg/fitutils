@@ -1,8 +1,7 @@
 use std::{collections::HashMap, error::Error};
 
-use crate::tcxx::activities::ActivitiesSummary;
 use chrono::{DateTime, Datelike, Timelike};
-mod activities;
+use utilities::TCXActivitiesSummary;
 
 pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
@@ -16,11 +15,13 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     }
 
     if let Some(activities) = tcdb.activities {
-        let mut act = ActivitiesSummary::from_activities(&activities);
+        let mut act = TCXActivitiesSummary::from_activities(&activities);
         act.filename = Some(filename.to_string());
 
         log::debug!("act = {:?}", act);
 
+        // Insert values into HashMap
+        // Insert "unknown" into all the fields that don't have a correponding field in the TCX.
         let unknown = "unknown".to_string();
         values.insert("%manufacturer".to_string(), unknown.clone());
         values.insert("%unknown".to_string(), unknown.clone());
@@ -104,4 +105,109 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
 
     // Return safely
     Ok(values)
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx"])]
+    ///
+    fn test_process_tcx() {
+        // Read the file
+        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx";
+        let tcx_map = process_tcx(filename)?;
+
+        // File contents only get printed if run with cargo test -- --nocapture
+        println!("tcx_map = {:?}", tcx_map);
+        println!("tcx_map.len() = {}", tcx_map.len());
+
+        // Perform the actual tests
+        assert_eq!(tcx_map.len(), 32);
+        assert_eq!(
+            tcx_map.get("%activity").unwrap().to_string(),
+            "Running".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%ac").unwrap().to_string(),
+            "Running".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%activity_detailed").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%ad").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(tcx_map.get("%ampm").unwrap().to_string(), "am".to_string());
+        assert_eq!(tcx_map.get("%ap").unwrap().to_string(), "am".to_string());
+        assert_eq!(tcx_map.get("%day").unwrap().to_string(), "15".to_string());
+        assert_eq!(tcx_map.get("%du").unwrap().to_string(), "1325".to_string());
+        assert_eq!(
+            tcx_map.get("%duration").unwrap().to_string(),
+            "1325".to_string()
+        );
+        assert_eq!(tcx_map.get("%dy").unwrap().to_string(), "15".to_string());
+        assert_eq!(tcx_map.get("%hr").unwrap().to_string(), "06".to_string());
+        assert_eq!(tcx_map.get("%h12").unwrap().to_string(), "06".to_string());
+        assert_eq!(tcx_map.get("%h24").unwrap().to_string(), "06".to_string());
+        assert_eq!(tcx_map.get("%hour").unwrap().to_string(), "06".to_string());
+        assert_eq!(
+            tcx_map.get("%hour12").unwrap().to_string(),
+            "06".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%hour24").unwrap().to_string(),
+            "06".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%manufacturer").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(tcx_map.get("%mi").unwrap().to_string(), "35".to_string());
+        assert_eq!(
+            tcx_map.get("%minute").unwrap().to_string(),
+            "35".to_string()
+        );
+        assert_eq!(tcx_map.get("%mo").unwrap().to_string(), "06".to_string());
+        assert_eq!(tcx_map.get("%month").unwrap().to_string(), "06".to_string());
+        assert_eq!(
+            tcx_map.get("%pr").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%product").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(tcx_map.get("%se").unwrap().to_string(), "49".to_string());
+        assert_eq!(
+            tcx_map.get("%second").unwrap().to_string(),
+            "49".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%serial_number").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%sn").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%unknown").unwrap().to_string(),
+            "unknown".to_string()
+        );
+        assert_eq!(tcx_map.get("%wd").unwrap().to_string(), "Fri".to_string());
+        assert_eq!(
+            tcx_map.get("%weekday").unwrap().to_string(),
+            "Fri".to_string()
+        );
+        assert_eq!(
+            tcx_map.get("%year").unwrap().to_string(),
+            "2018".to_string()
+        );
+        assert_eq!(tcx_map.get("%yr").unwrap().to_string(), "2018".to_string());
+    }
 }

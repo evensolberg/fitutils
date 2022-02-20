@@ -6,7 +6,7 @@
 // See Cargo.toml for crates versions
 // Crates Usage:
 
-use clap::{App, Arg}; // Command line
+use clap::{Arg, Command}; // Command line
 
 // use std::io::Write; // needed for the log formatting
 use std::{collections::HashMap, error::Error, path::Path};
@@ -20,14 +20,11 @@ mod gpxx;
 mod shared;
 mod tcxx;
 
-mod duration;
-mod timestamp;
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new(clap::crate_name!())
+    let cli_args = Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))

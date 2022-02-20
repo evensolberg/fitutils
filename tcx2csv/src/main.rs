@@ -1,17 +1,16 @@
-use clap::{App, Arg}; // Command line
+use clap::{Arg, Command}; // Command line
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 
-pub mod types;
-use crate::types::set_extension;
+use utilities::{TCXActivitiesList, TCXActivitiesSummary, TCXTrackpointList};
 
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new(clap::crate_name!())
+    let cli_args = Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))
@@ -104,7 +103,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
     // Do the parsing
 
-    let mut act_list = types::ActivitiesList::new();
+    let mut act_list = TCXActivitiesList::new();
 
     for filename in cli_args.values_of("read").unwrap() {
         log::info!("Processing file: {}", filename);
@@ -114,7 +113,9 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // If -d then export the activity to JSON
         if cli_args.is_present("debug") {
-            let outfile = set_extension(filename, "json").as_str().to_owned();
+            let outfile = utilities::set_extension(filename, "json")
+                .as_str()
+                .to_owned();
             log::trace!(
                 "main::run() -- Exporting {} to {} for debugging purposes.",
                 filename,
@@ -125,22 +126,20 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         log::trace!("main::run() -- tcxfile = {:?}", tcdb);
         if let Some(activities) = tcdb.activities {
-            let mut curr_activities = types::ActivitiesSummary::from_activities(&activities);
-            curr_activities.filename = filename.to_string();
+            let mut curr_activities = TCXActivitiesSummary::from_activities(&activities);
+            let file_name = filename.to_string();
+            curr_activities.filename = Some(file_name.clone());
 
             log::trace!("main::run() -- activities summary: {:?}", curr_activities);
             if !cli_args.is_present("detail-off") {
                 // Export the activity summary to JSON
-                log::debug!(
-                    "main::run() -- Writing activity summary for {}",
-                    &curr_activities.filename
-                );
+                log::debug!("main::run() -- Writing activity summary for {}", file_name);
                 curr_activities.export_json()?;
 
                 // Export the Trackpoints to CSV
                 log::debug!("Parsing and exporting Trackpoint list.");
-                let tp_list = types::TrackpointList::from_activities(&activities);
-                tp_list.export_csv(&set_extension(filename, "trackpoints.csv"))?;
+                let tp_list = TCXTrackpointList::from_activities(&activities);
+                tp_list.export_csv(&utilities::set_extension(filename, "trackpoints.csv"))?;
             }
 
             act_list.activities.push(curr_activities);
@@ -150,7 +149,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // If we're tracing, export the summary in JSON format
     if cli_args.occurrences_of("debug") > 1 {
         log::trace!("main::run() -- Exporting summary JSON file.");
-        act_list.export_json(&set_extension(summaryfile, "json"))?;
+        act_list.export_json(&utilities::set_extension(summaryfile, "json"))?;
     }
 
     log::info!("Exporting summary CSV file: {}", summaryfile);

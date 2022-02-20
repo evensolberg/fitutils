@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog update
+- Changelog update
+- Changelog
 
 ## [0.3.6] - 2022-01-03
 

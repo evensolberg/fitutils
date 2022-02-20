@@ -8,6 +8,16 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone, PartialOrd, PartialEq)]
 pub struct TimeStamp(pub DateTime<Local>);
 
+impl TimeStamp {
+    pub fn parse_from_rfc3339(s: &str) -> Self {
+        Self(
+            DateTime::parse_from_rfc3339(s)
+                .unwrap()
+                .with_timezone(&Local),
+        )
+    }
+}
+
 impl Default for TimeStamp {
     /// Initialize TimeStamp to current time.
     fn default() -> TimeStamp {

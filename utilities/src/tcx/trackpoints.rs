@@ -4,11 +4,11 @@ use std::error::Error;
 use std::path::PathBuf;
 use tcx;
 
-use super::{Duration, TimeStamp};
+use crate::{Duration, TimeStamp};
 
 /// Holds each Trackpoint as a Record
 #[derive(Serialize, Debug, Clone, Default)]
-pub struct Trackpoint {
+pub struct TCXTrackpoint {
     /// Sport
     pub sport: String,
 
@@ -52,7 +52,7 @@ pub struct Trackpoint {
     pub cadence: Option<u8>,
 }
 
-impl Trackpoint {
+impl TCXTrackpoint {
     pub fn new() -> Self {
         Self {
             sport: "".to_string(),
@@ -75,12 +75,12 @@ impl Trackpoint {
 
 /// Contains the list of activity trackpoints from the TCX file
 #[derive(Serialize, Debug, Clone, Default)]
-pub struct TrackpointList {
+pub struct TCXTrackpointList {
     /// The list of individual trackpoints
-    pub trackpoints: Vec<Trackpoint>,
+    pub trackpoints: Vec<TCXTrackpoint>,
 }
 
-impl TrackpointList {
+impl TCXTrackpointList {
     pub fn new() -> Self {
         Self {
             trackpoints: Vec::new(),
@@ -105,10 +105,10 @@ impl TrackpointList {
                         tp_num += 1;
 
                         // Extract a new Trackpoint
-                        let mut tp = Trackpoint::new();
+                        let mut tp = TCXTrackpoint::new();
                         tp.sport = activity.sport.clone();
                         tp.start_time = TimeStamp::parse_from_rfc3339(&activity.id);
-                        tp.time = TimeStamp(trackpoint.time);
+                        tp.time = TimeStamp(trackpoint.time.with_timezone(&chrono::Local));
                         tp.duration = Duration::between(&tp.start_time, &tp.time);
                         tp.activity_num = a_num;
                         tp.lap_num = l_num;

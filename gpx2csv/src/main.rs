@@ -1,5 +1,5 @@
 //! The main program file.
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use std::error::Error; // Command line
 
 // Logging
@@ -13,7 +13,7 @@ use crate::types::{Activities, Activity};
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new(clap::crate_name!())
+    let cli_args = Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))

@@ -10,7 +10,7 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "3.0.14"
+clap = { version = "3.1.0", features = ["cargo", "color"] }
 env_logger = "0.9.0"
 fitparser = "0.4.3"
 gpx = "0.8.5"
@@ -18,6 +18,12 @@ log = "0.4.14"
 tcx = "0.9.3"
 
 # chrono = { version = "0.4", features = ["serde"] }
-chrono = "0.4"
+chrono = "0.4.19"
 uom = { version = "0.32.0", default-features = false, features = ["si", "u16", "f64"] }
-serde = { version = "1.0.133", features = ["derive"] }
+serde = { version = "1.0.136", features = ["derive"] }
+
+# Our own package
+utilities = { path = "../utilities" }
+
+[dev-dependencies]
+assay = "0.1.0"

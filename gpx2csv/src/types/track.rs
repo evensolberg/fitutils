@@ -4,7 +4,8 @@ use serde::Serialize;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::types::{Duration, TimeStamp, Waypoint};
+use crate::types::Waypoint;
+use utilities::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
@@ -141,7 +142,7 @@ impl Track {
 
         dest.num_waypoints = dest.waypoints.len();
         if dest.num_waypoints > 0 {
-            dest.start_time = dest.waypoints[0].time;
+            dest.start_time = dest.waypoints[0].time.clone();
             let t_last = &dest.waypoints[dest.num_waypoints - 1]
                 .time
                 .as_ref()

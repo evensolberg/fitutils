@@ -1,7 +1,7 @@
 //! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
 
-use crate::types::TimeStamp;
 use serde::Serialize;
+use utilities::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
@@ -120,7 +120,7 @@ impl Waypoint {
         dest.elevation = src.elevation;
         dest.speed = src.speed;
 
-        dest.time = Some(TimeStamp(src.time.unwrap()));
+        dest.time = Some(TimeStamp(src.time.unwrap().with_timezone(&chrono::Local)));
 
         if let Some(name) = &src.name {
             dest.name = Some(name.to_string())

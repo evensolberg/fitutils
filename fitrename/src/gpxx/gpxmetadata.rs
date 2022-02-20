@@ -3,7 +3,7 @@ use chrono::Local;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, path::PathBuf};
 
-use crate::{duration::Duration, timestamp::TimeStamp};
+use utilities::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
@@ -95,7 +95,7 @@ impl GpxMetadata {
         dest.set_filename(filename);
 
         // Parse the GPX header
-        dest.version = Some(gpx_ver_to_string(&src.version));
+        dest.version = Some(gpx_ver_to_string(src.version));
         if let Some(creator) = &src.creator {
             dest.creator = Some(creator.to_string());
         }
@@ -114,6 +114,13 @@ impl GpxMetadata {
         if let Some(time) = &src_meta.time {
             dest.time = Some(TimeStamp(time.with_timezone(&Local)));
         }
+
+        // Find the duration
+        let last_track = src.tracks.last().unwrap();
+        let last_segment = last_track.segments.last().unwrap();
+        let last_point = last_segment.points.last().unwrap();
+        let last_time = TimeStamp(last_point.time.unwrap().with_timezone(&Local));
+        dest.duration = Some(Duration::between(&dest.time.as_ref().unwrap(), &last_time));
 
         // For now, only read the first href in the list of links (if there is one)
         if !src_meta.links.is_empty() {
@@ -191,10 +198,105 @@ impl Default for GpxMetadata {
 }
 
 /// Turn the `gpx::GpxVersion` enum into a string
-pub fn gpx_ver_to_string(version: &gpx::GpxVersion) -> String {
+pub fn gpx_ver_to_string(version: gpx::GpxVersion) -> String {
     match version {
         gpx::GpxVersion::Gpx10 => "Gpx10".to_string(),
         gpx::GpxVersion::Gpx11 => "Gpx11".to_string(),
         _ => "unknown".to_string(),
     }
 }
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Tests a new GpxMetadata struct to ensure it's blank
+    fn test_gpx_metadata_new() {
+        let gmd = GpxMetadata::new();
+
+        assert!(gmd.filename.is_none());
+        assert!(gmd.version.is_none());
+        assert!(gmd.creator.is_none());
+        assert!(gmd.activity.is_none());
+        assert!(gmd.description.is_none());
+        assert!(gmd.author_name.is_none());
+        assert!(gmd.author_email.is_none());
+        assert!(gmd.links_href.is_none());
+        assert!(gmd.links_text.is_none());
+        assert!(gmd.keywords.is_none());
+        assert!(gmd.time.is_none());
+        assert!(gmd.duration.is_none());
+        assert!(gmd.copyright_author.is_none());
+        assert!(gmd.copyright_year.is_none());
+        assert!(gmd.copyright_license.is_none());
+    }
+
+    #[assay]
+    ///
+    fn test_set_filename() {
+        let mut gmd = GpxMetadata::new();
+        gmd.set_filename("somefile.gpx");
+
+        assert!(gmd.filename.is_some());
+        assert_eq!(gmd.filename, Some(PathBuf::from("somefile.gpx")));
+    }
+
+    #[assay]
+    fn test_gpx_ver_to_string() {
+        assert_eq!(
+            gpx_ver_to_string(gpx::GpxVersion::Gpx10),
+            "Gpx10".to_string()
+        );
+        assert_eq!(
+            gpx_ver_to_string(gpx::GpxVersion::Gpx11),
+            "Gpx11".to_string()
+        );
+    }
+
+    #[assay(include = ["/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx"])]
+    ///
+    fn test_from_header() {
+        let filename = "/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx";
+
+        let gpx: gpx::Gpx = gpx::read(std::io::BufReader::new(std::fs::File::open(&filename)?))?;
+        println!("gpx = {:?}", gpx);
+
+        let gpxmeta = GpxMetadata::from_header(&gpx, filename)?;
+        println!("gpxmeta = {:?}", gpxmeta);
+
+        // Check that we have data at all
+        assert!(gpxmeta.filename.is_some());
+        assert!(gpxmeta.version.is_some());
+        assert!(gpxmeta.creator.is_some());
+        assert!(gpxmeta.description.is_some());
+
+        assert!(gpxmeta.author_name.is_none());
+        assert!(gpxmeta.author_email.is_none());
+
+        assert!(gpxmeta.links_href.is_some());
+        assert!(gpxmeta.links_text.is_some());
+
+        assert!(gpxmeta.keywords.is_none());
+
+        assert!(gpxmeta.time.is_some());
+        // assert!(gpxmeta.duration.is_some());
+
+        assert!(gpxmeta.copyright_author.is_none());
+        assert!(gpxmeta.copyright_year.is_none());
+        assert!(gpxmeta.copyright_license.is_none());
+    }
+}
+
+// GpxMetadata { filename: Some("/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx"), version: Some("Gpx11"), creator: Some("WahooFitness"),
+// activity: Some("Running"), description: Some("GPX File Created by Fitness v5.12.1 (139) for iOS"),
+// author_name: None, author_email: None,
+// links_href: Some("www.wahoofitness.com"), links_text: Some("WahooFitness"),
+// keywords: None,
+
+// time: Some(TimeStamp(2018-06-15T06:35:49-07:00)), duration: None,
+// copyright_author: None, copyright_year: None,
+
+// copyright_license: None }

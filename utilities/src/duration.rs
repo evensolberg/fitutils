@@ -1,9 +1,12 @@
 //! Redefines `std::time::Duration` to allow for additional functionality.
+
 use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
 use std::ops::{Add, AddAssign, Sub};
+
+use crate::timestamp::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits
@@ -14,6 +17,37 @@ impl Duration {
     /// Get duration from seconds.
     pub fn from_secs_f64(secs: f64) -> Self {
         Duration(std::time::Duration::from_secs_f64(secs))
+    }
+
+    #[allow(dead_code)]
+    /// Get duration from milliseconds (u64).
+    pub fn from_millis_u64(millis: u64) -> Self {
+        Duration(std::time::Duration::from_millis(millis))
+    }
+
+    #[allow(dead_code)]
+    /// Get duration from milliseconds (u32).
+    pub fn from_millis_u32(millis: u32) -> Self {
+        Duration(std::time::Duration::from_millis(millis as u64))
+    }
+
+    /// Calculate the duration between two TimeStamps, regardless of which comes first.
+    pub fn between(ts1: &TimeStamp, ts2: &TimeStamp) -> Self {
+        log::trace!(
+            "types::Duration::between() -- ts1: {:?} -- ts2: {:?}",
+            ts1,
+            ts2
+        );
+        Duration(if ts2 > ts1 {
+            // ts2 is after ts1
+            log::trace!("types::Duration::between() -- ts2 > ts1");
+            chrono::Duration::to_std(&ts2.0.signed_duration_since(ts1.0))
+                .expect("types::Duration::between() -- ts2 > ts1: Duration out of bounds.")
+        } else {
+            log::trace!("types::Duration::between() -- ts1 >= ts2");
+            chrono::Duration::to_std(&ts1.0.signed_duration_since(ts2.0))
+                .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
+        })
     }
 }
 
@@ -67,5 +101,194 @@ impl Serialize for Duration {
         let mut state = serializer.serialize_struct("Duration", 1)?;
         state.serialize_field("secs", &self.0.as_secs_f32())?;
         state.end()
+    }
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    fn test_from_secs_f64() {
+        let dur = Duration::from_secs_f64(120.1);
+
+        assert_eq!(dur.0.as_secs(), 120);
+        assert_eq!(dur.0.as_millis(), 120_100);
+    }
+
+    #[assay]
+    fn test_from_millis_u64() {
+        let dur = Duration::from_millis_u64(123_123);
+
+        assert_eq!(dur.0.as_secs(), 123);
+        assert_eq!(dur.0.as_secs_f32(), 123.123 as f32);
+        assert_eq!(dur.0.as_nanos(), 123_123_000_000);
+    }
+
+    #[assay]
+    fn test_from_millis_u32() {
+        let dur = Duration::from_millis_u32(123_123);
+
+        assert_eq!(dur.0.as_secs(), 123);
+        assert_eq!(dur.0.as_secs_f32(), 123.123 as f32);
+        assert_eq!(dur.0.as_nanos(), 123_123_000_000);
+    }
+
+    #[assay]
+    fn test_between() {
+        let t1 = TimeStamp::default();
+        std::thread::sleep(std::time::Duration::from_secs(1));
+        let t2 = TimeStamp::default();
+        let b1 = Duration::between(&t1, &t2);
+        let b2 = Duration::between(&t2, &t1);
+        println!("b1 = {}, b2 = {}", b1, b2);
+
+        assert_eq!(b1.to_string(), "00:00:01".to_string());
+        assert_eq!(b2.to_string(), "00:00:01".to_string());
+        assert_eq!(b1.0.as_secs(), 1);
+        assert_eq!(b2.0.as_secs(), 1);
+    }
+
+    #[assay]
+    /// Tests the addition functionality to add two durations together
+    fn test_add() {
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.0))
+                .0
+                .as_secs(),
+            2
+        );
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.0))
+                .0
+                .as_millis(),
+            2000
+        );
+
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.5))
+                .0
+                .as_secs(),
+            2
+        );
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.5))
+                .0
+                .as_millis(),
+            2500
+        );
+
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.6))
+                .0
+                .as_secs(),
+            2
+        );
+        assert_eq!(
+            (Duration::from_secs_f64(1.0) + Duration::from_secs_f64(1.6))
+                .0
+                .as_millis(),
+            2600
+        );
+
+        assert_eq!(
+            (Duration::from_secs_f64(1.6) + Duration::from_secs_f64(1.6))
+                .0
+                .as_secs(),
+            3
+        );
+        assert_eq!(
+            (Duration::from_secs_f64(1.6) + Duration::from_secs_f64(1.6))
+                .0
+                .as_millis(),
+            3200
+        );
+    }
+
+    #[assay]
+    /// Tests the add assign (+=) functionality
+    fn test_add_assign() {
+        let mut d1 = Duration::from_secs_f64(1.0);
+        assert_eq!(d1.0.as_secs(), 1);
+
+        d1 += Duration::from_millis_u32(1500);
+        assert_eq!(d1.0.as_millis(), 2500);
+        assert_eq!(d1.0.as_secs(), 2);
+
+        d1 += Duration::from_millis_u32(600);
+        assert_eq!(d1.0.as_millis(), 3100);
+        assert_eq!(d1.0.as_secs(), 3);
+    }
+
+    #[assay]
+    /// Tests the subtraction functionality
+    fn test_sub() {
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1000))
+                .0
+                .as_millis(),
+            1500
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1000))
+                .0
+                .as_secs(),
+            1
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1000))
+                .0
+                .as_secs_f32(),
+            1.5
+        );
+
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1500))
+                .0
+                .as_millis(),
+            1000
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1500))
+                .0
+                .as_secs(),
+            1
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1500))
+                .0
+                .as_secs_f32(),
+            1.0
+        );
+
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1600))
+                .0
+                .as_millis(),
+            900
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1600))
+                .0
+                .as_secs(),
+            0
+        );
+        assert_eq!(
+            (Duration::from_millis_u32(2500) - Duration::from_millis_u32(1600))
+                .0
+                .as_secs_f32(),
+            0.9
+        );
+    }
+
+    #[assay]
+    ///
+    fn test_display() {
+        let d1 = Duration::from_secs_f64(3750.2);
+        println!("d1 = {}", d1);
+
+        assert_eq!(format!("{}", d1), "01:02:30");
     }
 }

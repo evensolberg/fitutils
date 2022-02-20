@@ -9,7 +9,9 @@ mod gpxmetadata;
 /// Parses a GPX file and returns the relevant metadata
 pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+    log::debug!("process_gpx::gpx = {:?}", gpx);
     let gpxmeta = GpxMetadata::from_header(&gpx, filename)?;
+    log::debug!("process_gpx::gpxmeta = {:?}", gpxmeta);
 
     let mut values = HashMap::<String, String>::new();
     let mf = gpxmeta.creator.unwrap_or_else(|| "unknown".to_string());
@@ -90,8 +92,8 @@ pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     }
 
     if let Some(dur) = gpxmeta.duration {
-        values.insert("%duration".to_string(), dur.0.as_secs().to_string());
-        values.insert("%du".to_string(), dur.0.as_secs().to_string());
+        values.insert("%duration".to_string(), dur.to_string());
+        values.insert("%du".to_string(), dur.to_string());
     } else {
         values.insert("%duration".to_string(), "0".to_string());
         values.insert("%du".to_string(), "0".to_string());

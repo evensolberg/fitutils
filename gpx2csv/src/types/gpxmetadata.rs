@@ -3,7 +3,7 @@ use gpx;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, fs::File, path::PathBuf};
 
-use crate::types::{Duration, TimeStamp};
+use utilities::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
@@ -121,7 +121,8 @@ impl GpxMetadata {
             dest.keywords = Some(keywords.to_string());
         }
         if let Some(time) = &src_meta.time {
-            dest.time = Some(TimeStamp(*time));
+            let ltz = time.with_timezone(&chrono::Local);
+            dest.time = Some(TimeStamp(ltz));
         }
 
         // For now, only read the first href in the list of links (if there is one)

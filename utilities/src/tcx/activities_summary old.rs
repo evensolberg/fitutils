@@ -5,11 +5,11 @@ use std::error::Error;
 use std::path::PathBuf;
 use tcx::{self};
 
-use crate::types::addons::set_extension;
+use crate::set_extension;
 
 /// Holds a summary of the activities in the file
 #[derive(Serialize, Debug, Clone)]
-pub struct ActivitiesSummary {
+pub struct TCXActivitiesSummary {
     /// Filename of the original file from which the data was read
     pub filename: String,
 
@@ -71,10 +71,10 @@ pub struct ActivitiesSummary {
     pub maximum_cadence: u8,
 }
 
-impl ActivitiesSummary {
+impl TCXActivitiesSummary {
     /// Create a new, empty Activities Summary
     pub fn new() -> Self {
-        ActivitiesSummary::default()
+        TCXActivitiesSummary::default()
     }
 
     /// Generates a summary from a set of activities in the TCX file.
@@ -181,7 +181,7 @@ impl ActivitiesSummary {
     }
 }
 
-impl Default for ActivitiesSummary {
+impl Default for TCXActivitiesSummary {
     /// Sets up the ActivitiesSummary with defaults or empty fields
     fn default() -> Self {
         Self {
@@ -211,18 +211,18 @@ impl Default for ActivitiesSummary {
 
 /// A list of the summarized activities
 #[derive(Serialize, Debug)]
-pub struct ActivitiesList {
+pub struct TCXActivitiesList {
     /// The list of activities
-    pub activities: Vec<ActivitiesSummary>,
+    pub activities: Vec<TCXActivitiesSummary>,
 }
 
-impl Default for ActivitiesList {
+impl Default for TCXActivitiesList {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ActivitiesList {
+impl TCXActivitiesList {
     /// Create a new, empty `ActivitiesList`.
     pub fn new() -> Self {
         Self {

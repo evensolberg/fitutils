@@ -3,7 +3,7 @@ pub use crate::fit::session::Session;
 mod constfunc;
 pub mod session;
 
-use crate::timestamp::TimeStamp;
+use utilities::TimeStamp;
 
 use chrono::{Datelike, Timelike};
 use fitparser::profile::field_types::MesgNum;
@@ -123,8 +123,8 @@ pub fn process_fit(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     }
 
     if let Some(dur) = my_session.duration {
-        values.insert("%duration".to_string(), dur.0.as_secs().to_string());
-        values.insert("%du".to_string(), dur.0.as_secs().to_string());
+        values.insert("%duration".to_string(), dur.to_string());
+        values.insert("%du".to_string(), dur.to_string());
     } else {
         values.insert("%duration".to_string(), "0".to_string());
         values.insert("%du".to_string(), "0".to_string());
