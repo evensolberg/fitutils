@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Person represents a person or organization.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Person {
+pub struct GPXPerson {
     /// Name of person or organization.
     pub name: Option<String>,
 

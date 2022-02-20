@@ -1,8 +1,7 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
-use crate::types::constfunc::*;
-use crate::types::{HrZones, Session};
-use utilities::{Duration, TimeStamp};
+use crate::fit::constfunc::*;
+use crate::{Duration, FITHrZones, FITSession, TimeStamp};
 
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
@@ -19,7 +18,7 @@ use uom::si::{
 /// Summary information per lap
 #[derive(Serialize, Deserialize, Debug, Clone)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
-pub struct Lap {
+pub struct FITLap {
     /// The name of the .FIT file in which the lap information is found.
     pub filename: Option<String>,
 
@@ -99,10 +98,10 @@ pub struct Lap {
     pub finish_time: Option<TimeStamp>,
 
     /// Time spent in each heart rate zone.
-    pub time_in_hr_zones: HrZones,
+    pub time_in_hr_zones: FITHrZones,
 }
 
-impl Lap {
+impl FITLap {
     /// Return a new, empty `Lap` struct
     pub fn new() -> Self {
         Self::default()
@@ -134,13 +133,13 @@ impl Lap {
     /// Struct [`fitparser::FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
     pub fn from_fit_lap(
         fields: &[FitDataField],
-        session: &Session,
+        session: &FITSession,
     ) -> Result<Self, Box<dyn Error>> {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
-        let mut lap = Lap::new();
+        let mut lap = FITLap::new();
 
         lap.filename = session.filename.to_owned();
 
@@ -222,7 +221,7 @@ impl Lap {
         lap.start_time = field_map.get("start_time").and_then(map_timestamp);
         lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
 
-        lap.time_in_hr_zones = HrZones::from(field_map.get("time_in_hr_zone"));
+        lap.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
 
         Ok(lap)
     }
@@ -230,10 +229,10 @@ impl Lap {
     // end impl Lap
 }
 
-impl Default for Lap {
+impl Default for FITLap {
     /// Return a `Lap` struct with all empty values.
     fn default() -> Self {
-        Lap {
+        FITLap {
             filename: None,
             lap_num: None,
             cadence_avg: None,
@@ -260,7 +259,7 @@ impl Default for Lap {
             duration_moving: None,
             start_time: None,
             finish_time: None,
-            time_in_hr_zones: HrZones::new(),
+            time_in_hr_zones: FITHrZones::new(),
         }
     }
 }

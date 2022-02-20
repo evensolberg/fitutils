@@ -1,7 +1,7 @@
 //! Defines the `Record` struct which ontains etailed information about each record/data point in the workout session.
 
-use crate::types::{constfunc::*, Session};
-use utilities::{Duration, TimeStamp};
+use crate::fit::constfunc::*;
+use crate::{Duration, FITSession, TimeStamp};
 
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use uom::si::{length::meter, velocity::meter_per_second};
 /// Detailed information about each record/data point in the workout session.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
-pub struct Record {
+pub struct FITRecord {
     /// Record timestamp.
     pub timestamp: Option<TimeStamp>,
 
@@ -55,7 +55,7 @@ pub struct Record {
     pub lon: Option<f64>,
 }
 
-impl Record {
+impl FITRecord {
     /// Return a new, empty Record
     pub fn new() -> Self {
         Self::default()
@@ -88,14 +88,14 @@ impl Record {
     /// Struct [`FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
     pub fn from_fit_record(
         fields: &[FitDataField],
-        session: &Session,
-    ) -> Result<Record, Box<dyn Error>> {
+        session: &FITSession,
+    ) -> Result<FITRecord, Box<dyn Error>> {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
 
-        let mut record = Record::new();
+        let mut record = FITRecord::new();
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -147,7 +147,7 @@ impl Record {
     }
 }
 
-impl Default for Record {
+impl Default for FITRecord {
     /// Returns a `Record` struct with no values.
     fn default() -> Self {
         Self {

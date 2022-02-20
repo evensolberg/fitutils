@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 /// An external destource could be a web page, digital photo,
 /// video clip, etc., with additional information.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Link {
+pub struct GPXLink {
     /// URL of hyperlink.
     pub href: String,
 

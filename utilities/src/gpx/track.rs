@@ -4,14 +4,14 @@ use serde::Serialize;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::types::Waypoint;
-use utilities::{Duration, TimeStamp};
+use crate::gpx::waypoint::GPXWaypoint;
+use crate::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
 #[derive(Serialize, Debug)]
 #[serde(default)]
-pub struct Track {
+pub struct GPXTrack {
     /// The original file name containing the track
     pub filename: Option<PathBuf>,
 
@@ -53,10 +53,10 @@ pub struct Track {
 
     /// The list of waypoints in this track (not serialized)
     #[serde(skip)] // Do not serialize - we'll handle it in the export. Maybe.
-    pub waypoints: Vec<Waypoint>,
+    pub waypoints: Vec<GPXWaypoint>,
 }
 
-impl Track {
+impl GPXTrack {
     /// Instantiate a new, empty `Track`
     pub fn new() -> Self {
         Self::default()
@@ -132,7 +132,7 @@ impl Track {
             segnum += 1;
             let mut wptnum: usize = 0;
             for curr_wpt in &curr_seg.points {
-                let mut wpt = Waypoint::from_gpx_waypoint(curr_wpt);
+                let mut wpt = GPXWaypoint::from_gpx_waypoint(curr_wpt);
                 wptnum += 1;
                 wpt.segment_num = segnum;
                 wpt.waypoint_mum = wptnum;
@@ -157,10 +157,10 @@ impl Track {
     }
 }
 
-impl Default for Track {
+impl Default for GPXTrack {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
-        Track {
+        GPXTrack {
             filename: None,
             track_num: 0,
             name: None,

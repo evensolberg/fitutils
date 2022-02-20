@@ -6,10 +6,6 @@ use std::error::Error; // Command line
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
-// Local modules
-pub mod types;
-use crate::types::{Activities, Activity};
-
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
@@ -106,14 +102,14 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
 
     // Create an empty placeholder for all the activities
-    let mut activities = Activities::new();
+    let mut activities = utilities::GPXActivities::new();
 
     // Do the parsing
     for filename in cli_args.values_of("read").unwrap() {
         log::info!("Processing file: {}", filename);
 
         // Extract the activity from the file
-        let activity = Activity::from_file(filename)?;
+        let activity = utilities::GPXActivity::from_file(filename)?;
 
         // Export the data if requested
         if !cli_args.is_present("detail-off") {

@@ -3,14 +3,13 @@ use std::{collections::HashMap, error::Error, fs::File, io::BufReader};
 use chrono::{Datelike, Timelike};
 use gpx::Gpx;
 
-use crate::gpxx::gpxmetadata::GpxMetadata;
-mod gpxmetadata;
+use utilities::GPXMetadata;
 
 /// Parses a GPX file and returns the relevant metadata
 pub fn process_gpx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
     log::debug!("process_gpx::gpx = {:?}", gpx);
-    let gpxmeta = GpxMetadata::from_header(&gpx, filename)?;
+    let gpxmeta = GPXMetadata::from_header(&gpx, filename)?;
     log::debug!("process_gpx::gpxmeta = {:?}", gpxmeta);
 
     let mut values = HashMap::<String, String>::new();

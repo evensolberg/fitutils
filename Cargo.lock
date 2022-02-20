@@ -291,7 +291,7 @@ dependencies = [
 
 [[package]]
 name = "fit2csv"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "assay",
  "chrono",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "assay",
  "chrono",
@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "gpx2csv"
-version = "0.1.4"
+version = "0.3.0"
 dependencies = [
  "assay",
  "chrono",
@@ -1021,11 +1021,13 @@ dependencies = [
 
 [[package]]
 name = "utilities"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "assay",
  "chrono",
  "csv",
+ "fitparser",
+ "gpx",
  "log",
  "serde",
  "serde_json",

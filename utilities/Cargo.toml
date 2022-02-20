@@ -1,6 +1,6 @@
 [package]
 name = "utilities"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Shared utilty types and functions for the fitness utilties."
 license = "Apache-2.0"
@@ -19,6 +19,8 @@ log = "0.4.14"
 csv = "1.1.6"
 
 # Fitness
+fitparser = "0.4.3"
+gpx = "0.8.5"
 tcx = "0.9.3"
 
 

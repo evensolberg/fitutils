@@ -1,15 +1,15 @@
-use chrono::Local;
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
+use gpx;
 use serde::{Deserialize, Serialize};
-use std::{error::Error, path::PathBuf};
+use std::{error::Error, fs::File, path::PathBuf};
 
-use utilities::{Duration, TimeStamp};
+use crate::{Duration, TimeStamp};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
-pub struct GpxMetadata {
+pub struct GPXMetadata {
     /// THe name of the GPX file from which the information was read.
     pub filename: Option<PathBuf>,
 
@@ -54,9 +54,18 @@ pub struct GpxMetadata {
 
     /// The license terms for the GPX file.
     pub copyright_license: Option<String>,
+
+    /// The total number of waypoints (in tracks) found in this GPX file.
+    pub num_waypoints: usize,
+
+    /// The number of tracks found in this file.
+    pub num_tracks: usize,
+
+    /// The number of routes found in this file.
+    pub num_routes: usize,
 }
 
-impl GpxMetadata {
+impl GPXMetadata {
     /// Initialize Session with default empty values
     pub fn new() -> Self {
         Self::default()
@@ -89,13 +98,13 @@ impl GpxMetadata {
     ///
     /// # Returns
     ///
-    /// `Self` -- A `GpxMetadata` struct filled with the metadata and copyright contents from the orginal `Gpx` struct.
+    /// `Self` -- A `GPXMetadata` struct filled with the metadata and copyright contents from the orginal `Gpx` struct.
     pub fn from_header(src: &gpx::Gpx, filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut dest = Self::new();
         dest.set_filename(filename);
 
         // Parse the GPX header
-        dest.version = Some(gpx_ver_to_string(src.version));
+        dest.version = Some(gpx_ver_to_string(&src.version));
         if let Some(creator) = &src.creator {
             dest.creator = Some(creator.to_string());
         }
@@ -112,15 +121,9 @@ impl GpxMetadata {
             dest.keywords = Some(keywords.to_string());
         }
         if let Some(time) = &src_meta.time {
-            dest.time = Some(TimeStamp(time.with_timezone(&Local)));
+            let ltz = time.with_timezone(&chrono::Local);
+            dest.time = Some(TimeStamp(ltz));
         }
-
-        // Find the duration
-        let last_track = src.tracks.last().unwrap();
-        let last_segment = last_track.segments.last().unwrap();
-        let last_point = last_segment.points.last().unwrap();
-        let last_time = TimeStamp(last_point.time.unwrap().with_timezone(&Local));
-        dest.duration = Some(Duration::between(&dest.time.as_ref().unwrap(), &last_time));
 
         // For now, only read the first href in the list of links (if there is one)
         if !src_meta.links.is_empty() {
@@ -167,17 +170,46 @@ impl GpxMetadata {
             }
         }
 
+        // Find the number of waypoints, tracks and segments
+        dest.num_waypoints = src.waypoints.len();
+        dest.num_tracks = src.tracks.len();
+        dest.num_routes = src.routes.len();
+
         log::debug!("GpxMetadata::from_header() -- Metadata: {:?}", dest);
 
         // return the src_meta struct
         Ok(dest)
     }
+
+    /// Export the session data to a JSON file using the filename specified in the struct,
+    /// with the extension changed to `.session.json`.
+    ///
+    /// # Parameters
+    ///
+    /// None (`&self` is implied)
+    ///
+    /// # Returns
+    ///
+    /// Nothing if OK, otherwise `Error`.
+    pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
+        let mut filename = self.filename.as_ref().unwrap().to_path_buf();
+        filename.set_extension("session.json");
+        log::trace!(
+            "exporter::export_session_json() -- Writing JSON file {:?}",
+            &filename.to_str()
+        );
+
+        // Write the session data to JSON
+        serde_json::to_writer_pretty(&File::create(&filename)?, &self)?;
+
+        Ok(())
+    }
 }
 
-impl Default for GpxMetadata {
+impl Default for GPXMetadata {
     /// Set defaults to be either `None` or zero.
     fn default() -> Self {
-        GpxMetadata {
+        GPXMetadata {
             filename: None,
             version: None,
             creator: None,
@@ -193,110 +225,18 @@ impl Default for GpxMetadata {
             copyright_author: None,
             copyright_year: None,
             copyright_license: None,
+            num_waypoints: 0,
+            num_tracks: 0,
+            num_routes: 0,
         }
     }
 }
 
 /// Turn the `gpx::GpxVersion` enum into a string
-pub fn gpx_ver_to_string(version: gpx::GpxVersion) -> String {
+pub fn gpx_ver_to_string(version: &gpx::GpxVersion) -> String {
     match version {
         gpx::GpxVersion::Gpx10 => "Gpx10".to_string(),
         gpx::GpxVersion::Gpx11 => "Gpx11".to_string(),
         _ => "unknown".to_string(),
     }
 }
-
-#[cfg(test)]
-///
-mod tests {
-    use super::*;
-    use assay::assay;
-
-    #[assay]
-    /// Tests a new GpxMetadata struct to ensure it's blank
-    fn test_gpx_metadata_new() {
-        let gmd = GpxMetadata::new();
-
-        assert!(gmd.filename.is_none());
-        assert!(gmd.version.is_none());
-        assert!(gmd.creator.is_none());
-        assert!(gmd.activity.is_none());
-        assert!(gmd.description.is_none());
-        assert!(gmd.author_name.is_none());
-        assert!(gmd.author_email.is_none());
-        assert!(gmd.links_href.is_none());
-        assert!(gmd.links_text.is_none());
-        assert!(gmd.keywords.is_none());
-        assert!(gmd.time.is_none());
-        assert!(gmd.duration.is_none());
-        assert!(gmd.copyright_author.is_none());
-        assert!(gmd.copyright_year.is_none());
-        assert!(gmd.copyright_license.is_none());
-    }
-
-    #[assay]
-    ///
-    fn test_set_filename() {
-        let mut gmd = GpxMetadata::new();
-        gmd.set_filename("somefile.gpx");
-
-        assert!(gmd.filename.is_some());
-        assert_eq!(gmd.filename, Some(PathBuf::from("somefile.gpx")));
-    }
-
-    #[assay]
-    fn test_gpx_ver_to_string() {
-        assert_eq!(
-            gpx_ver_to_string(gpx::GpxVersion::Gpx10),
-            "Gpx10".to_string()
-        );
-        assert_eq!(
-            gpx_ver_to_string(gpx::GpxVersion::Gpx11),
-            "Gpx11".to_string()
-        );
-    }
-
-    #[assay(include = ["/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx"])]
-    ///
-    fn test_from_header() {
-        let filename = "/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx";
-
-        let gpx: gpx::Gpx = gpx::read(std::io::BufReader::new(std::fs::File::open(&filename)?))?;
-        println!("gpx = {:?}", gpx);
-
-        let gpxmeta = GpxMetadata::from_header(&gpx, filename)?;
-        println!("gpxmeta = {:?}", gpxmeta);
-
-        // Check that we have data at all
-        assert!(gpxmeta.filename.is_some());
-        assert!(gpxmeta.version.is_some());
-        assert!(gpxmeta.creator.is_some());
-        assert!(gpxmeta.description.is_some());
-
-        assert!(gpxmeta.author_name.is_none());
-        assert!(gpxmeta.author_email.is_none());
-
-        assert!(gpxmeta.links_href.is_some());
-        assert!(gpxmeta.links_text.is_some());
-
-        assert!(gpxmeta.keywords.is_none());
-
-        assert!(gpxmeta.time.is_some());
-        // assert!(gpxmeta.duration.is_some());
-
-        assert!(gpxmeta.copyright_author.is_none());
-        assert!(gpxmeta.copyright_year.is_none());
-        assert!(gpxmeta.copyright_license.is_none());
-    }
-}
-
-// GpxMetadata { filename: Some("/users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.gpx"), version: Some("Gpx11"), creator: Some("WahooFitness"),
-// activity: Some("Running"), description: Some("GPX File Created by Fitness v5.12.1 (139) for iOS"),
-// author_name: None, author_email: None,
-// links_href: Some("www.wahoofitness.com"), links_text: Some("WahooFitness"),
-// keywords: None,
-
-// time: Some(TimeStamp(2018-06-15T06:35:49-07:00)), duration: None,
-// copyright_author: None, copyright_year: None,
-
-// copyright_license: None }

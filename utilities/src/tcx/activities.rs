@@ -186,8 +186,7 @@ impl TCXActivitiesSummary {
         }
 
         let out_file = set_extension(
-            &self
-                .filename
+            self.filename
                 .as_ref()
                 .unwrap_or(&"tcx_activity".to_string()),
             "activity.json",

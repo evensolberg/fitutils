@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
 - Changelog update
 - Changelog
 
+### Refactor
+
+- Move commonalities to shared package
+
 ## [0.3.6] - 2022-01-03
 
 ### Chore

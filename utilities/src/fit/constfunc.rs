@@ -1,7 +1,7 @@
 //! Constants and functions used in other parts of the types system.
 
+use crate::TimeStamp;
 use fitparser::Value;
-use utilities::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function scaffold macro to map from a value in the FIT parser to a "real" value

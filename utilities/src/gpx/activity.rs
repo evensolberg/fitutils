@@ -3,26 +3,29 @@ use csv::WriterBuilder;
 use gpx::Gpx;
 use std::{error::Error, fs::File, io::BufReader, path::PathBuf};
 
-use crate::types::{GpxMetadata, Route, Track, Waypoint};
-use utilities::Duration;
+use crate::gpx::gpxmetadata::GPXMetadata;
+use crate::gpx::route::GPXRoute;
+use crate::gpx::track::GPXTrack;
+use crate::gpx::waypoint::GPXWaypoint;
+use crate::Duration;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]
-pub struct Activity {
+pub struct GPXActivity {
     /// High-level metadata about the activity such as start time, duration, number of tracks, etc.
-    pub metadata: GpxMetadata,
+    pub metadata: GPXMetadata,
 
     /// A list of waypoints that we have marked special.
-    pub waypoints: Vec<Waypoint>,
+    pub waypoints: Vec<GPXWaypoint>,
 
     /// A list of routes, each with a list of point-by-point directions.
-    pub routes: Vec<Route>,
+    pub routes: Vec<GPXRoute>,
 
     /// A list of tracks with waypoints indicating point-in-time position and other data.
-    pub tracks: Vec<Track>,
+    pub tracks: Vec<GPXTrack>,
 }
 
-impl Activity {
+impl GPXActivity {
     /// Create a new, empty Activity.
     pub fn new() -> Self {
         Self::default()
@@ -53,14 +56,14 @@ impl Activity {
         let mut activity = Self::new();
 
         // Fill the GPX Header info so we can serialize it later
-        activity.metadata = GpxMetadata::from_header(&gpx, filename)?;
+        activity.metadata = GPXMetadata::from_header(&gpx, filename)?;
         log::trace!(
             "main::run() -- GPX Metadata header: {:?}",
             activity.metadata
         );
 
         for curr_track in gpx.tracks {
-            let mut track = Track::from_gpx_track(&curr_track, filename)?;
+            let mut track = GPXTrack::from_gpx_track(&curr_track, filename)?;
             track.track_num += 1;
             log::debug!(
                 "main::run() -- track::Number of segments: {} / waypoints: {}",
@@ -167,11 +170,11 @@ impl Activity {
     }
 }
 
-impl Default for Activity {
+impl Default for GPXActivity {
     /// Sets up the Activity with empty data placeholders.
     fn default() -> Self {
-        Activity {
-            metadata: GpxMetadata::new(),
+        GPXActivity {
+            metadata: GPXMetadata::new(),
             waypoints: Vec::new(),
             routes: Vec::new(),
             tracks: Vec::new(),

@@ -4,16 +4,16 @@ use csv::WriterBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::types::Activity;
+use crate::FITActivity;
 
 /// Holds a list of all activities. Used to export session totals.
 #[derive(Debug)]
-pub struct Activities {
+pub struct FITActivities {
     /// A list of activities.
-    pub activities_list: Vec<Activity>,
+    pub activities_list: Vec<FITActivity>,
 }
 
-impl Activities {
+impl FITActivities {
     /// Create a new, empty Activities list.
     ///
     /// # Example
@@ -24,7 +24,7 @@ impl Activities {
     /// activities = Activities::new();
     /// ```
     pub fn new() -> Self {
-        Activities::default()
+        FITActivities::default()
     }
 
     /// Export the summary list of session information to a CSV file.
@@ -115,7 +115,7 @@ impl Activities {
     }
 }
 
-impl Default for Activities {
+impl Default for FITActivities {
     /// Sets up the Activities with empty data placeholders.
     fn default() -> Self {
         Self {

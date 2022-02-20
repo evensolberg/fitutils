@@ -1,12 +1,12 @@
 //! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
 
+use crate::TimeStamp;
 use serde::Serialize;
-use utilities::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
 #[derive(Default, Clone, Debug, PartialEq, Serialize)]
-pub struct Waypoint {
+pub struct GPXWaypoint {
     /// Track number to which this waypoint belongs - `0` if part of Route or separate Waypoint.
     pub track_num: usize,
 
@@ -106,7 +106,7 @@ pub struct Waypoint {
     pub cadence: Option<u16>,
 }
 
-impl Waypoint {
+impl GPXWaypoint {
     pub fn new() -> Self {
         Self::default()
     }

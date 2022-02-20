@@ -7,17 +7,12 @@
 // Crates Usage:
 
 use clap::{Arg, Command}; // Command line
-
 use std::error::Error;
+use utilities::{FITActivities, FITActivity};
 
 // Logging
 use env_logger::{Builder, Target};
 use log::LevelFilter;
-
-// Import our own modules and types
-pub mod types;
-use types::Activities;
-use types::Activity;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -124,13 +119,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
 
     // Create an empty placeholder for all the activities
-    let mut activities = Activities::new();
+    let mut activities = FITActivities::new();
 
     for filename in cli_args.values_of("read").unwrap() {
         log::info!("Processing file: {}", filename);
 
         // Parse the FIT file
-        let activity = Activity::from_file(filename)?;
+        let activity = FITActivity::from_file(filename)?;
 
         // Output the files
         if cli_args.is_present("print-summary") {

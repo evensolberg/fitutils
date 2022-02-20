@@ -8,7 +8,7 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     let tcdb;
 
     // Make sure we can open the file correctly
-    let tcdb_res = tcx::read_file(&filename);
+    let tcdb_res = tcx::read_file(filename);
     match tcdb_res {
         Ok(res) => tcdb = res,
         Err(err) => return Err(format!("Unable to open {}. Error: {}", filename, err).into()),

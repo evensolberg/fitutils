@@ -1,6 +1,6 @@
 //! Defines the `HrZones` struct which contains heart rate zones information, and associated functions.
 
-use utilities::Duration;
+use crate::Duration;
 
 use serde::{
     ser::{SerializeStruct, Serializer},
@@ -26,7 +26,7 @@ use serde::{
 /// <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates><br>
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(default)]
-pub struct HrZones {
+pub struct FITHrZones {
     /// Time spent in Heart Rate zone 0 (Warmup).
     pub hr_zone_0: Option<Duration>,
 
@@ -43,10 +43,10 @@ pub struct HrZones {
     pub hr_zone_4: Option<Duration>,
 }
 
-impl HrZones {
+impl FITHrZones {
     /// Initialize HrZones with default empty (`None`) values
     pub fn new() -> Self {
-        HrZones::default()
+        FITHrZones::default()
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ impl HrZones {
     ///
     /// Struct [`fitparser::Value`](https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html)
     pub fn from(src: Option<&&fitparser::Value>) -> Self {
-        let mut hr_zones = HrZones::new();
+        let mut hr_zones = FITHrZones::new();
 
         if let Some(fitparser::Value::Array(tihz_vec)) = src {
             // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
@@ -96,10 +96,10 @@ impl HrZones {
     }
 }
 
-impl Default for HrZones {
+impl Default for FITHrZones {
     /// Set each heart rate zone value to be `None`.
     fn default() -> Self {
-        HrZones {
+        FITHrZones {
             hr_zone_0: None,
             hr_zone_1: None,
             hr_zone_2: None,
@@ -109,7 +109,7 @@ impl Default for HrZones {
     }
 }
 
-impl Serialize for HrZones {
+impl Serialize for FITHrZones {
     /// Serializes the `HrZones` struct so it can be exported to CSV or JSON formats.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

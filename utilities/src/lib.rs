@@ -1,11 +1,29 @@
+use std::path::PathBuf;
+
 mod duration;
+mod fit;
+mod gpx;
 mod tcx;
 mod timestamp;
+
+pub use crate::fit::{
+    activities::FITActivities, activity::FITActivity, hrzones::FITHrZones, lap::FITLap,
+    record::FITRecord, session::FITSession,
+};
+
+pub use fit::constfunc::*;
+
+pub use crate::gpx::activities::GPXActivities;
+pub use crate::gpx::activity::GPXActivity;
+pub use crate::gpx::gpxmetadata::GPXMetadata;
+pub use crate::gpx::link::GPXLink;
+pub use crate::gpx::route::GPXRoute;
+pub use crate::gpx::track::GPXTrack;
+pub use crate::gpx::waypoint::GPXWaypoint;
 
 pub use crate::tcx::activities::{TCXActivitiesList, TCXActivitiesSummary};
 pub use crate::tcx::trackpoints::{TCXTrackpoint, TCXTrackpointList};
 pub use crate::{duration::Duration, timestamp::TimeStamp};
-use std::path::PathBuf;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Get the extension part of the filename and return it as a string

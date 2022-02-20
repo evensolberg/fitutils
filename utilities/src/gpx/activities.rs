@@ -4,19 +4,19 @@ use csv::WriterBuilder;
 use std::error::Error;
 use std::path::PathBuf;
 
-use crate::types::Activity;
+use crate::gpx::activity::GPXActivity;
 
 /// Holds a list of all activities. Used to export session totals
 #[derive(Debug)]
-pub struct Activities {
+pub struct GPXActivities {
     /// A list of activities
-    pub activities_list: Vec<Activity>,
+    pub activities_list: Vec<GPXActivity>,
 }
 
-impl Activities {
+impl GPXActivities {
     /// Create a new, empty Activities list
     pub fn new() -> Self {
-        Activities::default()
+        GPXActivities::default()
     }
 
     /// Export the list of session information to a CSV file
@@ -55,7 +55,7 @@ impl Activities {
     }
 }
 
-impl Default for Activities {
+impl Default for GPXActivities {
     /// Sets up the Activities with empty data placeholders.
     fn default() -> Self {
         Self {

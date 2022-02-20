@@ -1,9 +1,5 @@
-pub use crate::fit::session::Session;
-
-mod constfunc;
-pub mod session;
-
-use utilities::TimeStamp;
+use utilities::FITSession;
+use utilities::{self};
 
 use chrono::{Datelike, Timelike};
 use fitparser::profile::field_types::MesgNum;
@@ -18,7 +14,7 @@ pub fn process_fit(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     let file = fitparser::from_reader(&mut fp)?;
 
     // Create a bunch of placeholder variables.
-    let mut my_session = Session::from_filename(filename)?;
+    let mut my_session = FITSession::from_filename(filename)?;
     let mut num_sessions = 0;
 
     // This is where the actual parsing happens

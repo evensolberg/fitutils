@@ -1,7 +1,7 @@
 //! Defines the `Session` struct which holds summary information about the workout session, and assoicated functions.
 
-use crate::types::{constfunc::*, HrZones};
-use utilities::{Duration, TimeStamp};
+use crate::{fit::constfunc::*, FITHrZones};
+use crate::{Duration, TimeStamp};
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -22,7 +22,7 @@ use uom::si::{
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Session {
+pub struct FITSession {
     pub filename: Option<String>, // TODO: Switch to PathBuf
     pub manufacturer: Option<String>,
     pub product: Option<String>,
@@ -58,13 +58,13 @@ pub struct Session {
     pub duration_moving: Option<Duration>,
     pub start_time: Option<TimeStamp>,
     pub finish_time: Option<TimeStamp>,
-    pub time_in_hr_zones: HrZones,
+    pub time_in_hr_zones: FITHrZones,
 }
 
-impl Session {
+impl FITSession {
     /// Initialize Session with default empty values
     pub fn new() -> Self {
-        Session::default()
+        FITSession::default()
     }
 
     pub fn from_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
@@ -221,7 +221,7 @@ impl Session {
 
         self.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
-        self.time_in_hr_zones = HrZones::from(field_map.get("time_in_hr_zone"));
+        self.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
 
         Ok(())
     }
@@ -251,10 +251,10 @@ impl Session {
     // end impl Session
 }
 
-impl Default for Session {
+impl Default for FITSession {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
-        Session {
+        FITSession {
             filename: None,
             manufacturer: None,
             product: None,
@@ -290,7 +290,7 @@ impl Default for Session {
             duration_moving: None,
             start_time: None,
             finish_time: None,
-            time_in_hr_zones: HrZones::default(),
+            time_in_hr_zones: FITHrZones::default(),
         }
     }
 }
