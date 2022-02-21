@@ -216,10 +216,12 @@ impl GPXWaypoint {
 /// # Example
 ///
 /// ```rust
+/// use utilities::GPXFix;
+///
 /// let src: = &gpx::Fix;
 ///
 /// if let Some(fix) = &src.fix {
-///    dest.fix = Some(fix_to_string(&fix))
+///    dest.fix = Some(fix.to_string(&fix))
 /// }
 /// ```
 ///

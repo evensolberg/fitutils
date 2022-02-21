@@ -118,96 +118,63 @@ mod tests {
     fn test_process_tcx() {
         // Read the file
         let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx";
-        let tcx_map = process_tcx(filename)?;
+        let tm = process_tcx(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture
-        println!("tcx_map = {:?}", tcx_map);
-        println!("tcx_map.len() = {}", tcx_map.len());
+        println!("tm = {:?}", tm);
+        println!("tm.len() = {}", tm.len());
 
         // Perform the actual tests
-        assert_eq!(tcx_map.len(), 32);
+        assert_eq!(tm.len(), 32);
         assert_eq!(
-            tcx_map.get("%activity").unwrap().to_string(),
+            tm.get("%activity").unwrap().to_string(),
             "Running".to_string()
         );
+        assert_eq!(tm.get("%ac").unwrap().to_string(), "Running".to_string());
         assert_eq!(
-            tcx_map.get("%ac").unwrap().to_string(),
-            "Running".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%activity_detailed").unwrap().to_string(),
+            tm.get("%activity_detailed").unwrap().to_string(),
             "unknown".to_string()
         );
+        assert_eq!(tm.get("%ad").unwrap().to_string(), "unknown".to_string());
+        assert_eq!(tm.get("%ampm").unwrap().to_string(), "am".to_string());
+        assert_eq!(tm.get("%ap").unwrap().to_string(), "am".to_string());
+        assert_eq!(tm.get("%day").unwrap().to_string(), "15".to_string());
+        assert_eq!(tm.get("%du").unwrap().to_string(), "1325".to_string());
+        assert_eq!(tm.get("%duration").unwrap().to_string(), "1325".to_string());
+        assert_eq!(tm.get("%dy").unwrap().to_string(), "15".to_string());
+        assert_eq!(tm.get("%hr").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%h12").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%h24").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%hour").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%hour12").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%hour24").unwrap().to_string(), "06".to_string());
         assert_eq!(
-            tcx_map.get("%ad").unwrap().to_string(),
+            tm.get("%manufacturer").unwrap().to_string(),
             "unknown".to_string()
         );
-        assert_eq!(tcx_map.get("%ampm").unwrap().to_string(), "am".to_string());
-        assert_eq!(tcx_map.get("%ap").unwrap().to_string(), "am".to_string());
-        assert_eq!(tcx_map.get("%day").unwrap().to_string(), "15".to_string());
-        assert_eq!(tcx_map.get("%du").unwrap().to_string(), "1325".to_string());
+        assert_eq!(tm.get("%mi").unwrap().to_string(), "35".to_string());
+        assert_eq!(tm.get("%minute").unwrap().to_string(), "35".to_string());
+        assert_eq!(tm.get("%mo").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%month").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%pr").unwrap().to_string(), "unknown".to_string());
         assert_eq!(
-            tcx_map.get("%duration").unwrap().to_string(),
-            "1325".to_string()
-        );
-        assert_eq!(tcx_map.get("%dy").unwrap().to_string(), "15".to_string());
-        assert_eq!(tcx_map.get("%hr").unwrap().to_string(), "06".to_string());
-        assert_eq!(tcx_map.get("%h12").unwrap().to_string(), "06".to_string());
-        assert_eq!(tcx_map.get("%h24").unwrap().to_string(), "06".to_string());
-        assert_eq!(tcx_map.get("%hour").unwrap().to_string(), "06".to_string());
-        assert_eq!(
-            tcx_map.get("%hour12").unwrap().to_string(),
-            "06".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%hour24").unwrap().to_string(),
-            "06".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%manufacturer").unwrap().to_string(),
+            tm.get("%product").unwrap().to_string(),
             "unknown".to_string()
         );
-        assert_eq!(tcx_map.get("%mi").unwrap().to_string(), "35".to_string());
+        assert_eq!(tm.get("%se").unwrap().to_string(), "49".to_string());
+        assert_eq!(tm.get("%second").unwrap().to_string(), "49".to_string());
         assert_eq!(
-            tcx_map.get("%minute").unwrap().to_string(),
-            "35".to_string()
-        );
-        assert_eq!(tcx_map.get("%mo").unwrap().to_string(), "06".to_string());
-        assert_eq!(tcx_map.get("%month").unwrap().to_string(), "06".to_string());
-        assert_eq!(
-            tcx_map.get("%pr").unwrap().to_string(),
+            tm.get("%serial_number").unwrap().to_string(),
             "unknown".to_string()
         );
+        assert_eq!(tm.get("%sn").unwrap().to_string(), "unknown".to_string());
         assert_eq!(
-            tcx_map.get("%product").unwrap().to_string(),
+            tm.get("%unknown").unwrap().to_string(),
             "unknown".to_string()
         );
-        assert_eq!(tcx_map.get("%se").unwrap().to_string(), "49".to_string());
-        assert_eq!(
-            tcx_map.get("%second").unwrap().to_string(),
-            "49".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%serial_number").unwrap().to_string(),
-            "unknown".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%sn").unwrap().to_string(),
-            "unknown".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%unknown").unwrap().to_string(),
-            "unknown".to_string()
-        );
-        assert_eq!(tcx_map.get("%wd").unwrap().to_string(), "Fri".to_string());
-        assert_eq!(
-            tcx_map.get("%weekday").unwrap().to_string(),
-            "Fri".to_string()
-        );
-        assert_eq!(
-            tcx_map.get("%year").unwrap().to_string(),
-            "2018".to_string()
-        );
-        assert_eq!(tcx_map.get("%yr").unwrap().to_string(), "2018".to_string());
+        assert_eq!(tm.get("%wd").unwrap().to_string(), "Fri".to_string());
+        assert_eq!(tm.get("%weekday").unwrap().to_string(), "Fri".to_string());
+        assert_eq!(tm.get("%year").unwrap().to_string(), "2018".to_string());
+        assert_eq!(tm.get("%yr").unwrap().to_string(), "2018".to_string());
     }
 }

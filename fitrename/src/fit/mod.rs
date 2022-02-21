@@ -14,7 +14,7 @@ pub fn process_fit(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
     let file = fitparser::from_reader(&mut fp)?;
 
     // Create a bunch of placeholder variables.
-    let mut my_session = FITSession::from_filename(filename)?;
+    let mut my_session = FITSession::with_filename(filename)?;
     let mut num_sessions = 0;
 
     // This is where the actual parsing happens
@@ -128,4 +128,22 @@ pub fn process_fit(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
 
     // return safely
     Ok(values)
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/test.fit"])]
+    ///
+    fn test_process_fit() {
+        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/test.fit";
+        let fm = process_fit(filename)?;
+
+        // File contents only get printed if run with cargo test -- --nocapture
+        println!("tm = {:?}", fm);
+        println!("tm.len() = {}", fm.len());
+    }
 }

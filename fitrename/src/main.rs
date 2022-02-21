@@ -131,7 +131,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Read the metadata from files
         let mut value_res = Ok(HashMap::<String, String>::new());
-        match shared::get_extension(filename).as_ref() {
+        match utilities::get_extension(filename).as_ref() {
             "fit" => {
                 value_res = fit::process_fit(filename);
                 log::debug!("FIT: {:?}", value_res);

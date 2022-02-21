@@ -24,12 +24,12 @@ pub enum GPXFix {
 impl GPXFix {
     fn from_gpx_fix(src: &gpx::Fix) -> Self {
         match src {
-            gpx::GPXFix::None => GPXFix::None,
-            gpx::GPXFix::TwoDimensional => GPXFix::TwoDimensional,
-            gpx::GPXFix::ThreeDimensional => GPXFix::ThreeDimensional,
-            gpx::GPXFix::DGPS => GPXFix::DGPS,
-            gpx::GPXFix::PPS => GPXFix::PPS,
-            gpx::GPXFix::Other(st) => GPXFix::Other(st.to_string()),
+            gpx::Fix::None => GPXFix::None,
+            gpx::Fix::TwoDimensional => GPXFix::TwoDimensional,
+            gpx::Fix::ThreeDimensional => GPXFix::ThreeDimensional,
+            gpx::Fix::DGPS => GPXFix::DGPS,
+            gpx::Fix::PPS => GPXFix::PPS,
+            gpx::Fix::Other(st) => GPXFix::Other(st.to_string()),
         }
     }
 }
@@ -54,12 +54,12 @@ mod tests {
 
     #[test]
     fn test_GPXfix() {
-        let src_GPXfix = gpx::GPXFix::TwoDimensional;
+        let src_GPXfix = gpx::Fix::TwoDimensional;
 
         let dest_GPXfix = GPXFix::from_gpx_fix(&src_GPXfix);
         assert_eq!(dest_GPXfix, GPXFix::TwoDimensional);
 
-        let dest_GPXfix_str = GPXFix::to_string(&dest_GPXfix);
+        let dest_GPXfix_str = dest_GPXfix.to_string();
         assert_eq!("TwoDimensional".to_string(), dest_GPXfix_str);
     }
 }

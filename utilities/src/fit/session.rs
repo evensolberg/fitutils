@@ -67,7 +67,8 @@ impl FITSession {
         FITSession::default()
     }
 
-    pub fn from_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
+    /// Creates a new, empty session and sets the `filename` value to the filename supplied.
+    pub fn with_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut session = Self::new();
         session.filename = Some(filename.to_string());
 
@@ -270,8 +271,8 @@ impl Default for FITSession {
             heartrate_avg: None,
             heartrate_max: None,
             heartrate_min: None,
-            speed_avg: Some(Velocity::new::<meter_per_second>(0.0)),
-            speed_max: Some(Velocity::new::<meter_per_second>(0.0)),
+            speed_avg: None,
+            speed_max: None,
             power_avg: None,
             power_max: None,
             power_threshold: None,
@@ -281,10 +282,10 @@ impl Default for FITSession {
             swc_lon: None,
             stance_time_avg: None,
             vertical_oscillation_avg: None,
-            ascent: Some(Length_u16::new::<meter>(0)),
-            descent: Some(Length_u16::new::<meter>(0)),
+            ascent: None,
+            descent: None,
             calories: None,
-            distance: Some(Length_f64::new::<meter>(0.0)),
+            distance: None,
             duration: None,
             duration_active: None,
             duration_moving: None,

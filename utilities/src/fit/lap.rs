@@ -126,7 +126,7 @@ impl FITLap {
     /// - Assume `data` is a `FitDataField` with `data.kind() == MesgNum::Lap`.
     ///
     /// ```
-    /// let lap = Lap::from_fit_lap(data.fields(), &my_session)?;
+    /// let lap = FITLap::from_fit_lap(data.fields(), &my_session)?;
     /// ```
     /// # References
     ///

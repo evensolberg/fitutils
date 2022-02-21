@@ -52,7 +52,7 @@ impl FITActivity {
         let file = fitparser::from_reader(&mut fp)?;
 
         // Create a bunch of placeholder variables.
-        let mut my_session = FITSession::from_filename(filename)?;
+        let mut my_session = FITSession::with_filename(filename)?;
         let mut num_records = 0;
         let mut num_sessions = 0;
         let mut lap_num = 0;
@@ -251,5 +251,22 @@ impl Default for FITActivity {
             laps: Vec::new(),
             records: Vec::new(),
         }
+    }
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Test FitActivity::new()
+    fn test_new() {
+        let act = FITActivity::new();
+
+        assert!(act.session.filename.is_none());
+        assert!(act.laps.is_empty());
+        assert!(act.records.is_empty());
     }
 }

@@ -1,16 +1,5 @@
 use std::{collections::HashMap, error::Error, path::Path};
 
-/// Get the extension part of the filename and return it as a string
-pub fn get_extension(filename: &str) -> String {
-    std::path::Path::new(&filename)
-        .extension()
-        .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
-        .to_ascii_lowercase()
-        .to_str()
-        .unwrap_or("")
-        .to_string()
-}
-
 /// Renames the target file based on the provided patterntar
 pub fn rename_file(
     filename: &str,
@@ -45,7 +34,7 @@ pub fn rename_file(
 
     // Create the new filename
     let mut new_path =
-        parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+        parent.join(Path::new(&new_filename).with_extension(utilities::get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
@@ -55,7 +44,8 @@ pub fn rename_file(
             new_filename
         );
         new_filename = format!("{} ({})", new_filename, unique_val);
-        new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+        new_path = parent
+            .join(Path::new(&new_filename).with_extension(utilities::get_extension(filename)));
     }
 
     // Perform the actual rename

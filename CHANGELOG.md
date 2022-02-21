@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - Move commonalities to shared package
+- Commonalities to shared package Part 2
 
 ## [0.3.6] - 2022-01-03
 

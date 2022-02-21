@@ -294,15 +294,9 @@ name = "fit2csv"
 version = "0.4.0"
 dependencies = [
  "assay",
- "chrono",
  "clap 3.1.0",
- "csv",
  "env_logger",
- "fitparser",
  "log",
- "serde",
- "serde_json",
- "uom",
  "utilities",
 ]
 
@@ -341,9 +335,7 @@ dependencies = [
  "fitparser",
  "gpx",
  "log",
- "serde",
  "tcx",
- "uom",
  "utilities",
 ]
 
@@ -405,14 +397,9 @@ name = "gpx2csv"
 version = "0.3.0"
 dependencies = [
  "assay",
- "chrono",
  "clap 3.1.0",
- "csv",
  "env_logger",
- "gpx",
  "log",
- "serde",
- "serde_json",
  "utilities",
 ]
 
@@ -884,12 +871,9 @@ name = "tcx2csv"
 version = "0.2.1"
 dependencies = [
  "assay",
- "chrono",
  "clap 3.1.0",
  "env_logger",
  "log",
- "serde",
- "serde_json",
  "tcx",
  "utilities",
 ]
