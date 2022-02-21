@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-
+mod build_logs;
 mod duration;
+mod extensions;
 mod fit;
 mod gpx;
 mod rename_file;
@@ -23,25 +23,10 @@ pub use crate::tcx::{
     trackpoints::{TCXTrackpoint, TCXTrackpointList},
 };
 
-pub use crate::{duration::Duration, rename_file::rename_file, timestamp::TimeStamp};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get the extension part of the filename and return it as a string
-pub fn get_extension(filename: &str) -> String {
-    std::path::Path::new(&filename)
-        .extension()
-        .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
-        .to_ascii_lowercase()
-        .to_str()
-        .unwrap_or("")
-        .to_string()
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Change the file extension
-pub fn set_extension(filename: &str, extension: &str) -> String {
-    let mut filename = PathBuf::from(&filename);
-    filename.set_extension(&extension);
-
-    String::from(filename.as_os_str().to_str().unwrap_or("unknown"))
-}
+pub use crate::{
+    build_logs::build_log,
+    duration::Duration,
+    extensions::{get_extension, set_extension},
+    rename_file::rename_file,
+    timestamp::TimeStamp,
+};

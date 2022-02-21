@@ -1015,8 +1015,10 @@ version = "0.2.0"
 dependencies = [
  "assay",
  "chrono",
+ "clap 3.1.0",
  "convert_case",
  "csv",
+ "env_logger",
  "fitparser",
  "gpx",
  "log",

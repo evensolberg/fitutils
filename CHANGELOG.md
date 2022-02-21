@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- More commonalities and simplification
+
+## [0.4.0] - 2022-02-21
+
 ### Bug Fixes
 
 - Day and Month were off by 1
@@ -25,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Move commonalities to shared package
 - Commonalities to shared package Part 2
 - Separate out commonalities Part 3
+- Move commonalities Part 4
 
 ## [0.3.6] - 2022-01-03
 
