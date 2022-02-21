@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactor
+
+- More commonalities and simplification
+
 ## [0.4.0] - 2022-02-21
 
 ### Bug Fixes
