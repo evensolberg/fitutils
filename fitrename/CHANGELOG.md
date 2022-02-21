@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog update
+- Changelog update
+- Changelog
+
+### Refactor
+
+- Move commonalities to shared package
+- Commonalities to shared package Part 2
 
 ## [0.3.6] - 2022-01-03
 

@@ -1,6 +1,6 @@
 [package]
 name = "fit2csv"
-version = "0.3.1"
+version = "0.4.0"
 description = "Parses .FIT files to .JSON and .CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
@@ -8,21 +8,12 @@ edition = "2021"
 include = ["src/**/*", "README.md"]
 
 [dependencies]
-
-# Time and measurement
-chrono = "0.4.19"
-
-# System utilities
-clap = { version = "3.0.8", features = ["cargo", "color"] }
-csv = "1.1.6"
+clap = { version = "3.1.0", features = ["cargo", "color"] }
 env_logger = "0.9.0"
-# Activity-related
-fitparser = "0.4.3"
 log = "0.4.14"
 
-# Serialization and export
-serde = { version = "1.0.133", features = ["derive"] }
-serde_json = "1.0.75"
-uom = { version = "0.32.0", default-features = false, features = ["si", "use_serde", "u16", "f64"] }
+# Our own package
+utilities = { path = "../utilities" }
 
-[features]
+[dev-dependencies]
+assay = "0.1.0"

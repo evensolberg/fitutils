@@ -6,7 +6,7 @@
 // See Cargo.toml for crates versions
 // Crates Usage:
 
-use clap::{App, Arg}; // Command line
+use clap::{Arg, Command}; // Command line
 
 // use std::io::Write; // needed for the log formatting
 use std::{collections::HashMap, error::Error, path::Path};
@@ -15,19 +15,11 @@ use std::{collections::HashMap, error::Error, path::Path};
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
-mod fit;
-mod gpxx;
-mod shared;
-mod tcxx;
-
-mod duration;
-mod timestamp;
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = App::new(clap::crate_name!())
+    let cli_args = Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         // .author(clap::crate_authors!("\n"))
@@ -134,17 +126,17 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Read the metadata from files
         let mut value_res = Ok(HashMap::<String, String>::new());
-        match shared::get_extension(filename).as_ref() {
+        match utilities::get_extension(filename).as_ref() {
             "fit" => {
-                value_res = fit::process_fit(filename);
+                value_res = utilities::fit_to_hashmap(filename);
                 log::debug!("FIT: {:?}", value_res);
             }
             "gpx" => {
-                value_res = gpxx::process_gpx(filename);
+                value_res = utilities::gpx_to_hashmap(filename);
                 log::debug!("GPX: {:?}", value_res);
             }
             "tcx" => {
-                value_res = tcxx::process_tcx(filename);
+                value_res = utilities::tcx_to_hashmap(filename);
                 log::debug!("TCX {:?}", value_res);
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
@@ -154,7 +146,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         match value_res {
             // Metadata read OK - try to rename
             Ok(values) => {
-                let result = shared::rename_file(filename, pattern, &values, total_files, dry_run);
+                let result =
+                    utilities::rename_file(filename, pattern, &values, total_files, dry_run);
                 match result {
                     // How did the rename go?
                     Ok(result) => {

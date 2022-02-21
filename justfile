@@ -13,6 +13,8 @@ alias br := buildr
 alias bra := buildra
 alias fmt := format
 alias r := release
+alias t := test
+alias tc := testc
 
 # SHORTCUTS AND COMMANDS
 
@@ -24,7 +26,7 @@ alias r := release
     cargo lcheck  --color 'always'
 
 # Only compiles the project
-@build: format changelog
+@build: format changelog test
    cargo lbuild --color 'always'
 
 # Compile a release version of the project without moving the binaries
@@ -82,7 +84,8 @@ alias r := release
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     cargo bom > bom.txt
-    tokei
+    cargo nextest list > tests.txt
+    tokei | tee tokei.txt
     cargo outdated
 
 # Documents the project and all dependencies
@@ -91,7 +94,8 @@ alias r := release
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     cargo bom > bom.txt
-    tokei
+    cargo nextest list > tests.txt
+    tokei | tee tokei.txt
     cargo outdated
 
 # Formats the project source files
@@ -100,14 +104,18 @@ alias r := release
 
 # Tests the project
 @test:
-    cargo test
+    cargo nextest run
 
+# Tests the project using cargo test to output any println!
+@testc:
+    cargo test -- --nocapture
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint
     cargo deny check
     cargo geiger
     cargo bloat
+    cargo pants
 
 # Checks for potential code improvements
 @lint:
