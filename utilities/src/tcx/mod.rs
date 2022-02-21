@@ -1,4 +1,3 @@
 pub mod activities;
+pub mod to_hashmap;
 pub mod trackpoints;
-
-pub use crate::{TCXActivitiesList, TCXActivitiesSummary, TCXTrackpoint, TCXTrackpointList};

@@ -7,5 +7,6 @@ pub mod gpxmetadata;
 pub mod link;
 // pub mod person; // Currently not used.
 pub mod route;
+pub mod to_hashmap;
 pub mod track;
 pub mod waypoint;

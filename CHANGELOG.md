@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 - Move commonalities to shared package
 - Commonalities to shared package Part 2
+- Separate out commonalities Part 3
 
 ## [0.3.6] - 2022-01-03
 

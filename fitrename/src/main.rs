@@ -15,11 +15,6 @@ use std::{collections::HashMap, error::Error, path::Path};
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
-mod fit;
-mod gpxx;
-mod shared;
-mod tcxx;
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
@@ -133,15 +128,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         let mut value_res = Ok(HashMap::<String, String>::new());
         match utilities::get_extension(filename).as_ref() {
             "fit" => {
-                value_res = fit::process_fit(filename);
+                value_res = utilities::fit_to_hashmap(filename);
                 log::debug!("FIT: {:?}", value_res);
             }
             "gpx" => {
-                value_res = gpxx::process_gpx(filename);
+                value_res = utilities::gpx_to_hashmap(filename);
                 log::debug!("GPX: {:?}", value_res);
             }
             "tcx" => {
-                value_res = tcxx::process_tcx(filename);
+                value_res = utilities::tcx_to_hashmap(filename);
                 log::debug!("TCX {:?}", value_res);
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
@@ -151,7 +146,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         match value_res {
             // Metadata read OK - try to rename
             Ok(values) => {
-                let result = shared::rename_file(filename, pattern, &values, total_files, dry_run);
+                let result =
+                    utilities::rename_file(filename, pattern, &values, total_files, dry_run);
                 match result {
                     // How did the rename go?
                     Ok(result) => {

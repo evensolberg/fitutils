@@ -1,9 +1,10 @@
 use std::{collections::HashMap, error::Error};
 
+use crate::TCXActivitiesSummary;
 use chrono::{DateTime, Datelike, Timelike};
-use utilities::TCXActivitiesSummary;
+use convert_case::{Case, Casing};
 
-pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
+pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
     let tcdb;
 
@@ -23,14 +24,20 @@ pub fn process_tcx(filename: &str) -> Result<HashMap<String, String>, Box<dyn Er
         // Insert values into HashMap
         // Insert "unknown" into all the fields that don't have a correponding field in the TCX.
         let unknown = "unknown".to_string();
-        values.insert("%manufacturer".to_string(), unknown.clone());
+        values.insert(
+            "%manufacturer".to_string(),
+            unknown.to_case(Case::Title).clone(),
+        );
         values.insert("%unknown".to_string(), unknown.clone());
-        values.insert("%product".to_string(), unknown.clone());
-        values.insert("%pr".to_string(), unknown.clone());
+        values.insert("%product".to_string(), unknown.to_case(Case::Title).clone());
+        values.insert("%pr".to_string(), unknown.to_case(Case::Title).clone());
         values.insert("%serial_number".to_string(), unknown.clone());
         values.insert("%sn".to_string(), unknown.clone());
 
-        let ac = act.sport.unwrap_or_else(|| "unknown".to_string());
+        let ac = act
+            .sport
+            .unwrap_or_else(|| "unknown".to_string())
+            .to_case(Case::Title);
         values.insert("%activity".to_string(), ac.clone());
         values.insert("%ac".to_string(), ac);
 
@@ -118,7 +125,7 @@ mod tests {
     fn test_process_tcx() {
         // Read the file
         let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx";
-        let tm = process_tcx(filename)?;
+        let tm = tcx_to_hashmap(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture
         println!("tm = {:?}", tm);
@@ -150,16 +157,16 @@ mod tests {
         assert_eq!(tm.get("%hour24").unwrap().to_string(), "06".to_string());
         assert_eq!(
             tm.get("%manufacturer").unwrap().to_string(),
-            "unknown".to_string()
+            "Unknown".to_string()
         );
         assert_eq!(tm.get("%mi").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%minute").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%mo").unwrap().to_string(), "06".to_string());
         assert_eq!(tm.get("%month").unwrap().to_string(), "06".to_string());
-        assert_eq!(tm.get("%pr").unwrap().to_string(), "unknown".to_string());
+        assert_eq!(tm.get("%pr").unwrap().to_string(), "Unknown".to_string());
         assert_eq!(
             tm.get("%product").unwrap().to_string(),
-            "unknown".to_string()
+            "Unknown".to_string()
         );
         assert_eq!(tm.get("%se").unwrap().to_string(), "49".to_string());
         assert_eq!(tm.get("%second").unwrap().to_string(), "49".to_string());

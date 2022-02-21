@@ -8,3 +8,4 @@ pub mod hrzones;
 pub mod lap;
 pub mod record;
 pub mod session;
+pub mod to_hashmap;

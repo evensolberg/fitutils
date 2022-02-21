@@ -34,7 +34,7 @@ pub fn rename_file(
 
     // Create the new filename
     let mut new_path =
-        parent.join(Path::new(&new_filename).with_extension(utilities::get_extension(filename)));
+        parent.join(Path::new(&new_filename).with_extension(crate::get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
@@ -44,8 +44,8 @@ pub fn rename_file(
             new_filename
         );
         new_filename = format!("{} ({})", new_filename, unique_val);
-        new_path = parent
-            .join(Path::new(&new_filename).with_extension(utilities::get_extension(filename)));
+        new_path =
+            parent.join(Path::new(&new_filename).with_extension(crate::get_extension(filename)));
     }
 
     // Perform the actual rename

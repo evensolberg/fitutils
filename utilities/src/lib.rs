@@ -3,27 +3,27 @@ use std::path::PathBuf;
 mod duration;
 mod fit;
 mod gpx;
+mod rename_file;
 mod tcx;
 mod timestamp;
 
 pub use crate::fit::{
     activities::FITActivities, activity::FITActivity, hrzones::FITHrZones, lap::FITLap,
-    record::FITRecord, session::FITSession,
+    record::FITRecord, session::FITSession, to_hashmap::fit_to_hashmap,
 };
 
-pub use fit::constfunc::*;
+pub use crate::gpx::{
+    activities::GPXActivities, activity::GPXActivity, gpxmetadata::GPXMetadata, link::GPXLink,
+    route::GPXRoute, to_hashmap::gpx_to_hashmap, track::GPXTrack, waypoint::GPXWaypoint,
+};
 
-pub use crate::gpx::activities::GPXActivities;
-pub use crate::gpx::activity::GPXActivity;
-pub use crate::gpx::gpxmetadata::GPXMetadata;
-pub use crate::gpx::link::GPXLink;
-pub use crate::gpx::route::GPXRoute;
-pub use crate::gpx::track::GPXTrack;
-pub use crate::gpx::waypoint::GPXWaypoint;
+pub use crate::tcx::{
+    activities::{TCXActivitiesList, TCXActivitiesSummary},
+    to_hashmap::tcx_to_hashmap,
+    trackpoints::{TCXTrackpoint, TCXTrackpointList},
+};
 
-pub use crate::tcx::activities::{TCXActivitiesList, TCXActivitiesSummary};
-pub use crate::tcx::trackpoints::{TCXTrackpoint, TCXTrackpointList};
-pub use crate::{duration::Duration, timestamp::TimeStamp};
+pub use crate::{duration::Duration, rename_file::rename_file, timestamp::TimeStamp};
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Get the extension part of the filename and return it as a string
