@@ -51,7 +51,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
             "tcx" => {
                 value_res = utilities::tcx_to_hashmap(filename);
-                log::debug!("TCX {:?}", value_res);
+                log::debug!("TCX: {:?}", value_res);
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
         }

@@ -42,9 +42,9 @@ impl FITActivity {
     /// # Example
     ///
     ///   ```rust
-    ///    use crate::types::activity::Activity;
+    ///    use utilities::FITActivity;
     ///
-    ///    let my_activity = Activity::from_fitfile("fitfile.fit")?;
+    ///    let my_activity = FITActivity::from_file("data/rowing.fit")?;
     ///   ```
     pub fn from_file(filename: &str) -> Result<FITActivity, Box<dyn Error>> {
         // open the file and deserialize it - return error if unable.
@@ -268,5 +268,19 @@ mod tests {
         assert!(act.session.filename.is_none());
         assert!(act.laps.is_empty());
         assert!(act.records.is_empty());
+    }
+
+    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit"])]
+    /// test FITActivity::from_file()
+    fn test_from_file() {
+        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit";
+        let act = FITActivity::from_file(&filename)?;
+
+        assert!(!act.laps.is_empty());
+        assert!(!act.records.is_empty());
+        assert_eq!(
+            act.session.filename.unwrap().to_string(),
+            filename.to_string()
+        );
     }
 }
