@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- First stab at the Fitshow utility
+
 ### Miscellaneous Tasks
 
 - Changelog update

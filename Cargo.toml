@@ -9,3 +9,6 @@ members = [
     "tcx2csv",
     "utilities",
 ]
+
+[profile.release]
+# strip = true

@@ -1,9 +1,10 @@
 use env_logger::Target;
 use std::error::Error;
-use utilities::FITActivity;
+use utilities::{FITActivity, GPXActivity};
 
 mod cli;
 mod fit;
+mod gpx;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -37,6 +38,9 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
             "gpx" => {
                 log::debug!("GPX: {}", filename);
+                let act = GPXActivity::from_file(filename)?;
+                gpx::print_activity(&act, detailed);
+                processed_files += 1;
             }
             "tcx" => {
                 log::debug!("TCX: {}", filename);

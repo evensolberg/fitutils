@@ -347,9 +347,10 @@ dependencies = [
 
 [[package]]
 name = "fitshow"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "assay",
+ "chrono",
  "clap 3.1.0",
  "env_logger",
  "log",
