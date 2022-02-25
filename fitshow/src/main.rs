@@ -1,10 +1,8 @@
 use env_logger::Target;
 use std::error::Error;
-use utilities::{FITActivity, GPXActivity};
+use utilities::{FITActivity, GPXActivity, TCXActivity};
 
 mod cli;
-mod fit;
-mod gpx;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -33,17 +31,19 @@ fn run() -> Result<(), Box<dyn Error>> {
             "fit" => {
                 log::debug!("FIT: {}", filename);
                 let act = FITActivity::from_file(filename)?;
-                fit::print_activity(&act, detailed);
+                act.print(detailed);
                 processed_files += 1;
             }
             "gpx" => {
                 log::debug!("GPX: {}", filename);
                 let act = GPXActivity::from_file(filename)?;
-                gpx::print_activity(&act, detailed);
+                act.print(detailed);
                 processed_files += 1;
             }
             "tcx" => {
+                let act = TCXActivity::from_file(filename)?;
                 log::debug!("TCX: {}", filename);
+                act.print(detailed);
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
         }

@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 
-use utilities::{TCXActivitiesList, TCXActivitiesSummary, TCXTrackpointList};
+use utilities::{TCXActivitiesList, TCXActivity, TCXTrackpointList};
 
 mod cli;
 
@@ -59,7 +59,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         log::trace!("main::run() -- tcxfile = {:?}", tcdb);
         if let Some(activities) = tcdb.activities {
-            let mut curr_activities = TCXActivitiesSummary::from_activities(&activities);
+            let mut curr_activities = TCXActivity::from_activities(&activities);
             let file_name = filename.to_string();
             curr_activities.filename = Some(file_name.clone());
 

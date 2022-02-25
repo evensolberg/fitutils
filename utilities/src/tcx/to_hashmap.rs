@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use crate::TCXActivitiesSummary;
+use crate::TCXActivity;
 use chrono::{DateTime, Datelike, Timelike};
 use convert_case::{Case, Casing};
 
@@ -16,7 +16,7 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
     }
 
     if let Some(activities) = tcdb.activities {
-        let mut act = TCXActivitiesSummary::from_activities(&activities);
+        let mut act = TCXActivity::from_activities(&activities);
         act.filename = Some(filename.to_string());
 
         log::debug!("act = {:?}", act);
@@ -98,9 +98,9 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
             values.insert("%wd".to_string(), "00".to_string());
         }
 
-        if let Some(dur) = act.total_time_seconds {
-            values.insert("%duration".to_string(), (dur as usize).to_string());
-            values.insert("%du".to_string(), (dur as usize).to_string());
+        if let Some(dur) = act.duration {
+            values.insert("%duration".to_string(), (dur.0.as_secs()).to_string());
+            values.insert("%du".to_string(), (dur.0.as_secs()).to_string());
         } else {
             values.insert("%duration".to_string(), "0".to_string());
             values.insert("%du".to_string(), "0".to_string());

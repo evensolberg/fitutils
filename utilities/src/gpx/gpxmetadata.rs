@@ -1,3 +1,4 @@
+use chrono::Datelike;
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
 use gpx;
 use serde::{Deserialize, Serialize};
@@ -155,7 +156,7 @@ impl GPXMetadata {
                     dest.copyright_license = Some(license.to_string())
                 };
                 if let Some(year) = cr_data.year {
-                    dest.copyright_year = Some(year)
+                    dest.copyright_year = Some(year);
                 };
             }
             None => {
@@ -163,6 +164,19 @@ impl GPXMetadata {
                     "parsers::parse_gpx_header() -- Copyright information not found. No need to parse."
                 );
             }
+        }
+
+        // Debatable if this is kosher, but I'm going with it for now.
+        // If the copyright year is none, set it to the year the activity started.
+        if dest.copyright_year.is_none() {
+            let year = dest
+                .time
+                .as_ref()
+                .unwrap_or(&TimeStamp(chrono::Local::now()))
+                .0
+                .year();
+            log::debug!("year = {}", year);
+            dest.copyright_year = Some(year);
         }
 
         // Parse src_meta.author if there is anything there.

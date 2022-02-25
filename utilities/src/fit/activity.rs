@@ -240,6 +240,179 @@ impl FITActivity {
         Ok(())
     }
 
+    /// Print the metadata header from the FIT file.
+    pub fn print(&self, detailed: bool) {
+        let unknown = "".to_string();
+
+        println!(
+            "\nFile:                     {}",
+            self.session.filename.as_ref().unwrap()
+        );
+        println!(
+            "Manufacturer:             {}",
+            self.session.manufacturer.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Product:                  {}",
+            self.session.product.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Serial number:            {}",
+            self.session.serial_number.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Time created:             {}",
+            self.session.time_created.as_ref().unwrap()
+        );
+        println!(
+            "Activity type:            {}",
+            self.session.activity_type.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Activity detail:          {}",
+            self.session.activity_detailed.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Sessions:                 {}",
+            self.session.num_sessions.unwrap_or_default()
+        );
+        println!(
+            "Laps:                     {}",
+            self.session.num_laps.unwrap_or_default()
+        );
+        println!(
+            "Records:                  {}",
+            self.session.num_records.unwrap_or_default()
+        );
+        println!(
+            "Total duration:           {}",
+            self.session.duration.unwrap()
+        );
+        println!(
+            "Calories Burned:          {}",
+            self.session.calories.unwrap_or_default()
+        );
+
+        println!(
+            "Cadence Avg:              {}",
+            self.session.cadence_avg.unwrap_or_default()
+        );
+        println!(
+            "Cadence Max:              {}",
+            self.session.cadence_max.unwrap_or_default()
+        );
+        println!(
+            "Heart Rate Min:           {}",
+            self.session.heartrate_min.unwrap_or_default()
+        );
+        println!(
+            "Heart Rate Avg:           {}",
+            self.session.heartrate_avg.unwrap_or_default()
+        );
+        println!(
+            "Heart Rate Max:           {}",
+            self.session.heartrate_max.unwrap_or_default()
+        );
+
+        println!(
+            "Speed Avg:                {:?} m/s",
+            self.session.speed_avg.unwrap_or_default().value
+        );
+        println!(
+            "Speed Max:                {:?} m/s",
+            self.session.speed_max.unwrap_or_default().value
+        );
+
+        println!(
+            "Power Avg:                {}",
+            self.session.power_avg.unwrap_or_default()
+        );
+        println!(
+            "Power Max:                {}",
+            self.session.power_max.unwrap_or_default()
+        );
+        println!(
+            "Power Threshold:          {}",
+            self.session.power_threshold.unwrap_or_default()
+        );
+
+        println!(
+            "Ascent:                   {} m",
+            self.session.ascent.unwrap_or_default().value
+        );
+        println!(
+            "Descent:                  {} m",
+            self.session.descent.unwrap_or_default().value
+        );
+        println!(
+            "Distance:                 {} m",
+            self.session.distance.unwrap_or_default().value
+        );
+        if detailed {
+            println!(
+                "North East Latitude:      {}",
+                self.session.nec_lat.unwrap_or_default()
+            );
+            println!(
+                "North East Longitude:     {}",
+                self.session.nec_lon.unwrap_or_default()
+            );
+            println!(
+                "South West Latitude:      {}",
+                self.session.swc_lat.unwrap_or_default()
+            );
+            println!(
+                "South West Longitude:     {}",
+                self.session.swc_lon.unwrap_or_default()
+            );
+            println!(
+                "Stance time avg:          {}s",
+                self.session.stance_time_avg.unwrap_or_default()
+            );
+            println!(
+                "Vertical Oscillation Avg: {} cm",
+                self.session.vertical_oscillation_avg.unwrap_or_default()
+            );
+            println!(
+                "Duration Active:          {}",
+                self.session.duration_active.unwrap_or_default()
+            );
+            println!(
+                "Duration Moving:          {}",
+                self.session.duration_moving.unwrap_or_default()
+            );
+            println!(
+                "Start time:               {}",
+                self.session.start_time.as_ref().unwrap()
+            );
+            println!(
+                "Finish time:              {}",
+                self.session.finish_time.as_ref().unwrap()
+            );
+            println!("Time in Zones:");
+            println!(
+                "  Speed/Power:            {}",
+                self.session.time_in_hr_zones.hr_zone_4.unwrap()
+            );
+            println!(
+                "  Anaerobic:              {}",
+                self.session.time_in_hr_zones.hr_zone_3.unwrap()
+            );
+            println!(
+                "  Aerobic:                {}",
+                self.session.time_in_hr_zones.hr_zone_2.unwrap()
+            );
+            println!(
+                "  Fat Burning:            {}",
+                self.session.time_in_hr_zones.hr_zone_1.unwrap()
+            );
+            println!(
+                "  Warmup:                 {}",
+                self.session.time_in_hr_zones.hr_zone_0.unwrap()
+            );
+        }
+    }
+
     // end impl Activity
 }
 

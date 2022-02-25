@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - First stab at the Fitshow utility
+- Fitshow handles GPX too
 
 ### Miscellaneous Tasks
 
