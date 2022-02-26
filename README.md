@@ -9,7 +9,8 @@ This is a project consisting of several sub-modules:
 **gpx2csv**|Converts GPX files to CSV, exporting metadata, tracks and segments, routes, and waypoints into separate files.
 **tcx2csv**|Converts TCX files to CSV, exporting activities summaries and laps into separate files.
 **fitrename**|Renames FIT, GPX and TCX files based on metadata information in the files.
+**fitshow**|Displays the (activity) metadata contents of FIT, GPX and TCX files.
 
-More files may come in the future. :smile:
+More files may come in the future.
 
 See the [Kanban Boards](https://github.com/evensolberg/fit2csv/projects) for the overall roadmap and To Do lists.
