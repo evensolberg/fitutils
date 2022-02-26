@@ -217,6 +217,6 @@ alias tc := testc
 @copy:
     -cp {{invocation_directory()}}/target/release/fit2csv /usr/local/bin/
     -cp {{invocation_directory()}}/target/release/fitrename /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/fitshow /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/fitview /usr/local/bin/
     -cp {{invocation_directory()}}/target/release/gpx2csv /usr/local/bin/
     -cp {{invocation_directory()}}/target/release/tcx2csv /usr/local/bin/

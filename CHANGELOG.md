@@ -8,10 +8,16 @@ All notable changes to this project will be documented in this file.
 - First stab at the Fitshow utility
 - Fitshow handles GPX too
 - Add TCX support
+- Pretty print
+- Create linter for PR titles
 
 ### Miscellaneous Tasks
 
 - Changelog update
+- Main README update
+- Rename action
+- Folder rename
+- README update
 
 ### Refactor
 
