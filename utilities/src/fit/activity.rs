@@ -273,141 +273,141 @@ impl FITActivity {
             self.session.activity_detailed.as_ref().unwrap_or(&unknown)
         );
         println!(
-            "Sessions:                 {}",
+            "Sessions:                  {:>9}",
             self.session.num_sessions.unwrap_or_default()
         );
         println!(
-            "Laps:                     {}",
+            "Laps:                      {:>9}",
             self.session.num_laps.unwrap_or_default()
         );
         println!(
-            "Records:                  {}",
+            "Records:                   {:>9}",
             self.session.num_records.unwrap_or_default()
         );
         println!(
-            "Total duration:           {}",
+            "Total duration:             {}",
             self.session.duration.unwrap()
         );
         println!(
-            "Calories Burned:          {}",
-            self.session.calories.unwrap_or_default()
+            "Calories Burned:           {:>9.2}",
+            self.session.calories.unwrap_or_default() as f64
         );
 
         println!(
-            "Cadence Avg:              {}",
-            self.session.cadence_avg.unwrap_or_default()
+            "Cadence Avg:               {:>9.2}",
+            self.session.cadence_avg.unwrap_or_default() as f64
         );
         println!(
-            "Cadence Max:              {}",
-            self.session.cadence_max.unwrap_or_default()
+            "Cadence Max:               {:>9.2}",
+            self.session.cadence_max.unwrap_or_default() as f64
         );
         println!(
-            "Heart Rate Min:           {}",
-            self.session.heartrate_min.unwrap_or_default()
+            "Heart Rate Min:            {:>9.2}",
+            self.session.heartrate_min.unwrap_or_default() as f64
         );
         println!(
-            "Heart Rate Avg:           {}",
-            self.session.heartrate_avg.unwrap_or_default()
+            "Heart Rate Avg:            {:>9.2}",
+            self.session.heartrate_avg.unwrap_or_default() as f64
         );
         println!(
-            "Heart Rate Max:           {}",
-            self.session.heartrate_max.unwrap_or_default()
-        );
-
-        println!(
-            "Speed Avg:                {:?} m/s",
-            self.session.speed_avg.unwrap_or_default().value
-        );
-        println!(
-            "Speed Max:                {:?} m/s",
-            self.session.speed_max.unwrap_or_default().value
+            "Heart Rate Max:            {:>9.2}",
+            self.session.heartrate_max.unwrap_or_default() as f64
         );
 
         println!(
-            "Power Avg:                {}",
-            self.session.power_avg.unwrap_or_default()
+            "Speed Avg (m/s):           {:>9.2}",
+            self.session.speed_avg.unwrap_or_default().value as f64
         );
         println!(
-            "Power Max:                {}",
-            self.session.power_max.unwrap_or_default()
-        );
-        println!(
-            "Power Threshold:          {}",
-            self.session.power_threshold.unwrap_or_default()
+            "Speed Max (m/s):           {:>9.2}",
+            self.session.speed_max.unwrap_or_default().value as f64
         );
 
         println!(
-            "Ascent:                   {} m",
-            self.session.ascent.unwrap_or_default().value
+            "Power Avg:                 {:>9.2}",
+            self.session.power_avg.unwrap_or_default() as f64
         );
         println!(
-            "Descent:                  {} m",
-            self.session.descent.unwrap_or_default().value
+            "Power Max:                 {:>9.2}",
+            self.session.power_max.unwrap_or_default() as f64
         );
         println!(
-            "Distance:                 {} m",
+            "Power Threshold:           {:>9.2}",
+            self.session.power_threshold.unwrap_or_default() as f64
+        );
+
+        println!(
+            "Ascent (m):                {:>9.2}",
+            self.session.ascent.unwrap_or_default().value as f64
+        );
+        println!(
+            "Descent (m):               {:>9.2}",
+            self.session.descent.unwrap_or_default().value as f64
+        );
+        println!(
+            "Distance (m):              {:>9.2}",
             self.session.distance.unwrap_or_default().value
         );
         if detailed {
             println!(
-                "North East Latitude:      {}",
+                "North East Latitude:       {:>9.3}",
                 self.session.nec_lat.unwrap_or_default()
             );
             println!(
-                "North East Longitude:     {}",
+                "North East Longitude:      {:>9.3}",
                 self.session.nec_lon.unwrap_or_default()
             );
             println!(
-                "South West Latitude:      {}",
+                "South West Latitude:       {:>9.3}",
                 self.session.swc_lat.unwrap_or_default()
             );
             println!(
-                "South West Longitude:     {}",
+                "South West Longitude:      {:>9.3}",
                 self.session.swc_lon.unwrap_or_default()
             );
             println!(
-                "Stance time avg:          {}s",
+                "Stance time avg (s):       {:>9.2}",
                 self.session.stance_time_avg.unwrap_or_default()
             );
             println!(
-                "Vertical Oscillation Avg: {} cm",
+                "Vertical Oscillation Avg (cm):  {:>4.2}",
                 self.session.vertical_oscillation_avg.unwrap_or_default()
             );
             println!(
-                "Duration Active:          {}",
+                "Duration Active:            {}",
                 self.session.duration_active.unwrap_or_default()
             );
             println!(
-                "Duration Moving:          {}",
+                "Duration Moving:            {}",
                 self.session.duration_moving.unwrap_or_default()
             );
             println!(
-                "Start time:               {}",
+                "Start time:                 {}",
                 self.session.start_time.as_ref().unwrap()
             );
             println!(
-                "Finish time:              {}",
+                "Finish time:                {}",
                 self.session.finish_time.as_ref().unwrap()
             );
             println!("Time in Zones:");
             println!(
-                "  Speed/Power:            {}",
+                "  Speed/Power:              {}",
                 self.session.time_in_hr_zones.hr_zone_4.unwrap()
             );
             println!(
-                "  Anaerobic:              {}",
+                "  Anaerobic:                {}",
                 self.session.time_in_hr_zones.hr_zone_3.unwrap()
             );
             println!(
-                "  Aerobic:                {}",
+                "  Aerobic:                  {}",
                 self.session.time_in_hr_zones.hr_zone_2.unwrap()
             );
             println!(
-                "  Fat Burning:            {}",
+                "  Fat Burning:              {}",
                 self.session.time_in_hr_zones.hr_zone_1.unwrap()
             );
             println!(
-                "  Warmup:                 {}",
+                "  Warmup:                   {}",
                 self.session.time_in_hr_zones.hr_zone_0.unwrap()
             );
         }

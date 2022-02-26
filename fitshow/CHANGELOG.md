@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 - First stab at the Fitshow utility
 - Fitshow handles GPX too
+- Add TCX support
 
 ### Miscellaneous Tasks
 
