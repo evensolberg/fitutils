@@ -18,7 +18,7 @@ pub use crate::gpx::{
 };
 
 pub use crate::tcx::{
-    activities::{TCXActivitiesList, TCXActivitiesSummary},
+    activitiy::{TCXActivitiesList, TCXActivity},
     to_hashmap::tcx_to_hashmap,
     trackpoints::{TCXTrackpoint, TCXTrackpointList},
 };

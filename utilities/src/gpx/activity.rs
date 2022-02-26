@@ -1,13 +1,20 @@
 //! Defines the `Activity` struct which contains the parsed contents of a GPX file, and associated functions.
+use chrono::Local;
 use csv::WriterBuilder;
 use gpx::Gpx;
-use std::{error::Error, fs::File, io::BufReader, path::PathBuf};
+use std::{
+    error::Error,
+    fs::File,
+    io::BufReader,
+    path::{Path, PathBuf},
+};
 
 use crate::gpx::gpxmetadata::GPXMetadata;
 use crate::gpx::route::GPXRoute;
 use crate::gpx::track::GPXTrack;
 use crate::gpx::waypoint::GPXWaypoint;
 use crate::Duration;
+use crate::TimeStamp;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]
@@ -167,6 +174,87 @@ impl GPXActivity {
 
         // Return safely
         Ok(())
+    }
+
+    /// Prints the metadata information about the activity
+    pub fn print(&self, detailed: bool) {
+        let unknown = "".to_string();
+
+        println!(
+            "\nFile:              {}",
+            self.metadata
+                .filename
+                .as_ref()
+                .unwrap_or(&Path::new("unknown").to_path_buf())
+                .to_string_lossy()
+        );
+        println!(
+            "GPX Version:       {}",
+            self.metadata.version.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Creator:           {}",
+            self.metadata.creator.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Activity:          {}",
+            self.metadata.activity.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Time:              {}",
+            self.metadata
+                .time
+                .as_ref()
+                .unwrap_or(&TimeStamp(Local::now()))
+        );
+        println!(
+            "Duration:          {}",
+            self.metadata
+                .duration
+                .as_ref()
+                .unwrap_or(&Duration::default())
+        );
+        println!(
+            "Description:       {}",
+            self.metadata.description.as_ref().unwrap_or(&unknown)
+        );
+        println!("Waypoints:         {}", self.metadata.num_waypoints);
+        println!("Tracks:            {}", self.metadata.num_tracks);
+        println!("Routes:            {}", self.metadata.num_routes);
+        if detailed {
+            println!(
+                "Author Name:       {}",
+                self.metadata.author_name.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Author Email:      {}",
+                self.metadata.author_email.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Links Text:        {}",
+                self.metadata.links_text.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Links Href:        {}",
+                self.metadata.links_href.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Keywords:          {}",
+                self.metadata.keywords.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Copyright Author:  {}",
+                self.metadata.copyright_author.as_ref().unwrap_or(&unknown)
+            );
+            println!(
+                "Copyright Year:    {}",
+                self.metadata.copyright_year.as_ref().unwrap_or(&0)
+            );
+            println!(
+                "Copyright License: {}",
+                self.metadata.copyright_license.as_ref().unwrap_or(&unknown)
+            );
+        }
     }
 }
 

@@ -19,9 +19,9 @@ impl FITActivities {
     /// # Example
     ///
     /// ```
-    /// use crate::types::activities::Activities;
+    /// use utilities::FITActivities;
     ///
-    /// activities = Activities::new();
+    /// let activities = FITActivities::new();
     /// ```
     pub fn new() -> Self {
         FITActivities::default()
@@ -121,5 +121,20 @@ impl Default for FITActivities {
         Self {
             activities_list: Vec::new(),
         }
+    }
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    ///
+    fn test_new() {
+        let act = FITActivities::new();
+
+        assert!(act.activities_list.is_empty());
     }
 }

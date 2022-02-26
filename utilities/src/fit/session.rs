@@ -8,6 +8,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::PathBuf;
 
+use convert_case::{Case, Casing};
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
 use uom::si::{
@@ -144,7 +145,19 @@ impl FITSession {
         );
 
         self.activity_type = field_map.get("sport").and_then(map_string);
+        self.activity_type = Some(
+            self.activity_type
+                .as_ref()
+                .unwrap_or(&"unknown".to_string())
+                .to_case(Case::Title),
+        );
         self.activity_detailed = field_map.get("sub_sport").and_then(map_string);
+        self.activity_detailed = Some(
+            self.activity_detailed
+                .as_ref()
+                .unwrap_or(&"unknown".to_string())
+                .to_case(Case::Title),
+        );
 
         self.cadence_avg = field_map.get("avg_cadence").and_then(map_uint8);
         self.cadence_max = field_map.get("max_cadence").and_then(map_uint8);

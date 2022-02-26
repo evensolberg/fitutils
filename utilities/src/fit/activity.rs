@@ -42,9 +42,9 @@ impl FITActivity {
     /// # Example
     ///
     ///   ```rust
-    ///    use crate::types::activity::Activity;
+    ///    use utilities::FITActivity;
     ///
-    ///    let my_activity = Activity::from_fitfile("fitfile.fit")?;
+    ///    let my_activity = FITActivity::from_file("data/rowing.fit")?;
     ///   ```
     pub fn from_file(filename: &str) -> Result<FITActivity, Box<dyn Error>> {
         // open the file and deserialize it - return error if unable.
@@ -240,6 +240,179 @@ impl FITActivity {
         Ok(())
     }
 
+    /// Print the metadata header from the FIT file.
+    pub fn print(&self, detailed: bool) {
+        let unknown = "".to_string();
+
+        println!(
+            "\nFile:                     {}",
+            self.session.filename.as_ref().unwrap()
+        );
+        println!(
+            "Manufacturer:             {}",
+            self.session.manufacturer.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Product:                  {}",
+            self.session.product.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Serial number:            {}",
+            self.session.serial_number.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Time created:             {}",
+            self.session.time_created.as_ref().unwrap()
+        );
+        println!(
+            "Activity type:            {}",
+            self.session.activity_type.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Activity detail:          {}",
+            self.session.activity_detailed.as_ref().unwrap_or(&unknown)
+        );
+        println!(
+            "Sessions:                  {:>9}",
+            self.session.num_sessions.unwrap_or_default()
+        );
+        println!(
+            "Laps:                      {:>9}",
+            self.session.num_laps.unwrap_or_default()
+        );
+        println!(
+            "Records:                   {:>9}",
+            self.session.num_records.unwrap_or_default()
+        );
+        println!(
+            "Total duration:             {}",
+            self.session.duration.unwrap()
+        );
+        println!(
+            "Calories Burned:           {:>9.2}",
+            self.session.calories.unwrap_or_default() as f64
+        );
+
+        println!(
+            "Cadence Avg:               {:>9.2}",
+            self.session.cadence_avg.unwrap_or_default() as f64
+        );
+        println!(
+            "Cadence Max:               {:>9.2}",
+            self.session.cadence_max.unwrap_or_default() as f64
+        );
+        println!(
+            "Heart Rate Min:            {:>9.2}",
+            self.session.heartrate_min.unwrap_or_default() as f64
+        );
+        println!(
+            "Heart Rate Avg:            {:>9.2}",
+            self.session.heartrate_avg.unwrap_or_default() as f64
+        );
+        println!(
+            "Heart Rate Max:            {:>9.2}",
+            self.session.heartrate_max.unwrap_or_default() as f64
+        );
+
+        println!(
+            "Speed Avg (m/s):           {:>9.2}",
+            self.session.speed_avg.unwrap_or_default().value as f64
+        );
+        println!(
+            "Speed Max (m/s):           {:>9.2}",
+            self.session.speed_max.unwrap_or_default().value as f64
+        );
+
+        println!(
+            "Power Avg:                 {:>9.2}",
+            self.session.power_avg.unwrap_or_default() as f64
+        );
+        println!(
+            "Power Max:                 {:>9.2}",
+            self.session.power_max.unwrap_or_default() as f64
+        );
+        println!(
+            "Power Threshold:           {:>9.2}",
+            self.session.power_threshold.unwrap_or_default() as f64
+        );
+
+        println!(
+            "Ascent (m):                {:>9.2}",
+            self.session.ascent.unwrap_or_default().value as f64
+        );
+        println!(
+            "Descent (m):               {:>9.2}",
+            self.session.descent.unwrap_or_default().value as f64
+        );
+        println!(
+            "Distance (m):              {:>9.2}",
+            self.session.distance.unwrap_or_default().value
+        );
+        if detailed {
+            println!(
+                "North East Latitude:       {:>9.3}",
+                self.session.nec_lat.unwrap_or_default()
+            );
+            println!(
+                "North East Longitude:      {:>9.3}",
+                self.session.nec_lon.unwrap_or_default()
+            );
+            println!(
+                "South West Latitude:       {:>9.3}",
+                self.session.swc_lat.unwrap_or_default()
+            );
+            println!(
+                "South West Longitude:      {:>9.3}",
+                self.session.swc_lon.unwrap_or_default()
+            );
+            println!(
+                "Stance time avg (s):       {:>9.2}",
+                self.session.stance_time_avg.unwrap_or_default()
+            );
+            println!(
+                "Vertical Oscillation Avg (cm):  {:>4.2}",
+                self.session.vertical_oscillation_avg.unwrap_or_default()
+            );
+            println!(
+                "Duration Active:            {}",
+                self.session.duration_active.unwrap_or_default()
+            );
+            println!(
+                "Duration Moving:            {}",
+                self.session.duration_moving.unwrap_or_default()
+            );
+            println!(
+                "Start time:                 {}",
+                self.session.start_time.as_ref().unwrap()
+            );
+            println!(
+                "Finish time:                {}",
+                self.session.finish_time.as_ref().unwrap()
+            );
+            println!("Time in Zones:");
+            println!(
+                "  Speed/Power:              {}",
+                self.session.time_in_hr_zones.hr_zone_4.unwrap()
+            );
+            println!(
+                "  Anaerobic:                {}",
+                self.session.time_in_hr_zones.hr_zone_3.unwrap()
+            );
+            println!(
+                "  Aerobic:                  {}",
+                self.session.time_in_hr_zones.hr_zone_2.unwrap()
+            );
+            println!(
+                "  Fat Burning:              {}",
+                self.session.time_in_hr_zones.hr_zone_1.unwrap()
+            );
+            println!(
+                "  Warmup:                   {}",
+                self.session.time_in_hr_zones.hr_zone_0.unwrap()
+            );
+        }
+    }
+
     // end impl Activity
 }
 
@@ -268,5 +441,19 @@ mod tests {
         assert!(act.session.filename.is_none());
         assert!(act.laps.is_empty());
         assert!(act.records.is_empty());
+    }
+
+    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit"])]
+    /// test FITActivity::from_file()
+    fn test_from_file() {
+        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit";
+        let act = FITActivity::from_file(&filename)?;
+
+        assert!(!act.laps.is_empty());
+        assert!(!act.records.is_empty());
+        assert_eq!(
+            act.session.filename.unwrap().to_string(),
+            filename.to_string()
+        );
     }
 }

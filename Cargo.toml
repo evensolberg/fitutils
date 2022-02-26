@@ -4,7 +4,11 @@ members = [
     "fit2csv",
     "fit2json",
     "fitrename",
+    "fitshow",
     "gpx2csv",
     "tcx2csv",
     "utilities",
 ]
+
+[profile.release]
+# strip = true
