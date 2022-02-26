@@ -14,3 +14,5 @@ This is a project consisting of several sub-modules:
 More files may come in the future.
 
 See the [Kanban Boards](https://github.com/evensolberg/fit2csv/projects) for the overall roadmap and To Do lists.
+
+NOTE: This repository uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for PRs.
