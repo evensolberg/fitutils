@@ -1,4 +1,4 @@
-//! Defines the `Session` struct which holds summary information about the workout session, and assoicated functions.
+//! Defines the `Session` struct which holds summary information about the workout session, and associated functions.
 
 use crate::{fit::constfunc::*, FITHrZones};
 use crate::{Duration, TimeStamp};
@@ -131,7 +131,7 @@ impl FITSession {
     ///
     /// **Parameters:**
     ///
-    ///    `session: &mut types::Session` -- An empty session struct to be filled in. See `types.rs` for details on this stuct.
+    ///    `session: &mut types::Session` -- An empty session struct to be filled in. See `types.rs` for details on this struct.
     ///
     /// **Returns:**
     ///
@@ -241,7 +241,7 @@ impl FITSession {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Export the session infromation to a JSON file name based on the FIT file name.
+    /// Export the session information to a JSON file name based on the FIT file name.
     ///
     /// **Returns:**
     ///

@@ -1,4 +1,4 @@
-//! Defines the `Record` struct which ontains etailed information about each record/data point in the workout session.
+//! Defines the `Record` struct which contains detailed information about each record/data point in the workout session.
 
 use crate::fit::constfunc::*;
 use crate::{Duration, FITSession, TimeStamp};

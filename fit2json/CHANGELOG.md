@@ -72,7 +72,7 @@
 
 ### G2c
 
-* Move metdata info to TOML
+* Move metadata info to TOML
 * Some trait updates
 * Move Fix unit tests into a submodule
 * Refactor Types
@@ -96,4 +96,3 @@
 
 <a name="v0.1.0"></a>
 ## v0.1.0 (2021-09-17)
-

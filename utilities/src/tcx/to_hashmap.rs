@@ -20,7 +20,7 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         log::debug!("act = {:?}", act);
 
         // Insert values into HashMap
-        // Insert "unknown" into all the fields that don't have a correponding field in the TCX.
+        // Insert "unknown" into all the fields that don't have a corresponding field in the TCX.
         let unknown = "unknown".to_string();
         values.insert("%manufacturer".to_string(), unknown.to_case(Case::Title));
         values.insert("%unknown".to_string(), unknown.clone());

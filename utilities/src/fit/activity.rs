@@ -37,7 +37,7 @@ impl FITActivity {
     ///
     /// # Returns
     ///
-    ///    `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if succesful, otherwise an `Error`.
+    ///    `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if successful, otherwise an `Error`.
     ///
     /// # Example
     ///

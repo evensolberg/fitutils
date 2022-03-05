@@ -16,11 +16,11 @@ The application takes the following form:
 
 `fitrename <FILE(S)> -p "pattern"`
 
-Wildcards and mutiple file names are supported, eg.
+Wildcards and multiple file names are supported, eg.
 
 `fitrename *.fit *.gpx -p "%year-%month-%day %hour.%minute.%second %activity"`
 
-|Flag|Required|Descriptio |
+|Flag|Required|Description |
 |:---|:------:|:----------|
 `-p`|Yes|File rename pattern, as described in the next section.
 
@@ -51,4 +51,4 @@ The following tokens can be used. Note that date and times indicate the *start* 
 
 > **NOTE:** Not all file types contain all of this information. Notably, FIT tends to be the most data-rich. You should do a dry run before attempting to rename files to ensure you get the expected result.
 
-If a file before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unqiue_id)` where `filename` is the duplicate name.
+If a file before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unique_id)` where `filename` is the duplicate name.

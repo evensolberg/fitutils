@@ -2,7 +2,7 @@
 name = "utilities"
 version = "0.2.0"
 edition = "2021"
-description = "Shared utilty types and functions for the fitness utilties."
+description = "Shared utility types and functions for the fitness utilities."
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
 include = ["src/**/*", "README.md"]

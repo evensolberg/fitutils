@@ -99,7 +99,7 @@ impl GPXMetadata {
     ///
     /// # Returns
     ///
-    /// `Self` -- A `GPXMetadata` struct filled with the metadata and copyright contents from the orginal `Gpx` struct.
+    /// `Self` -- A `GPXMetadata` struct filled with the metadata and copyright contents from the original `Gpx` struct.
     pub fn from_header(src: &gpx::Gpx, filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut dest = Self::new();
         dest.set_filename(filename);

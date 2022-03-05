@@ -24,7 +24,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let pattern = cli_args.value_of("pattern").unwrap();
     let mut total_files: usize = 0;
-    let mut prcoessed_files: usize = 0;
+    let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
     ///////////////////////////////////
@@ -66,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                     // How did the rename go?
                     Ok(result) => {
                         log::info!("{} --> {}", filename, result);
-                        prcoessed_files += 1;
+                        processed_files += 1;
                     }
                     Err(err) => {
                         log::error!("Unable to rename {} : {}", filename, err.to_string());
@@ -82,7 +82,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     if cli_args.is_present("print-summary") {
         log::info!("Total files examined:        {:6}", total_files);
-        log::info!("Files processed:             {:6}", prcoessed_files);
+        log::info!("Files processed:             {:6}", processed_files);
         log::info!("Files skipped due to errors: {:6}", skipped_files);
     }
 

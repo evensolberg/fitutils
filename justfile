@@ -180,6 +180,10 @@ alias tc := testc
 @runddt:
     cargo lrun  --color 'always' -- --debug --debug | tee trace.txt
 
+# Spellcheck the documents except CHANGELOG
+@spell:
+    typos --exclude CHANGELOG.md -c ~/CloudStation/Automation/_typos.toml
+
 # Check for new versions of crates and upgrade accordingly
 @upgrade:
     cargo update

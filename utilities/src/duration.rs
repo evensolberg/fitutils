@@ -83,7 +83,7 @@ impl Sub for Duration {
 }
 
 impl std::fmt::Display for Duration {
-    /// Impements a way to format (and hence display) Duration.
+    /// Implements a way to format (and hence display) Duration.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.0.as_secs();
         let (h, s) = (s / 3600, s % 3600);
