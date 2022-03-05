@@ -114,18 +114,16 @@ impl GPXMetadata {
         let src_meta = src.metadata.as_ref().unwrap();
         if let Some(activity) = &src_meta.name {
             dest.activity = Some(activity.to_string());
-        } else {
-            if src.tracks.first().unwrap().name.is_some() {
-                dest.activity = Some(
-                    src.tracks
-                        .first()
-                        .unwrap()
-                        .name
-                        .as_ref()
-                        .unwrap_or(&"Unknown".to_string())
-                        .to_string(),
-                );
-            }
+        } else if src.tracks.first().unwrap().name.is_some() {
+            dest.activity = Some(
+                src.tracks
+                    .first()
+                    .unwrap()
+                    .name
+                    .as_ref()
+                    .unwrap_or(&"Unknown".to_string())
+                    .to_string(),
+            );
         }
         if let Some(description) = &src_meta.description {
             dest.description = Some(description.to_string());

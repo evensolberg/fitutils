@@ -84,7 +84,7 @@ fn main() {
                 .filter_level(LevelFilter::Error)
                 .target(Target::Stdout)
                 .init();
-            log::error!("{}", err.to_string().replace("\"", ""));
+            log::error!("{}", err.to_string().replace('\"', ""));
             1
         }
     });

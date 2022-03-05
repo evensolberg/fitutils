@@ -68,7 +68,7 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory
         Err(err) => {
-            log::error!("{}", err.to_string().replace("\"", ""));
+            log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem
         }
     });

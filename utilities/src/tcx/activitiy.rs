@@ -86,8 +86,7 @@ impl TCXActivity {
 
         if let Some(activities) = tcdb.activities {
             act = Self::from_activities(&activities);
-            let file_name = filename.to_string();
-            act.filename = Some(file_name.clone());
+            act.filename = Some(filename.to_string());
         } else {
             act = Self::new();
         }

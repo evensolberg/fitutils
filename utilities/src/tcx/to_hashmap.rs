@@ -6,14 +6,12 @@ use convert_case::{Case, Casing};
 
 pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
-    let tcdb;
 
     // Make sure we can open the file correctly
-    let tcdb_res = tcx::read_file(filename);
-    match tcdb_res {
-        Ok(res) => tcdb = res,
+    let tcdb = match tcx::read_file(filename) {
+        Ok(res) => res,
         Err(err) => return Err(format!("Unable to open {}. Error: {}", filename, err).into()),
-    }
+    };
 
     if let Some(activities) = tcdb.activities {
         let mut act = TCXActivity::from_activities(&activities);

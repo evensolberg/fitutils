@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Rename action
 - Folder rename
 - README update
+- Fitshow rename to fitview
 
 ### Refactor
 
