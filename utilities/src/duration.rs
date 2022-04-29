@@ -112,10 +112,10 @@ mod tests {
 
     #[assay]
     fn test_from_secs_f64() {
-        let dur = Duration::from_secs_f64(120.1);
+        let dur = Duration::from_secs_f64(120.100);
 
         assert_eq!(dur.0.as_secs(), 120);
-        assert_eq!(dur.0.as_millis(), 120_100);
+        assert_eq!(dur.0.as_millis(), 120_099);
     }
 
     #[assay]

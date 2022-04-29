@@ -443,10 +443,10 @@ mod tests {
         assert!(act.records.is_empty());
     }
 
-    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit"])]
+    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit"])]
     /// test FITActivity::from_file()
     fn test_from_file() {
-        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/rowing.fit";
+        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit";
         let act = FITActivity::from_file(&filename)?;
 
         assert!(!act.laps.is_empty());

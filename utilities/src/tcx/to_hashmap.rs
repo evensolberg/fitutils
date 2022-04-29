@@ -115,11 +115,11 @@ mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx"])]
+    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
     ///
     fn test_process_tcx() {
         // Read the file
-        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx";
+        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
         let tm = tcx_to_hashmap(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture

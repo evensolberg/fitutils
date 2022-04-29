@@ -51,11 +51,15 @@ alias tc := testc
 # Cleans up the project directory
 @clean:
     cargo clean
-    -rm tree.txt > /dev/null 2>&1
-    -rm graph.png > /dev/null 2>&1
-    -rm debug.txt > /dev/null 2>&1
-    -rm trace.txt > /dev/null 2>&1
+    -rm bloat.txt > /dev/null 2>&1
     -rm bom.txt > /dev/null 2>&1
+    -rm deny.txt > /dev/null 2>&1
+    -rm debug.txt > /dev/null 2>&1
+    -rm geiger.txt > /dev/null 2>&1
+    -rm graph.png > /dev/null 2>&1
+    -rm pants.txt > /dev/null 2>&1
+    -rm trace.txt > /dev/null 2>&1
+    -rm tree.txt > /dev/null 2>&1
 
 # Rebuilds the changelog
 @cliff: changelog
@@ -64,7 +68,13 @@ alias tc := testc
 @release: format changelog
     cargo lbuild --release  --color 'always'
     cargo strip
-    cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/fit2csv /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/fit2json /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/fitrename /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/fitview /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/gpx2csv /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/tcx2csv /usr/local/bin/
+
     cargo clean
 
 # Documents the project, builds and installs the release version, and cleans up
@@ -112,10 +122,12 @@ alias tc := testc
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint
-    cargo deny check
-    cargo geiger
-    cargo bloat
-    cargo pants
+    -cargo deny check | tee deny.txt
+    -cargo geiger | tee geiger.txt
+    -cargo bloat | tee bloat.txt
+    -cargo pants | tee pants.txt
+    -cargo tree | tee tree.txt
+    -cargo bom | tee bom.txt
 
 # Checks for potential code improvements
 @lint:

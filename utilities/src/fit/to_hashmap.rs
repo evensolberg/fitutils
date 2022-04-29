@@ -143,10 +143,10 @@ mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/test.fit"])]
+    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/test.fit"])]
     ///
     fn test_process_fit() {
-        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/test.fit";
+        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/test.fit";
         let fm = fit_to_hashmap(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture

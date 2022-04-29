@@ -19,10 +19,16 @@ All notable changes to this project will be documented in this file.
 - Folder rename
 - README update
 - Fitshow rename to fitview
+- Clean up lints
+- Fix spelling mistakes
 
 ### Refactor
 
 - More commonalities and simplification
+
+### Build
+
+- Update fitparser requirement in /fit2json
 
 ## [0.4.0] - 2022-02-21
 

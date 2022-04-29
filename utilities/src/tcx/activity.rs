@@ -498,12 +498,12 @@ mod tests {
         assert_eq!(act.maximum_cadence.unwrap(), 101);
     }
 
-    #[assay(include = ["/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx"])]
+    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
     // TODO: Figure out relative paths.
     fn test_from_activities() {
         // Create an empty summary struct and load data into it.
         let mut act = TCXActivity::new();
-        let filename = "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx";
+        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
         let tcdb = tcx::read_file(filename)?;
 
         if let Some(activities) = tcdb.activities {
@@ -537,7 +537,7 @@ mod tests {
         // Verify the actual data - note that the act.notes section is missing since it's None.
         assert_eq!(
             act.filename.unwrap(),
-            "/Users/evensolberg/CloudStation/Source/Rust/fitutils/data/running.tcx".to_string()
+            "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx".to_string()
         );
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());
