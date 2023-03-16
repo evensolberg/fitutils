@@ -4,8 +4,10 @@ use serde::Serialize;
 use std::error::Error;
 use std::path::PathBuf;
 
+use chrono::{DateTime, Local, TimeZone};
+
 use crate::gpx::waypoint::GPXWaypoint;
-use crate::{Duration, TimeStamp};
+use crate::Duration;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
@@ -22,7 +24,7 @@ pub struct GPXTrack {
     pub name: Option<String>,
 
     /// Start time for the track
-    pub start_time: Option<TimeStamp>,
+    pub start_time: Option<DateTime<Local>>,
 
     /// Duration for the track
     pub duration: Option<Duration>,
@@ -142,7 +144,8 @@ impl GPXTrack {
 
         dest.num_waypoints = dest.waypoints.len();
         if dest.num_waypoints > 0 {
-            dest.start_time = dest.waypoints[0].time.clone();
+            let t = dest.waypoints[0].time.unwrap_or(Local.timestamp(0, 0));
+            dest.start_time = Some(t);
             let t_last = &dest.waypoints[dest.num_waypoints - 1]
                 .time
                 .as_ref()

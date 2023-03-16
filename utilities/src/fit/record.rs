@@ -1,9 +1,12 @@
 //! Defines the `Record` struct which contains detailed information about each record/data point in the workout session.
 
 use crate::fit::constfunc::*;
-use crate::{Duration, FITSession, TimeStamp};
+use crate::fit::session::FITSession;
+use crate::Duration;
 
-use fitparser::FitDataField;
+use chrono::{DateTime, Local, TimeZone};
+
+use fitparser::{FitDataField, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
@@ -16,7 +19,7 @@ use uom::si::{length::meter, velocity::meter_per_second};
 #[serde(default)]
 pub struct FITRecord {
     /// Record timestamp.
-    pub timestamp: Option<TimeStamp>,
+    pub timestamp: Option<DateTime<Local>>,
 
     /// How far into the current session are we (Seconds)
     pub duration: Option<Duration>,
@@ -100,7 +103,11 @@ impl FITRecord {
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
 
-        record.timestamp = field_map.get("timestamp").and_then(map_timestamp);
+        if let Some(Value::Timestamp(ts)) = field_map.get("timestamp") {
+            record.timestamp = Some(*ts);
+        } else {
+            record.timestamp = Some(Local.timestamp(0, 0));
+        }
 
         let duration = record
             .timestamp

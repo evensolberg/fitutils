@@ -1,6 +1,4 @@
-use crate::FITSession;
-// use utilities::{self};
-
+use crate::fit::session::FITSession;
 use chrono::{Datelike, Timelike};
 use convert_case::{Case, Casing};
 use fitparser::profile::field_types::MesgNum;
@@ -72,19 +70,19 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
     values.insert("%ad".to_string(), ad);
 
     if let Some(tc) = my_session.time_created {
-        values.insert("%year".to_string(), format!("{:04}", tc.0.year()));
-        values.insert("%yr".to_string(), format!("{:04}", tc.0.year()));
-        values.insert("%month".to_string(), format!("{:02}", tc.0.month()));
-        values.insert("%mo".to_string(), format!("{:02}", tc.0.month()));
-        values.insert("%day".to_string(), format!("{:02}", tc.0.day()));
-        values.insert("%dy".to_string(), format!("{:02}", tc.0.day()));
+        values.insert("%year".to_string(), format!("{:04}", tc.year()));
+        values.insert("%yr".to_string(), format!("{:04}", tc.year()));
+        values.insert("%month".to_string(), format!("{:02}", tc.month()));
+        values.insert("%mo".to_string(), format!("{:02}", tc.month()));
+        values.insert("%day".to_string(), format!("{:02}", tc.day()));
+        values.insert("%dy".to_string(), format!("{:02}", tc.day()));
 
-        values.insert("%hour".to_string(), format!("{:02}", tc.0.hour()));
-        values.insert("%hr".to_string(), format!("{:02}", tc.0.hour()));
-        values.insert("%hour24".to_string(), format!("{:02}", tc.0.hour()));
-        values.insert("%h24".to_string(), format!("{:02}", tc.0.hour()));
+        values.insert("%hour".to_string(), format!("{:02}", tc.hour()));
+        values.insert("%hr".to_string(), format!("{:02}", tc.hour()));
+        values.insert("%hour24".to_string(), format!("{:02}", tc.hour()));
+        values.insert("%h24".to_string(), format!("{:02}", tc.hour()));
 
-        let (am, hrs) = tc.0.hour12();
+        let (am, hrs) = tc.hour12();
         let hr = format!("{:02}", hrs);
         values.insert("%hour12".to_string(), hr.clone());
         values.insert("%h12".to_string(), hr);
@@ -96,12 +94,12 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
             values.insert("%ap".to_string(), "am".to_string());
         }
 
-        values.insert("%minute".to_string(), format!("{:02}", tc.0.minute()));
-        values.insert("%mi".to_string(), format!("{:02}", tc.0.minute()));
-        values.insert("%second".to_string(), format!("{:02}", tc.0.second()));
-        values.insert("%se".to_string(), format!("{:02}", tc.0.second()));
-        values.insert("%weekday".to_string(), tc.0.weekday().to_string());
-        values.insert("%wd".to_string(), tc.0.weekday().to_string());
+        values.insert("%minute".to_string(), format!("{:02}", tc.minute()));
+        values.insert("%mi".to_string(), format!("{:02}", tc.minute()));
+        values.insert("%second".to_string(), format!("{:02}", tc.second()));
+        values.insert("%se".to_string(), format!("{:02}", tc.second()));
+        values.insert("%weekday".to_string(), tc.weekday().to_string());
+        values.insert("%wd".to_string(), tc.weekday().to_string());
     } else {
         values.insert("%year".to_string(), "0000".to_string());
         values.insert("%yr".to_string(), "0000".to_string());
@@ -141,13 +139,12 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/test.fit"])]
+    #[test]
     ///
     fn test_process_fit() {
-        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/test.fit";
-        let fm = fit_to_hashmap(filename)?;
+        let filename = "../data/test.fit";
+        let fm = fit_to_hashmap(filename).unwrap();
 
         // File contents only get printed if run with cargo test -- --nocapture
         println!("tm = {:?}", fm);

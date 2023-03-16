@@ -1,12 +1,11 @@
 //! Redefines `std::time::Duration` to allow for additional functionality.
 
+use chrono::{DateTime, Local};
 use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
 use std::ops::{Add, AddAssign, Sub};
-
-use crate::timestamp::TimeStamp;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits
@@ -32,20 +31,16 @@ impl Duration {
     }
 
     /// Calculate the duration between two TimeStamps, regardless of which comes first.
-    pub fn between(ts1: &TimeStamp, ts2: &TimeStamp) -> Self {
-        log::trace!(
-            "types::Duration::between() -- ts1: {:?} -- ts2: {:?}",
-            ts1,
-            ts2
-        );
+    pub fn between(ts1: &DateTime<Local>, ts2: &DateTime<Local>) -> Self {
+        log::trace!("types::Duration::between() -- ts1: {ts1:?} -- ts2: {ts2:?}");
         Duration(if ts2 > ts1 {
             // ts2 is after ts1
             log::trace!("types::Duration::between() -- ts2 > ts1");
-            chrono::Duration::to_std(&ts2.0.signed_duration_since(ts1.0))
+            chrono::Duration::to_std(&ts2.signed_duration_since(ts1.with_timezone(&Local)))
                 .expect("types::Duration::between() -- ts2 > ts1: Duration out of bounds.")
         } else {
             log::trace!("types::Duration::between() -- ts1 >= ts2");
-            chrono::Duration::to_std(&ts1.0.signed_duration_since(ts2.0))
+            chrono::Duration::to_std(&ts1.signed_duration_since(ts2.with_timezone(&Local)))
                 .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
         })
     }
@@ -115,7 +110,7 @@ mod tests {
         let dur = Duration::from_secs_f64(120.100);
 
         assert_eq!(dur.0.as_secs(), 120);
-        assert_eq!(dur.0.as_millis(), 120_099);
+        assert_eq!(dur.0.as_millis(), 120_100);
     }
 
     #[assay]
@@ -138,9 +133,9 @@ mod tests {
 
     #[assay]
     fn test_between() {
-        let t1 = TimeStamp::default();
+        let t1 = Local::now();
         std::thread::sleep(std::time::Duration::from_secs(1));
-        let t2 = TimeStamp::default();
+        let t2 = Local::now();
         let b1 = Duration::between(&t1, &t2);
         let b2 = Duration::between(&t2, &t1);
         println!("b1 = {}, b2 = {}", b1, b2);

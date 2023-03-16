@@ -1,6 +1,5 @@
 //! Constants and functions used in other parts of the types system.
 
-use crate::TimeStamp;
 use fitparser::Value;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +21,6 @@ map_value!(map_uint16, u16, Value::UInt16(x) => *x);
 map_value!(map_sint32, i32, Value::SInt32(x) => *x);
 map_value!(map_float64, f64, Value::Float64(x) => *x);
 map_value!(map_string, String, Value::String(x) => x.to_string());
-map_value!(map_timestamp, TimeStamp, Value::Timestamp(x) => TimeStamp(*x));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Used in calculating latitudes and longitudes. You do not need to worry about this.

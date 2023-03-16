@@ -3,6 +3,37 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- First stab at the Fitshow utility
+- Fitshow handles GPX too
+- Add TCX support
+- Pretty print
+- Create linter for PR titles
+
+### Miscellaneous Tasks
+
+- Changelog update
+- Main README update
+- Rename action
+- Folder rename
+- README update
+- Fitshow rename to fitview
+- Clean up lints
+- Fix spelling mistakes
+- Dependencies version update
+
+### Refactor
+
+- More commonalities and simplification
+
+### Build
+
+- Update fitparser requirement in /fit2json
+- Update env_logger requirement in /fit2json (#47)
+
+## [0.4.0] - 2022-02-21
+
 ### Bug Fixes
 
 - Day and Month were off by 1
@@ -25,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - Move commonalities to shared package
 - Commonalities to shared package Part 2
 - Separate out commonalities Part 3
+- Move commonalities Part 4
 
 ## [0.3.6] - 2022-01-03
 

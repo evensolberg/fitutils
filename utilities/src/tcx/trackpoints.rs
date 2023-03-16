@@ -1,22 +1,23 @@
+use chrono::{DateTime, Local, TimeZone};
 use csv::WriterBuilder;
 use serde::Serialize;
 use std::error::Error;
 use std::path::PathBuf;
 use tcx;
 
-use crate::{Duration, TimeStamp};
+use crate::Duration;
 
 /// Holds each Trackpoint as a Record
-#[derive(Serialize, Debug, Clone, Default)]
+#[derive(Serialize, Debug, Clone)]
 pub struct TCXTrackpoint {
     /// Sport
     pub sport: String,
 
     /// Activity ID - usually denoted by the start time for the activity
-    pub start_time: TimeStamp,
+    pub start_time: DateTime<Local>,
 
     /// Total activity duration in seconds.
-    pub time: TimeStamp,
+    pub time: DateTime<Local>,
 
     /// How far into the exercise we are
     pub duration: Duration,
@@ -54,10 +55,14 @@ pub struct TCXTrackpoint {
 
 impl TCXTrackpoint {
     pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn default() -> Self {
         Self {
             sport: "".to_string(),
-            start_time: TimeStamp::default(),
-            time: TimeStamp::default(),
+            start_time: Local.timestamp(0, 0),
+            time: Local.timestamp(0, 0),
             duration: Duration::default(),
             activity_num: 0,
             lap_num: 0,
@@ -107,8 +112,10 @@ impl TCXTrackpointList {
                         // Extract a new Trackpoint
                         let mut tp = TCXTrackpoint::new();
                         tp.sport = activity.sport.clone();
-                        tp.start_time = TimeStamp::parse_from_rfc3339(&activity.id);
-                        tp.time = TimeStamp(trackpoint.time.with_timezone(&chrono::Local));
+                        tp.start_time = DateTime::parse_from_rfc3339(&activity.id)
+                            .unwrap_or(Local.timestamp(0, 0).into())
+                            .into();
+                        tp.time = DateTime::from(trackpoint.time.with_timezone(&chrono::Local));
                         tp.duration = Duration::between(&tp.start_time, &tp.time);
                         tp.activity_num = a_num;
                         tp.lap_num = l_num;

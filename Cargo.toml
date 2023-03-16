@@ -11,4 +11,4 @@ members = [
 ]
 
 [profile.release]
-# strip = true
+strip = true
