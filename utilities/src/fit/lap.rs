@@ -1,8 +1,9 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
 use crate::fit::constfunc::*;
-use crate::{Duration, FITHrZones, FITSession, TimeStamp};
+use crate::{Duration, FITHrZones, FITSession};
 
+use chrono::{DateTime, Local};
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -92,10 +93,10 @@ pub struct FITLap {
     pub duration_moving: Option<Duration>,
 
     /// Lap start time.
-    pub start_time: Option<TimeStamp>,
+    pub start_time: Option<DateTime<Local>>,
 
     /// Lap finish time.
-    pub finish_time: Option<TimeStamp>,
+    pub finish_time: Option<DateTime<Local>>,
 
     /// Time spent in each heart rate zone.
     pub time_in_hr_zones: FITHrZones,
@@ -218,8 +219,17 @@ impl FITLap {
             .and_then(map_float64)
             .map(Duration::from_secs_f64);
 
-        lap.start_time = field_map.get("start_time").and_then(map_timestamp);
-        lap.finish_time = field_map.get("timestamp").and_then(map_timestamp);
+        if let Some(fitparser::Value::Timestamp(ts)) = field_map.get("start_time") {
+            lap.start_time = Some(*ts);
+        } else {
+            lap.start_time = None;
+        }
+
+        if let Some(fitparser::Value::Timestamp(ts)) = field_map.get("timestamp") {
+            lap.finish_time = Some(*ts);
+        } else {
+            lap.finish_time = None;
+        }
 
         lap.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
 

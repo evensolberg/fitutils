@@ -1,7 +1,9 @@
 //! Defines the `Session` struct which holds summary information about the workout session, and associated functions.
 
+use crate::Duration;
 use crate::{fit::constfunc::*, FITHrZones};
-use crate::{Duration, TimeStamp};
+
+use chrono::{DateTime, Local};
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -28,7 +30,7 @@ pub struct FITSession {
     pub manufacturer: Option<String>,
     pub product: Option<String>,
     pub serial_number: Option<String>,
-    pub time_created: Option<TimeStamp>,
+    pub time_created: Option<DateTime<Local>>,
     pub activity_type: Option<String>,
     pub activity_detailed: Option<String>,
     pub num_sessions: Option<u16>,
@@ -57,8 +59,8 @@ pub struct FITSession {
     pub duration: Option<Duration>,
     pub duration_active: Option<Duration>,
     pub duration_moving: Option<Duration>,
-    pub start_time: Option<TimeStamp>,
-    pub finish_time: Option<TimeStamp>,
+    pub start_time: Option<DateTime<Local>>,
+    pub finish_time: Option<DateTime<Local>>,
     pub time_in_hr_zones: FITHrZones,
 }
 
@@ -68,7 +70,7 @@ impl FITSession {
         FITSession::default()
     }
 
-    /// Creates a new, empty session and sets the `filename` value to the filename supplied.
+    /// Creates a new, empty session and seft the `filename` value to the filename supplied.
     pub fn with_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut session = Self::new();
         session.filename = Some(filename.to_string());
@@ -120,7 +122,12 @@ impl FITSession {
         self.manufacturer = field_map.get("manufacturer").and_then(map_string);
         self.product = field_map.get("product").and_then(map_string);
         self.serial_number = field_map.get("serial_number").and_then(map_string);
-        self.time_created = field_map.get("time_created").and_then(map_timestamp);
+
+        if let Some(fitparser::Value::Timestamp(ft)) = field_map.get("time_created") {
+            self.time_created = Some(*ft);
+        } else {
+            self.time_created = None;
+        }
 
         // return safely
         Ok(())
@@ -230,9 +237,17 @@ impl FITSession {
             .and_then(map_float64)
             .map(Duration::from_secs_f64);
 
-        self.start_time = field_map.get("start_time").and_then(map_timestamp);
-        self.finish_time = field_map.get("timestamp").and_then(map_timestamp);
+        if let Some(fitparser::Value::Timestamp(st)) = field_map.get("start_time") {
+            self.start_time = Some(*st);
+        } else {
+            self.start_time = None;
+        }
 
+        if let Some(fitparser::Value::Timestamp(ft)) = field_map.get("DateTime<Local>") {
+            self.finish_time = Some(*ft);
+        } else {
+            self.finish_time = None;
+        }
         self.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
         self.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
@@ -266,7 +281,7 @@ impl FITSession {
 }
 
 impl Default for FITSession {
-    /// Set defaults to be either empty or zero.
+    /// Set defaulft to be either empty or zero.
     fn default() -> Self {
         FITSession {
             filename: None,

@@ -1,10 +1,10 @@
-use chrono::Datelike;
+use chrono::{DateTime, Datelike, Local, TimeZone};
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
 use gpx;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, fs::File, path::PathBuf};
 
-use crate::{Duration, TimeStamp};
+use crate::Duration;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
@@ -42,7 +42,7 @@ pub struct GPXMetadata {
     pub keywords: Option<String>,
 
     /// The creation date of the file.
-    pub time: Option<TimeStamp>,
+    pub time: Option<DateTime<Local>>,
 
     /// The total duration of the activities found in this file.
     pub duration: Option<Duration>,
@@ -132,8 +132,12 @@ impl GPXMetadata {
             dest.keywords = Some(keywords.to_string());
         }
         if let Some(time) = &src_meta.time {
-            let ltz = time.with_timezone(&chrono::Local);
-            dest.time = Some(TimeStamp(ltz));
+            let tfs = time.format("%FT%TZ%z");
+            let t = tfs.to_string();
+            let ltz = DateTime::parse_from_str(t.as_str(), "%FT%TZ%z")
+                .unwrap()
+                .with_timezone(&Local);
+            dest.time = Some(ltz);
         }
 
         // For now, only read the first href in the list of links (if there is one)
@@ -167,12 +171,7 @@ impl GPXMetadata {
         // Debatable if this is kosher, but I'm going with it for now.
         // If the copyright year is none, set it to the year the activity started.
         if dest.copyright_year.is_none() {
-            let year = dest
-                .time
-                .as_ref()
-                .unwrap_or(&TimeStamp(chrono::Local::now()))
-                .0
-                .year();
+            let year = dest.time.as_ref().unwrap_or(&Local.timestamp(0, 0)).year();
             log::debug!("year = {}", year);
             dest.copyright_year = Some(year);
         }

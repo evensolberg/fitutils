@@ -1,7 +1,8 @@
 //! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
 
-use crate::TimeStamp;
+use chrono::{DateTime, Local, TimeZone};
 use serde::Serialize;
+// use gpx::Waypoint;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
@@ -35,7 +36,7 @@ pub struct GPXWaypoint {
     /// Universal Coordinated Time (UTC), not local time! Conforms to ISO 8601
     /// specification for date/time repdestentation. Fractional seconds are
     /// allowed for millisecond timing in tracklogs.
-    pub time: Option<TimeStamp>,
+    pub time: Option<DateTime<Local>>,
 
     /// The GPS name of the waypoint. This field will be transferred to and
     /// from the GPS. GPX does not place desttrictions on the length of this
@@ -120,7 +121,7 @@ impl GPXWaypoint {
         dest.elevation = src.elevation;
         dest.speed = src.speed;
 
-        dest.time = Some(TimeStamp(src.time.unwrap().with_timezone(&chrono::Local)));
+        dest.time = Some(time_to_dt_local(&src));
 
         if let Some(name) = &src.name {
             dest.name = Some(name.to_string())
@@ -167,41 +168,6 @@ impl GPXWaypoint {
     }
 }
 
-// impl Default for Waypoint {
-//     fn default() -> Self {
-//         Self {
-//             track_num: 0,
-//             route_num: 0,
-//             segment_num: 0,
-//             waypoint_mum: 0,
-//             longitude: None,
-//             latitude: None,
-//             elevation: None,
-//             speed: None,
-//             time: None,
-//             name: None,
-//             comment: None,
-//             description: None,
-//             source: None,
-//             num_links: 0,
-//             links_href: None,
-//             links_text: None,
-//             symbol: None,
-//             _type: None,
-//             geoidheight: None,
-//             fix: None,
-//             sat: None,
-//             hdop: None,
-//             vdop: None,
-//             pdop: None,
-//             age: None,
-//             dgpsid: None,
-//             heart_rate: None,
-//             cadence: None,
-//         }
-//     }
-// }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Converts the Gpx::Fix struct to a string for easier export
 ///
@@ -236,5 +202,20 @@ fn fix_to_string(src: &gpx::Fix) -> String {
         gpx::Fix::DGPS => "DGPS".to_string(),
         gpx::Fix::PPS => "PPS".to_string(),
         gpx::Fix::Other(str) => format!("Other({})", str.to_owned()),
+    }
+}
+
+/// Converts gpx::parser::time::Time to DateTime<Local>
+fn time_to_dt_local(src: &gpx::Waypoint) -> DateTime<Local> {
+    // let t = src.time.unwrap().format().unwrap_or_default();
+    if let Some(t) = src.time {
+        let tfs = t.format("%FT%TZ%z");
+        let tf = tfs.to_string().clone();
+
+        DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
+            .unwrap()
+            .with_timezone(&Local)
+    } else {
+        Local.timestamp(0, 0)
     }
 }

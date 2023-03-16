@@ -5,7 +5,6 @@ mod fit;
 mod gpx;
 mod rename_file;
 mod tcx;
-mod timestamp;
 
 pub use crate::fit::{
     activities::FITActivities, activity::FITActivity, hrzones::FITHrZones, lap::FITLap,
@@ -28,5 +27,4 @@ pub use crate::{
     duration::Duration,
     extensions::{get_extension, set_extension},
     rename_file::rename_file,
-    timestamp::TimeStamp,
 };

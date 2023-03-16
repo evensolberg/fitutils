@@ -1,5 +1,5 @@
 //! Defines the `Activity` struct which contains the parsed contents of a GPX file, and associated functions.
-use chrono::Local;
+use chrono::{Local, TimeZone};
 use csv::WriterBuilder;
 use gpx::Gpx;
 use std::{
@@ -14,7 +14,6 @@ use crate::gpx::route::GPXRoute;
 use crate::gpx::track::GPXTrack;
 use crate::gpx::waypoint::GPXWaypoint;
 use crate::Duration;
-use crate::TimeStamp;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]
@@ -205,7 +204,7 @@ impl GPXActivity {
             self.metadata
                 .time
                 .as_ref()
-                .unwrap_or(&TimeStamp(Local::now()))
+                .unwrap_or(&Local.timestamp(0, 0))
         );
         println!(
             "Duration:          {}",
