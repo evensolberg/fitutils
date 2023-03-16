@@ -55,7 +55,7 @@ impl GPXActivity {
     /// let my_activity = Activity::from_file("running.gpx")?;
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
-        let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+        let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
         log::debug!("activity::from_file() -- gpx.metadata = {:?}", gpx.metadata);
         log::trace!("\nactivity::from_file() -- gpx = {:?}", gpx);
 

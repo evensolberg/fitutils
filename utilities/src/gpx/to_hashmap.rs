@@ -8,7 +8,7 @@ use crate::GPXMetadata;
 
 /// Parses a GPX file and returns the relevant metadata
 pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+    let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
     log::debug!("process_gpx::gpx = {:?}", gpx);
     let gpxmeta = GPXMetadata::from_header(&gpx, filename)?;
     log::debug!("process_gpx::gpxmeta = {:?}", gpxmeta);

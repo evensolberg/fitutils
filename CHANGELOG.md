@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 ## [unreleased]
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 - Day and Month were off by 1
 
+<!-- trunk-ignore(markdownlint/MD024) -->
 ### Features
 
 - Start on fitrename

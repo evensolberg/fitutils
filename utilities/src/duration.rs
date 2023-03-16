@@ -9,7 +9,7 @@ use std::ops::{Add, AddAssign, Sub};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits
-#[derive(Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
+#[derive(Deserialize, PartialEq, Eq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Duration(pub std::time::Duration);
 
 impl Duration {

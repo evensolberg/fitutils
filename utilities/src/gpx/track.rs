@@ -144,7 +144,9 @@ impl GPXTrack {
 
         dest.num_waypoints = dest.waypoints.len();
         if dest.num_waypoints > 0 {
-            let t = dest.waypoints[0].time.unwrap_or(Local.timestamp(0, 0));
+            let t = dest.waypoints[0]
+                .time
+                .unwrap_or_else(|| Local.timestamp(0, 0));
             dest.start_time = Some(t);
             let t_last = &dest.waypoints[dest.num_waypoints - 1]
                 .time

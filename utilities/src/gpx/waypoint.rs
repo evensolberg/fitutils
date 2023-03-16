@@ -121,7 +121,7 @@ impl GPXWaypoint {
         dest.elevation = src.elevation;
         dest.speed = src.speed;
 
-        dest.time = Some(time_to_dt_local(&src));
+        dest.time = Some(time_to_dt_local(src));
 
         if let Some(name) = &src.name {
             dest.name = Some(name.to_string())
@@ -210,7 +210,7 @@ fn time_to_dt_local(src: &gpx::Waypoint) -> DateTime<Local> {
     // let t = src.time.unwrap().format().unwrap_or_default();
     if let Some(t) = src.time {
         let tfs = t.format("%FT%TZ%z");
-        let tf = tfs.to_string().clone();
+        let tf = tfs.to_string();
 
         DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
             .unwrap()
