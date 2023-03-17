@@ -7,13 +7,13 @@ mod cli;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap() {
+    for argument in cli_args.values_of("read").unwrap_or_default() {
         log::trace!("main::run() -- Arguments: {:?}", argument);
     }
 
@@ -22,14 +22,14 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::info!("Dry-run. Will not perform actual rename.");
     }
 
-    let pattern = cli_args.value_of("pattern").unwrap();
+    let pattern = cli_args.value_of("pattern").unwrap_or_default();
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
     ///////////////////////////////////
     // Working section
-    for filename in cli_args.values_of("read").unwrap() {
+    for filename in cli_args.values_of("read").unwrap_or_default() {
         log::debug!("Processing file: {}", filename);
 
         // Check if the target file exists, otherwise just continue

@@ -19,7 +19,7 @@ pub struct FitDataMap {
 impl FitDataMap {
     /// Instantiates a new datamap from a `FitDataRecord`
     fn new(record: fitparser::FitDataRecord) -> Self {
-        FitDataMap {
+        Self {
             kind: record.kind(),
             fields: record
                 .into_vec()
@@ -50,11 +50,11 @@ impl OutputLocation {
     /// Create a new output location based on the location specified.
     pub fn new(location: PathBuf) -> Self {
         if location.is_dir() {
-            OutputLocation::LocalDirectory(location)
+            Self::LocalDirectory(location)
         } else if location.as_os_str() == "-" {
-            OutputLocation::Stdout
+            Self::Stdout
         } else {
-            OutputLocation::LocalFile(location)
+            Self::LocalFile(location)
         }
     }
 
@@ -64,7 +64,7 @@ impl OutputLocation {
     ///
     /// `filename: &Path` -- The file(s) or directory where we wish to save.
     ///
-    /// `data: Vec<fitparser::FitDataRecord>` -- A vector (list) of FitDataRecords
+    /// `data: Vec<fitparser::FitDataRecord>` -- A vector (list) of `FitDataRecords`
     ///
     /// # Returns
     ///
@@ -84,11 +84,11 @@ impl OutputLocation {
             Self::Inplace => filename.with_extension("json"),
             Self::LocalDirectory(dest) => dest
                 .clone()
-                .join(filename.file_name().unwrap())
+                .join(filename.file_name().unwrap_or_default())
                 .with_extension("json"),
             Self::LocalFile(dest) => dest.clone(),
             Self::Stdout => {
-                println!("{}", json);
+                println!("{json}");
                 return Ok(());
             }
         };

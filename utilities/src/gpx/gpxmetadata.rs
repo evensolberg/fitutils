@@ -68,6 +68,7 @@ pub struct GPXMetadata {
 
 impl GPXMetadata {
     /// Initialize Session with default empty values
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -91,7 +92,7 @@ impl GPXMetadata {
 
     /// Create a new Session instance based on the original metadata and file name.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
     /// `src: &gpx::Gpx` -- The original contents of the GPX file being parsed.
     ///
@@ -100,12 +101,12 @@ impl GPXMetadata {
     /// # Returns
     ///
     /// `Self` -- A `GPXMetadata` struct filled with the metadata and copyright contents from the original `Gpx` struct.
-    pub fn from_header(src: &gpx::Gpx, filename: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn from_header(src: &gpx::Gpx, filename: &str) -> Self {
         let mut dest = Self::new();
         dest.set_filename(filename);
 
         // Parse the GPX header
-        dest.version = Some(gpx_ver_to_string(&src.version));
+        dest.version = Some(gpx_ver_to_string(src.version));
         if let Some(creator) = &src.creator {
             dest.creator = Some(creator.to_string());
         }
@@ -152,10 +153,10 @@ impl GPXMetadata {
         match &src_meta.copyright {
             Some(cr_data) => {
                 if let Some(author) = &cr_data.author {
-                    dest.copyright_author = Some(author.to_string())
+                    dest.copyright_author = Some(author.to_string());
                 };
                 if let Some(license) = &cr_data.license {
-                    dest.copyright_license = Some(license.to_string())
+                    dest.copyright_license = Some(license.to_string());
                 };
                 if let Some(year) = cr_data.year {
                     dest.copyright_year = Some(year);
@@ -180,10 +181,10 @@ impl GPXMetadata {
         match &src_meta.author {
             Some(author) => {
                 if let Some(name) = &author.name {
-                    dest.author_name = Some(name.to_string())
+                    dest.author_name = Some(name.to_string());
                 };
                 if let Some(email) = &author.email {
-                    dest.author_email = Some(email.to_string())
+                    dest.author_email = Some(email.to_string());
                 };
             }
             None => {
@@ -201,7 +202,7 @@ impl GPXMetadata {
         log::debug!("GpxMetadata::from_header() -- Metadata: {:?}", dest);
 
         // return the src_meta struct
-        Ok(dest)
+        dest
     }
 
     /// Export the session data to a JSON file using the filename specified in the struct,
@@ -215,7 +216,11 @@ impl GPXMetadata {
     ///
     /// Nothing if OK, otherwise `Error`.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
-        let mut filename = self.filename.as_ref().unwrap().to_path_buf();
+        let mut filename = self
+            .filename
+            .as_ref()
+            .unwrap_or(&PathBuf::from("export"))
+            .clone();
         filename.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {:?}",
@@ -232,7 +237,7 @@ impl GPXMetadata {
 impl Default for GPXMetadata {
     /// Set defaults to be either `None` or zero.
     fn default() -> Self {
-        GPXMetadata {
+        Self {
             filename: None,
             version: None,
             creator: None,
@@ -256,7 +261,7 @@ impl Default for GPXMetadata {
 }
 
 /// Turn the `gpx::GpxVersion` enum into a string
-pub fn gpx_ver_to_string(version: &gpx::GpxVersion) -> String {
+pub fn gpx_ver_to_string(version: gpx::GpxVersion) -> String {
     match version {
         gpx::GpxVersion::Gpx10 => "Gpx10".to_string(),
         gpx::GpxVersion::Gpx11 => "Gpx11".to_string(),

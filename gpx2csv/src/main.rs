@@ -7,13 +7,13 @@ mod cli;
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap() {
+    for argument in cli_args.values_of("read").unwrap_or_default() {
         log::trace!("main::run() -- Arguments: {:?}", argument);
     }
 
@@ -24,10 +24,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("main::run() -- session output file: {}", sessionfile);
 
     // Let the user know if we're writing
-    if !cli_args.is_present("detail-off") {
-        log::info!("Writing detail files.");
+    if cli_args.is_present("detail-off") {
+        log::info!("Writing summary file {} only.", &sessionfile);
     } else {
-        log::info!("Writing summary file {} only.", &sessionfile)
+        log::info!("Writing detail files.");
     }
 
     ///////////////////////////////////
@@ -37,7 +37,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut activities = utilities::GPXActivities::new();
 
     // Do the parsing
-    for filename in cli_args.values_of("read").unwrap() {
+    for filename in cli_args.values_of("read").unwrap_or_default() {
         log::info!("Processing file: {}", filename);
 
         // Extract the activity from the file

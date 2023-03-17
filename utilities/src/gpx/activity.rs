@@ -17,6 +17,7 @@ use crate::Duration;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXActivity {
     /// High-level metadata about the activity such as start time, duration, number of tracks, etc.
     pub metadata: GPXMetadata,
@@ -33,6 +34,7 @@ pub struct GPXActivity {
 
 impl GPXActivity {
     /// Create a new, empty Activity.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -45,7 +47,11 @@ impl GPXActivity {
     ///
     /// # Returns
     ///
-    /// `Result<Self, Box<dyn Error>> -- Returns an instance of the `Activity` struct if successful, otherwise an `Error`.
+    /// `Result<Self, Box<dyn Error>>` -- Returns an instance of the `Activity` struct if successful, otherwise an `Error`.
+    ///
+    /// # Errors
+    ///
+    /// Reading the GPX file can fail. Setting the duration can fail.
     ///
     /// # Example
     ///
@@ -57,12 +63,12 @@ impl GPXActivity {
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
         let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
         log::debug!("activity::from_file() -- gpx.metadata = {:?}", gpx.metadata);
-        log::trace!("\nactivity::from_file() -- gpx = {:?}", gpx);
+        log::trace!("\nactivity::from_file() -- gpx = {gpx:?}");
 
         let mut activity = Self::new();
 
         // Fill the GPX Header info so we can serialize it later
-        activity.metadata = GPXMetadata::from_header(&gpx, filename)?;
+        activity.metadata = GPXMetadata::from_header(&gpx, filename);
         log::trace!(
             "main::run() -- GPX Metadata header: {:?}",
             activity.metadata
@@ -77,12 +83,12 @@ impl GPXActivity {
                 track.num_waypoints
             );
 
-            log::trace!("\nmain::run() -- track = {:?}", track);
+            log::trace!("\nmain::run() -- track = {track:?}");
             activity.tracks.push(track);
         }
 
         // Set the total duration to be the sum of the track durations
-        activity.set_duration()?;
+        activity.set_duration();
 
         Ok(activity)
     }
@@ -90,6 +96,22 @@ impl GPXActivity {
     /// Exports all the relevant data for the activity.
     /// Calls the `GpxMetadata::export_json()` function and its own
     /// `export_tracks_csv()` and `export_waypoints_csv()` functions.
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// Nothing.
+    ///
+    /// # Errors
+    ///
+    /// Various export functions may return errors which get propagated.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export(&self) -> Result<(), Box<dyn Error>> {
         self.metadata.export_json()?;
         self.export_tracks_csv()?;
@@ -100,30 +122,60 @@ impl GPXActivity {
 
     /// Iterates through the tracks and calculates a total activity duration.
     /// Should only be used after the track data has been gathered.
-    pub fn set_duration(&mut self) -> Result<(), Box<dyn Error>> {
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// Nothing.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are no tracks from which to read total activity duration.
+    ///
+    /// # Panics
+    ///
+    /// None.
+    ///
+    pub fn set_duration(&mut self) {
         let mut duration = Duration::from_secs_f64(0.0);
 
         // If there are no tracks, protest!
         if self.tracks.is_empty() {
-            return Err("Activity::set_total_duration() -- Unable to set Activity duration. No tracks found.".into());
-        }
-
-        // Iterate through the tracks
-        for track in &self.tracks {
-            // If the track has duration data, add it to the total.
-            if let Some(trackduration) = track.duration {
-                duration += trackduration;
+            self.metadata.duration = Some(Duration::default());
+        } else {
+            // Iterate through the tracks
+            for track in &self.tracks {
+                // If the track has duration data, add it to the total.
+                if let Some(trackduration) = track.duration {
+                    duration += trackduration;
+                }
             }
+
+            // Set the total duration
+            self.metadata.duration = Some(duration);
         }
-
-        // Set the total duration
-        self.metadata.duration = Some(duration);
-
-        // Return safely
-        Ok(())
     }
 
     /// Export the tracks to CSV
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if successful.
+    ///
+    /// # Errors
+    ///
+    /// Creating the `WriterBuilder` may fail. Serializing the track data may fail. Flushing the writer may fail.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export_tracks_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
         if tracks.is_empty() {
@@ -131,7 +183,12 @@ impl GPXActivity {
         }
 
         // Change the file extension
-        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap());
+        let mut outfile = PathBuf::from(
+            self.metadata
+                .filename
+                .as_ref()
+                .unwrap_or(&PathBuf::from("export")),
+        );
         outfile.set_extension("tracks.csv");
 
         // Create a buffer for the CSV
@@ -149,6 +206,22 @@ impl GPXActivity {
     }
 
     /// Export all the waypoints for each track to CSV
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if successful.
+    ///
+    /// # Errors
+    ///
+    /// Errors if there are no tracks in the activity. The `WriterBuilder` may fail. Serialization may fail. Flushing the writer may fail.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export_waypoints_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
         if tracks.is_empty() {
@@ -156,7 +229,12 @@ impl GPXActivity {
         }
 
         // Change the file extension
-        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap());
+        let mut outfile = PathBuf::from(
+            self.metadata
+                .filename
+                .as_ref()
+                .unwrap_or(&PathBuf::from("export")),
+        );
         outfile.set_extension("waypoints.csv");
 
         // Create a buffer for the CSV
@@ -177,7 +255,7 @@ impl GPXActivity {
 
     /// Prints the metadata information about the activity
     pub fn print(&self, detailed: bool) {
-        let unknown = "".to_string();
+        let unknown = String::new();
 
         println!(
             "\nFile:              {}",
@@ -260,7 +338,7 @@ impl GPXActivity {
 impl Default for GPXActivity {
     /// Sets up the Activity with empty data placeholders.
     fn default() -> Self {
-        GPXActivity {
+        Self {
             metadata: GPXMetadata::new(),
             waypoints: Vec::new(),
             routes: Vec::new(),

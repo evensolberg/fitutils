@@ -60,6 +60,7 @@ pub struct GPXTrack {
 
 impl GPXTrack {
     /// Instantiate a new, empty `Track`
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -102,19 +103,19 @@ impl GPXTrack {
         dest.set_filename(filename);
 
         if let Some(name) = &src.name {
-            dest.name = Some(name.to_string())
+            dest.name = Some(name.to_string());
         }
         if let Some(comment) = &src.comment {
-            dest.comment = Some(comment.to_string())
+            dest.comment = Some(comment.to_string());
         }
         if let Some(description) = &src.description {
             dest.description = Some(description.to_string())
         }
         if let Some(source) = &src.source {
-            dest.source = Some(source.to_string())
+            dest.source = Some(source.to_string());
         }
         if let Some(_type) = &src._type {
-            dest._type = Some(_type.to_string())
+            dest._type = Some(_type.to_string());
         }
 
         // See if we have links
@@ -138,7 +139,7 @@ impl GPXTrack {
                 wptnum += 1;
                 wpt.segment_num = segnum;
                 wpt.waypoint_mum = wptnum;
-                dest.waypoints.push(wpt)
+                dest.waypoints.push(wpt);
             }
         }
 
@@ -165,7 +166,7 @@ impl GPXTrack {
 impl Default for GPXTrack {
     /// Set defaults to be either empty or zero.
     fn default() -> Self {
-        GPXTrack {
+        Self {
             filename: None,
             track_num: 0,
             name: None,

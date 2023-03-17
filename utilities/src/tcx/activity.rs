@@ -10,12 +10,13 @@ use crate::{set_extension, Duration};
 
 /// Holds a summary of the activities in the file
 #[derive(Serialize, Debug, Clone)]
+#[allow(clippy::module_name_repetitions)]
 pub struct TCXActivity {
     /// Filename of the original file from which the data was read
     pub filename: Option<String>,
 
     /// Number of activities in the file - typically 1
-    pub num_activities: Option<usize>,
+    pub num_activities: Option<u16>,
 
     /// Sport
     pub sport: Option<String>,
@@ -30,13 +31,13 @@ pub struct TCXActivity {
     pub notes: Option<String>,
 
     /// Number of laps within the activity
-    pub num_laps: Option<usize>,
+    pub num_laps: Option<u16>,
 
     /// Total number of tracks within the activity
-    pub num_tracks: Option<usize>,
+    pub num_tracks: Option<u16>,
 
     /// Total number of trackpoints within the activity
-    pub num_trackpoints: Option<usize>,
+    pub num_trackpoints: Option<u16>,
 
     /// Total distance covered during the lap in meters.
     pub distance_meters: Option<f64>,
@@ -69,17 +70,35 @@ pub struct TCXActivity {
     pub average_cadence: Option<f64>,
 
     /// Maximum cadence (typically in Steps, Revolutions or Strokes per Minute) for the activity.
-    pub maximum_cadence: Option<u8>,
+    pub maximum_cadence: Option<u16>,
 }
 
 impl TCXActivity {
     /// Create a new, empty Activities Summary
+    #[must_use]
     pub fn new() -> Self {
-        TCXActivity::default()
+        Self::default()
     }
 
+    /// Creates a new `TCXActivity` from the file specified. The activities are read into the struct.
+    ///
+    /// # Arguments
+    ///
+    /// `filename: &str` -- The name of the file to be read.
+    ///
+    /// # Returns
+    ///
+    /// `Self`
+    ///
+    /// # Errors
+    ///
+    /// Reading the file may fail.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
-        let mut tcdb = tcx::read(&mut BufReader::new(File::open(&filename).unwrap()))?;
+        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename).unwrap()))?;
         tcdb.calc_heartrates();
 
         let mut act;
@@ -96,7 +115,13 @@ impl TCXActivity {
     }
 
     /// Generates a summary from a set of activities in the TCX file.
-    /// Assumes that tcx::TrainingCenterDatabase::calc_heartrates() has been run.
+    /// Assumes that `tcx::TrainingCenterDatabase::calc_heartrates`() has been run.
+    #[must_use]
+    #[allow(
+        clippy::cast_sign_loss,
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation
+    )]
     pub fn from_activities(activities: &tcx::Activities) -> Self {
         let mut act_s = Self::new();
 
@@ -141,7 +166,7 @@ impl TCXActivity {
                 for track in &lap.tracks {
                     act_s.num_tracks = Some(act_s.num_tracks.unwrap_or(0) + 1);
                     act_s.num_trackpoints =
-                        Some(act_s.num_trackpoints.unwrap_or(0) + track.trackpoints.len());
+                        Some(act_s.num_trackpoints.unwrap_or(0) + track.trackpoints.len() as u16);
                     // Check to see if max HR for the lap > current recorded max
                     if let Some(mhr) = lap.maximum_heart_rate {
                         if act_s.maximum_heart_rate.unwrap_or(0.0) < mhr {
@@ -152,10 +177,10 @@ impl TCXActivity {
                     for trackpoint in &track.trackpoints {
                         // Check if there is a cadence and if it's greater than the current max
                         if let Some(curr_cad) = trackpoint.cadence {
-                            if act_s.maximum_cadence.unwrap_or(0) <= curr_cad {
-                                act_s.maximum_cadence = Some(curr_cad);
+                            if act_s.maximum_cadence.unwrap_or(0) <= u16::from(curr_cad) {
+                                act_s.maximum_cadence = Some(u16::from(curr_cad));
                             }
-                            cad += curr_cad as f64;
+                            cad += f64::from(curr_cad);
                         }
 
                         // Check if there is a heart rate and record it
@@ -188,19 +213,35 @@ impl TCXActivity {
 
         // Calculate averages for the whole activity set
         if act_s.num_trackpoints.unwrap_or(0) > 0 {
-            act_s.average_cadence = Some(cad / act_s.num_trackpoints.unwrap_or(1) as f64);
-            act_s.average_heart_rate = Some(hr / act_s.num_trackpoints.unwrap_or(1) as f64);
+            act_s.average_cadence = Some(cad / f64::from(act_s.num_trackpoints.unwrap_or(1)));
+            act_s.average_heart_rate = Some(hr / f64::from(act_s.num_trackpoints.unwrap_or(1)));
         }
 
         // If maximum_cadence = None then set it to the same as average
         if act_s.maximum_cadence.is_none() && act_s.average_cadence.is_some() {
-            act_s.maximum_cadence = Some(act_s.average_cadence.unwrap() as u8);
+            act_s.maximum_cadence = Some(act_s.average_cadence.unwrap_or(1.0) as u16);
         }
         // return it
         act_s
     } // pub fn from_activities
 
     /// Export the activity summary as a JSON file
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if everything goes well.
+    ///
+    /// # Errors
+    ///
+    /// Creating the file can fail. Serializing to JSON can fail.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
         if self.filename.is_none() {
             return Err("No filename specified in the ActivitySummary. Unable to export.".into());
@@ -213,7 +254,7 @@ impl TCXActivity {
             "activity.json",
         );
         serde_json::to_writer_pretty(
-            &std::fs::File::create(&std::path::PathBuf::from(&out_file))?,
+            &std::fs::File::create(std::path::PathBuf::from(&out_file))?,
             &self,
         )?;
 
@@ -221,8 +262,24 @@ impl TCXActivity {
     }
 
     /// Print the details of the activity
+    ///
+    /// # Arguments
+    ///
+    /// `_detailed: bool` -- indicates whether to print a detailed report. Currently not used.
+    ///
+    /// # Returns
+    ///
+    /// None.
+    ///
+    /// # Errors
+    ///
+    /// None.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn print(&self, _detailed: bool) {
-        let unknown = "".to_string();
+        let unknown = String::new();
 
         println!(
             "\nFile:                  {}",
@@ -302,13 +359,13 @@ impl TCXActivity {
         );
         println!(
             "Max Cadence (bpm):    {:>9.1}",
-            self.maximum_cadence.unwrap_or_default() as f64
+            f64::from(self.maximum_cadence.unwrap_or_default())
         );
     }
 }
 
 impl Default for TCXActivity {
-    /// Sets up the ActivitiesSummary with defaults or empty fields
+    /// Sets up the `ActivitiesSummary` with defaults or empty fields
     fn default() -> Self {
         Self {
             filename: None,
@@ -349,16 +406,33 @@ impl Default for TCXActivitiesList {
 
 impl TCXActivitiesList {
     /// Create a new, empty `ActivitiesList`.
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             activities: Vec::new(),
         }
     }
 
     /// Export the activity summary as a JSON file
+    ///
+    /// # Arguments
+    ///
+    /// `filename: &str` -- The name of the file into which we're exporting.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if everything goes well.
+    ///
+    /// # Errors
+    ///
+    /// Errors if creating the file fails or the export fails.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export_json(&self, filename: &str) -> Result<(), Box<dyn Error>> {
         serde_json::to_writer_pretty(
-            &std::fs::File::create(&std::path::PathBuf::from(filename))?,
+            &std::fs::File::create(std::path::PathBuf::from(filename))?,
             &self,
         )?;
 
@@ -366,23 +440,33 @@ impl TCXActivitiesList {
     }
 
     /// Export the activity summary as a CSV file
+    ///
+    /// # Arguments
+    ///
+    /// `filename: &str` -- the
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if everything goes to plan.
+    ///
+    /// # Errors
+    ///
+    /// The `WriterBuilder` may fail. Serialization may fail. Writer flush may fail.
+    ///
+    /// # Panics
+    ///
+    /// None.
     pub fn export_csv(&self, filename: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV
         let outfile = PathBuf::from(filename);
         let mut writer = WriterBuilder::new().has_headers(true).from_path(&outfile)?;
 
-        for activity in self.activities.iter() {
-            log::trace!(
-                "ActivitiesList::export_csv() -- serializing: {:?}",
-                activity
-            );
-            writer.serialize(&activity)?;
+        for activity in &self.activities {
+            log::trace!("ActivitiesList::export_csv() -- serializing: {activity:?}");
+            writer.serialize(activity)?;
         }
 
-        log::trace!(
-            "ActivitiesList::export_csv() -- information to be written: {:?}",
-            writer
-        );
+        log::trace!("ActivitiesList::export_csv() -- information to be written: {writer:?}");
 
         // Write the file
         writer.flush()?;
@@ -508,7 +592,7 @@ mod tests {
 
         if let Some(activities) = tcdb.activities {
             act = TCXActivity::from_activities(&activities);
-            println!("act = {:?}", act);
+            println!("act = {act:?}");
         }
         act.filename = Some(filename.to_string());
 
@@ -542,18 +626,18 @@ mod tests {
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());
         assert_eq!(act.start_time.unwrap(), "2018-06-15T13:35:49Z".to_string());
-        assert_eq!(act.duration.unwrap().0.as_micros(), 1325444009);
+        assert_eq!(act.duration.unwrap().0.as_micros(), 1_325_444_009);
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);
         assert_eq!(act.num_trackpoints.unwrap(), 1325);
-        assert_eq!(act.distance_meters.unwrap(), 2963.318848);
-        assert_eq!(act.start_altitude.unwrap(), 107.041348);
-        assert_eq!(act.max_altitude.unwrap(), 133.028357);
-        assert_eq!(act.ascent_meters.unwrap(), 25.987009);
-        assert_eq!(act.average_speed.unwrap(), 2.2364670550943395);
-        assert_eq!(act.maximum_speed.unwrap(), 4.656036);
+        assert_eq!(act.distance_meters.unwrap(), 2_963.318_848);
+        assert_eq!(act.start_altitude.unwrap(), 107.041_348);
+        assert_eq!(act.max_altitude.unwrap(), 133.028_357);
+        assert_eq!(act.ascent_meters.unwrap(), 25.987_009);
+        assert_eq!(act.average_speed.unwrap(), 2.236_467_055_094_339_5);
+        assert_eq!(act.maximum_speed.unwrap(), 4.656_036);
         assert_eq!(act.calories.unwrap(), 338);
-        assert_eq!(act.average_heart_rate.unwrap(), 137.15622641509435);
+        assert_eq!(act.average_heart_rate.unwrap(), 137.156_226_415_094_35);
         assert_eq!(act.maximum_heart_rate.unwrap(), 170.0);
         assert_eq!(act.average_cadence.unwrap(), 0.0);
         assert_eq!(act.maximum_cadence.unwrap(), 0);

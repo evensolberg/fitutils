@@ -2,7 +2,7 @@
 use clap::{Arg, ArgMatches, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build_cli() -> ArgMatches {
+pub fn build() -> ArgMatches {
     Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())

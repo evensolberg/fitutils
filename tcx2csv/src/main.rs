@@ -10,13 +10,13 @@ mod cli;
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap() {
+    for argument in cli_args.values_of("read").unwrap_or_default() {
         log::trace!("main::run() -- Arguments: {:?}", argument);
     }
     // Find the name of the session output file
@@ -26,10 +26,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("main::run() -- session output file: {}", summaryfile);
 
     // Let the user know if we're writing
-    if !cli_args.is_present("detail-off") {
-        log::debug!("Writing summary and detail files.");
+    if cli_args.is_present("detail-off") {
+        log::debug!("Writing summary file {} only.", &summaryfile);
     } else {
-        log::debug!("Writing summary file {} only.", &summaryfile)
+        log::debug!("Writing summary and detail files.");
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,10 +38,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let mut act_list = TCXActivitiesList::new();
 
-    for filename in cli_args.values_of("read").unwrap() {
+    for filename in cli_args.values_of("read").unwrap_or_default() {
         log::info!("Processing file: {}", filename);
 
-        let mut tcdb = tcx::read(&mut BufReader::new(File::open(&filename).unwrap()))?;
+        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename).unwrap()))?;
         tcdb.calc_heartrates();
 
         // If -d then export the activity to JSON

@@ -1,6 +1,27 @@
 use std::{collections::HashMap, error::Error, path::Path};
 
 /// Renames the target file based on the provided patterntar
+///
+/// # Arguments
+///
+///
+///
+/// # Returns
+///
+///
+///
+/// # Errors
+///
+///
+///
+/// # Panics
+///
+///
+///
+/// # Examples
+///
+///
+///
 pub fn rename_file(
     filename: &str,
     pattern: &str,
@@ -43,7 +64,7 @@ pub fn rename_file(
             "{} already exists. Appending unique identifier.",
             new_filename
         );
-        new_filename = format!("{} ({})", new_filename, unique_val);
+        new_filename = format!("{new_filename} ({unique_val})");
         new_path =
             parent.join(Path::new(&new_filename).with_extension(crate::get_extension(filename)));
     }
@@ -53,7 +74,7 @@ pub fn rename_file(
         log::debug!("dr: {} --> {}", filename, new_path.display());
     } else {
         // Perform rename
-        let rn_res = std::fs::rename(&filename, &new_path);
+        let rn_res = std::fs::rename(filename, &new_path);
         match rn_res {
             Ok(_) => log::debug!("{} --> {}", filename, new_path.to_string_lossy()),
             Err(err) => {

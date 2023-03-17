@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Get the extension part of the filename and return it as a string
+#[must_use]
 pub fn get_extension(filename: &str) -> String {
     std::path::Path::new(&filename)
         .extension()
@@ -14,9 +15,10 @@ pub fn get_extension(filename: &str) -> String {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Change the file extension
+#[must_use]
 pub fn set_extension(filename: &str, extension: &str) -> String {
     let mut filename = PathBuf::from(&filename);
-    filename.set_extension(&extension);
+    filename.set_extension(extension);
 
     String::from(filename.as_os_str().to_str().unwrap_or("unknown"))
 }
