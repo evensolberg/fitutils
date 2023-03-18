@@ -7,6 +7,28 @@ use gpx::Gpx;
 use crate::GPXMetadata;
 
 /// Parses a GPX file and returns the relevant metadata
+///
+/// # Arguments
+///
+/// `filename: &str` - The name of the file to be read and fed into the `HashMap`
+///
+/// # Returns
+///
+/// `Result<HashMap<String, String>>` with key/value pairs on success.
+///
+/// # Errors
+///
+/// Reading the GPX file may fail.
+///
+/// # Panics
+///
+///
+///
+/// # Examples
+///
+///
+///
+#[allow(clippy::module_name_repetitions)]
 pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
     log::debug!("process_gpx::gpx = {:?}", gpx);

@@ -3,6 +3,7 @@ mod duration;
 mod extensions;
 mod fit;
 mod gpx;
+mod macros;
 mod rename_file;
 mod tcx;
 

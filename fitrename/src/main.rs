@@ -5,6 +5,8 @@ mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
+// This #allow is needed for Clippy to shut up. There has to be a bug in Clippy for this one.
+#[allow(clippy::unnecessary_wraps)]
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build();
@@ -14,7 +16,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     logbuilder.target(Target::Stdout).init();
 
     for argument in cli_args.values_of("read").unwrap_or_default() {
-        log::trace!("main::run() -- Arguments: {:?}", argument);
+        log::trace!("main::run() -- Arguments: {argument:?}");
     }
 
     let dry_run = cli_args.is_present("dry-run");
@@ -30,11 +32,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     ///////////////////////////////////
     // Working section
     for filename in cli_args.values_of("read").unwrap_or_default() {
-        log::debug!("Processing file: {}", filename);
+        log::debug!("Processing file: {filename}");
 
         // Check if the target file exists, otherwise just continue
         if !Path::new(&filename).exists() {
-            log::warn!("No such file or directory: {}", filename);
+            log::warn!("No such file or directory: {filename}");
             continue;
         }
 
@@ -43,15 +45,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         match utilities::get_extension(filename).as_ref() {
             "fit" => {
                 value_res = utilities::fit_to_hashmap(filename);
-                log::debug!("FIT: {:?}", value_res);
+                log::debug!("FIT: {value_res:?}");
             }
             "gpx" => {
                 value_res = utilities::gpx_to_hashmap(filename);
-                log::debug!("GPX: {:?}", value_res);
+                log::debug!("GPX: {value_res:?}");
             }
             "tcx" => {
                 value_res = utilities::tcx_to_hashmap(filename);
-                log::debug!("TCX: {:?}", value_res);
+                log::debug!("TCX: {value_res:?}");
             }
             _ => log::warn!("Unknown file type: {}.", &filename),
         }
@@ -65,25 +67,25 @@ fn run() -> Result<(), Box<dyn Error>> {
                 match result {
                     // How did the rename go?
                     Ok(result) => {
-                        log::info!("{} --> {}", filename, result);
+                        log::info!("{filename} --> {result}");
                         processed_files += 1;
                     }
                     Err(err) => {
-                        log::error!("Unable to rename {} : {}", filename, err.to_string());
+                        log::error!("Unable to rename {filename} : {}", err.to_string());
                         skipped_files += 1;
                     }
                 }
             }
             // Problem reading metadata - let the user know.
-            Err(err) => log::error!("Unable to process {} : {}", filename, err.to_string()),
+            Err(err) => log::error!("Unable to process {filename} : {}", err.to_string()),
         }
         total_files += 1;
     }
 
     if cli_args.is_present("print-summary") {
-        log::info!("Total files examined:        {:6}", total_files);
-        log::info!("Files processed:             {:6}", processed_files);
-        log::info!("Files skipped due to errors: {:6}", skipped_files);
+        log::info!("Total files examined:        {total_files:6}");
+        log::info!("Files processed:             {processed_files:6}");
+        log::info!("Files skipped due to errors: {skipped_files:6}");
     }
 
     // Everything is a-okay in the end

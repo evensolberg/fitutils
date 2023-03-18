@@ -17,13 +17,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     logbuilder.target(Target::Stdout).init();
 
     for argument in cli_args.values_of("read").unwrap_or_default() {
-        log::trace!("main::run() -- Arguments: {:?}", argument);
+        log::trace!("main::run() -- Arguments: {argument:?}");
     }
     // Find the name of the session output file
     let summaryfile = cli_args
         .value_of("summary-file")
         .unwrap_or("tcx-activities.csv");
-    log::trace!("main::run() -- session output file: {}", summaryfile);
+    log::trace!("main::run() -- session output file: {summaryfile}");
 
     // Let the user know if we're writing
     if cli_args.is_present("detail-off") {
@@ -39,9 +39,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut act_list = TCXActivitiesList::new();
 
     for filename in cli_args.values_of("read").unwrap_or_default() {
-        log::info!("Processing file: {}", filename);
+        log::info!("Processing file: {filename}");
 
-        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename).unwrap()))?;
+        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename)?))?;
         tcdb.calc_heartrates();
 
         // If -d then export the activity to JSON
@@ -49,24 +49,20 @@ fn run() -> Result<(), Box<dyn Error>> {
             let outfile = utilities::set_extension(filename, "json")
                 .as_str()
                 .to_owned();
-            log::trace!(
-                "main::run() -- Exporting {} to {} for debugging purposes.",
-                filename,
-                outfile
-            );
+            log::trace!("main::run() -- Exporting {filename} to {outfile} for debugging purposes.");
             tcdb.export_json(&outfile)?;
         }
 
-        log::trace!("main::run() -- tcxfile = {:?}", tcdb);
+        log::trace!("main::run() -- tcxfile = {tcdb:?}");
         if let Some(activities) = tcdb.activities {
             let mut curr_activities = TCXActivity::from_activities(&activities);
             let file_name = filename.to_string();
             curr_activities.filename = Some(file_name.clone());
 
-            log::trace!("main::run() -- activities summary: {:?}", curr_activities);
+            log::trace!("main::run() -- activities summary: {curr_activities:?}");
             if !cli_args.is_present("detail-off") {
                 // Export the activity summary to JSON
-                log::debug!("main::run() -- Writing activity summary for {}", file_name);
+                log::debug!("main::run() -- Writing activity summary for {file_name}");
                 curr_activities.export_json()?;
 
                 // Export the Trackpoints to CSV
@@ -85,7 +81,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         act_list.export_json(&utilities::set_extension(summaryfile, "json"))?;
     }
 
-    log::info!("Exporting summary CSV file: {}", summaryfile);
+    log::info!("Exporting summary CSV file: {summaryfile}");
     act_list.export_csv(summaryfile)?;
 
     // Everything is a-okay in the end

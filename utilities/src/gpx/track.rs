@@ -1,18 +1,19 @@
 //! Defines the `Track` struct which holds information about each track, including summary data and waypoint details.
 
 use serde::Serialize;
-use std::error::Error;
 use std::path::PathBuf;
 
 use chrono::{DateTime, Local, TimeZone};
 
 use crate::gpx::waypoint::GPXWaypoint;
-use crate::Duration;
+use crate::set_string_field; // from the macros crate
+use crate::Duration; // from the macros crate
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
 #[derive(Serialize, Debug)]
 #[serde(default)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXTrack {
     /// The original file name containing the track
     pub filename: Option<PathBuf>,
@@ -45,7 +46,7 @@ pub struct GPXTrack {
     pub links_text: Option<String>,
 
     /// Type (classification) of track.
-    pub _type: Option<String>,
+    pub t_type: Option<String>,
 
     /// Number of track segments within this track
     pub num_segments: usize,
@@ -98,25 +99,17 @@ impl GPXTrack {
     ///   let mut track = Track::from_gpx_track(&curr_track, filename);
     ///   ...
     /// ```
-    pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Result<Self, Box<dyn Error>> {
+    #[must_use]
+    #[allow(clippy::used_underscore_binding)]
+    pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Self {
         let mut dest = Self::new();
         dest.set_filename(filename);
 
-        if let Some(name) = &src.name {
-            dest.name = Some(name.to_string());
-        }
-        if let Some(comment) = &src.comment {
-            dest.comment = Some(comment.to_string());
-        }
-        if let Some(description) = &src.description {
-            dest.description = Some(description.to_string())
-        }
-        if let Some(source) = &src.source {
-            dest.source = Some(source.to_string());
-        }
-        if let Some(_type) = &src._type {
-            dest._type = Some(_type.to_string());
-        }
+        set_string_field!(src, name, dest);
+        set_string_field!(src, comment, dest);
+        set_string_field!(src, description, dest);
+        set_string_field!(src, source, dest);
+        set_string_field!(src, _type, dest, t_type);
 
         // See if we have links
         if !src.links.is_empty() {
@@ -149,17 +142,19 @@ impl GPXTrack {
                 .time
                 .unwrap_or_else(|| Local.timestamp(0, 0));
             dest.start_time = Some(t);
+            let t_new = Local.timestamp(0, 0);
             let t_last = &dest.waypoints[dest.num_waypoints - 1]
                 .time
                 .as_ref()
-                .unwrap();
-            let t_first = &dest.waypoints[0].time.as_ref().unwrap();
+                .unwrap_or(&t_new);
+            let t_empty = &Local.timestamp(0, 0);
+            let t_first = &dest.waypoints[0].time.as_ref().unwrap_or(t_empty);
 
             dest.duration = Some(Duration::between(t_first, t_last));
         }
 
         // return it
-        Ok(dest)
+        dest
     }
 }
 
@@ -177,7 +172,7 @@ impl Default for GPXTrack {
             source: None,
             links_href: None,
             links_text: None,
-            _type: None,
+            t_type: None,
             num_segments: 0,
             num_waypoints: 0,
             waypoints: Vec::new(),

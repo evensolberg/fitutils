@@ -75,7 +75,7 @@ impl GPXActivity {
         );
 
         for curr_track in gpx.tracks {
-            let mut track = GPXTrack::from_gpx_track(&curr_track, filename)?;
+            let mut track = GPXTrack::from_gpx_track(&curr_track, filename);
             track.track_num += 1;
             log::debug!(
                 "main::run() -- track::Number of segments: {} / waypoints: {}",

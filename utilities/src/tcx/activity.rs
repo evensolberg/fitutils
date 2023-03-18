@@ -98,7 +98,7 @@ impl TCXActivity {
     ///
     /// None.
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
-        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename).unwrap()))?;
+        let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename)?))?;
         tcdb.calc_heartrates();
 
         let mut act;

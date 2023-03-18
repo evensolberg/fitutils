@@ -2,11 +2,13 @@
 
 use chrono::{DateTime, Local, TimeZone};
 use serde::Serialize;
-// use gpx::Waypoint;
+
+use crate::set_string_field;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
 #[derive(Default, Clone, Debug, PartialEq, Serialize)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXWaypoint {
     /// Track number to which this waypoint belongs - `0` if part of Route or separate Waypoint.
     pub track_num: usize,
@@ -114,6 +116,7 @@ impl GPXWaypoint {
     }
 
     #[must_use]
+    #[allow(clippy::used_underscore_binding)]
     pub fn from_gpx_waypoint(src: &gpx::Waypoint) -> Self {
         let mut dest = Self::new();
 
@@ -125,21 +128,13 @@ impl GPXWaypoint {
 
         dest.time = Some(time_to_dt_local(src));
 
-        if let Some(name) = &src.name {
-            dest.name = Some(name.to_string());
-        }
-        if let Some(comment) = &src.comment {
-            dest.comment = Some(comment.to_string());
-        }
-        if let Some(description) = &src.description {
-            dest.description = Some(description.to_string());
-        }
-        if let Some(source) = &src.source {
-            dest.source = Some(source.to_string());
-        }
-        if let Some(symbol) = &src.symbol {
-            dest.symbol = Some(symbol.to_string());
-        }
+        set_string_field!(src, name, dest);
+        set_string_field!(src, comment, dest);
+        set_string_field!(src, description, dest);
+        set_string_field!(src, source, dest);
+        set_string_field!(src, symbol, dest);
+        set_string_field!(src, symbol, dest);
+
         if let Some(w_type) = &src._type {
             dest.w_type = Some(w_type.to_string());
         }
@@ -218,8 +213,7 @@ fn time_to_dt_local(src: &gpx::Waypoint) -> DateTime<Local> {
             let tf = tfs.to_string();
 
             DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
-                .unwrap()
-                .with_timezone(&Local)
+                .map_or_else(|_x| Local.timestamp(0, 0), |tp| tp.with_timezone(&Local))
         },
     )
 }
