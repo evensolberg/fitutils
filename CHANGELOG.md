@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Remove TimeStamp (#113)
 - Lint fixes
 - Clean up lints
+- Remove lint
 
 ### Build
 
