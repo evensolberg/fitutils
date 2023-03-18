@@ -1,9 +1,14 @@
 //! Defines the `Session` struct which holds summary information about the workout session, and associated functions.
 
 use crate::Duration;
-use crate::{fit::constfunc::*, FITHrZones};
+use crate::{
+    fit::constfunc::{
+        map_float64, map_sint32, map_string, map_uint16, map_uint8, LATLON_MULTIPLIER,
+    },
+    FITHrZones,
+};
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeZone};
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -25,6 +30,7 @@ use uom::si::{
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information about the workout session
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FITSession {
     pub filename: Option<String>, // TODO: Switch to PathBuf
     pub manufacturer: Option<String>,
@@ -66,56 +72,94 @@ pub struct FITSession {
 
 impl FITSession {
     /// Initialize Session with default empty values
+    #[must_use]
     pub fn new() -> Self {
-        FITSession::default()
+        Self::default()
     }
 
     /// Creates a new, empty session and seft the `filename` value to the filename supplied.
-    pub fn with_filename(filename: &str) -> Result<Self, Box<dyn Error>> {
+    ///
+    /// # Arguments
+    ///
+    /// `filename: &str` - The name of the file to be read.
+    ///
+    /// # Returns
+    ///
+    /// `Self` - A new `FITSession` with the file name field populated.
+    ///
+    /// # Errors
+    ///
+    ///
+    #[must_use]
+    pub fn with_filename(filename: &str) -> Self {
         let mut session = Self::new();
         session.filename = Some(filename.to_string());
 
-        Ok(session)
+        session
     }
 
     /// Output details about the session
     pub fn print_summary(&self) {
-        println!("\n{} summary:\n", self.filename.as_ref().unwrap());
+        let unknown = String::from("Unknown");
+
+        println!(
+            "\n{} summary:\n",
+            self.filename.as_ref().unwrap_or(&String::from(&unknown))
+        );
         println!(
             "Manufacturer: {}    Time created: {}",
-            self.manufacturer.as_ref().unwrap(),
-            self.time_created.as_ref().unwrap()
+            self.manufacturer.as_ref().unwrap_or(&unknown),
+            self.time_created.as_ref().unwrap_or(&Local.timestamp(0, 0))
         );
         println!(
             "Sessions: {}      Laps: {:2}      Records: {}",
-            self.num_sessions.unwrap(),
-            self.num_laps.unwrap(),
-            self.num_records.unwrap()
+            self.num_sessions.unwrap_or_default(),
+            self.num_laps.unwrap_or_default(),
+            self.num_records.unwrap_or_default()
         );
         println!(
             "Total duration:  {}      Calories Burned: {}",
-            self.duration.unwrap(),
-            self.calories.unwrap()
+            self.duration.unwrap_or_default(),
+            self.calories.unwrap_or_default()
         );
         println!("\nTime in Zones:");
-        println!("Speed/Power: {}", self.time_in_hr_zones.hr_zone_4.unwrap());
-        println!("Anaerobic:   {}", self.time_in_hr_zones.hr_zone_3.unwrap());
-        println!("Aerobic:     {}", self.time_in_hr_zones.hr_zone_2.unwrap());
-        println!("Fat Burning: {}", self.time_in_hr_zones.hr_zone_1.unwrap());
-        println!("Warmup:      {}", self.time_in_hr_zones.hr_zone_0.unwrap());
+        println!(
+            "Speed/Power: {}",
+            self.time_in_hr_zones.hr_zone_4.unwrap_or_default()
+        );
+        println!(
+            "Anaerobic:   {}",
+            self.time_in_hr_zones.hr_zone_3.unwrap_or_default()
+        );
+        println!(
+            "Aerobic:     {}",
+            self.time_in_hr_zones.hr_zone_2.unwrap_or_default()
+        );
+        println!(
+            "Fat Burning: {}",
+            self.time_in_hr_zones.hr_zone_1.unwrap_or_default()
+        );
+        println!(
+            "Warmup:      {}",
+            self.time_in_hr_zones.hr_zone_0.unwrap_or_default()
+        );
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Extract manufacturer and session creation time from the FIT data file header
     ///
-    /// **Parameters:**
+    /// # Arguments
     ///
     ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
     ///
-    /// **Returns:**
+    /// # Returns
     ///
     ///    `Result<(), Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
-    pub fn parse_header(&mut self, fields: &[FitDataField]) -> Result<(), Box<dyn Error>> {
+    ///
+    /// # Errors
+    ///
+    ///
+    pub fn parse_header(&mut self, fields: &[FitDataField]) {
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
 
@@ -128,9 +172,6 @@ impl FITSession {
         } else {
             self.time_created = None;
         }
-
-        // return safely
-        Ok(())
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +184,7 @@ impl FITSession {
     /// **Returns:**
     ///
     ///    `Result<(), Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
-    pub fn parse_session(&mut self, fields: &[FitDataField]) -> Result<(), Box<dyn Error>> {
+    pub fn parse_session(&mut self, fields: &[FitDataField]) {
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
         log::trace!(
@@ -251,23 +292,30 @@ impl FITSession {
         self.num_laps = field_map.get("num_laps").and_then(map_uint16);
 
         self.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
-
-        Ok(())
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Export the session information to a JSON file name based on the FIT file name.
     ///
-    /// **Returns:**
+    /// # Returns
     ///
-    ///    `Result<(), Box<dyn Error>>` -- OK if successful, propagates error handling up if something goes wrong.
+    /// `Ok(())` if successful.
+    ///
+    /// # Errors
+    ///
+    /// Writing the JSON could fail.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
-        let mut export_path = PathBuf::from(&self.filename.as_ref().unwrap());
+        let mut export_path = PathBuf::from(
+            &self
+                .filename
+                .as_ref()
+                .unwrap_or(&String::from("export-session.json")),
+        );
         export_path.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {}",
-            &export_path.to_str().unwrap()
+            &export_path.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Write the session data to JSON
@@ -283,7 +331,7 @@ impl FITSession {
 impl Default for FITSession {
     /// Set defaulft to be either empty or zero.
     fn default() -> Self {
-        FITSession {
+        Self {
             filename: None,
             manufacturer: None,
             product: None,

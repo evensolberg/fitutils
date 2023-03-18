@@ -2,6 +2,7 @@
 
 use crate::{FITLap, FITRecord, FITSession};
 
+use chrono::{Local, TimeZone};
 use csv::WriterBuilder;
 use fitparser::profile::field_types::MesgNum;
 use serde::{Deserialize, Serialize};
@@ -13,6 +14,7 @@ use std::path::PathBuf;
 /// Holds the all the information about a FIT file and its contents
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FITActivity {
     /// High-level session information and summary.
     pub session: FITSession,
@@ -24,6 +26,7 @@ pub struct FITActivity {
 
 impl FITActivity {
     /// Creates a new, empty `Activity`.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -39,6 +42,10 @@ impl FITActivity {
     ///
     ///    `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if successful, otherwise an `Error`.
     ///
+    /// # Errors
+    ///
+    /// Reading files may fail, extracting session data may fail, parsing headers may fail.
+    ///
     /// # Example
     ///
     ///   ```rust
@@ -46,13 +53,13 @@ impl FITActivity {
     ///
     ///    let my_activity = FITActivity::from_file("data/rowing.fit")?;
     ///   ```
-    pub fn from_file(filename: &str) -> Result<FITActivity, Box<dyn Error>> {
+    pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
         // open the file and deserialize it - return error if unable.
         let mut fp = File::open(filename)?;
         let file = fitparser::from_reader(&mut fp)?;
 
         // Create a bunch of placeholder variables.
-        let mut my_session = FITSession::with_filename(filename)?;
+        let mut my_session = FITSession::with_filename(filename);
         let mut num_records = 0;
         let mut num_sessions = 0;
         let mut lap_num = 0;
@@ -66,21 +73,21 @@ impl FITActivity {
                 // Figure out what kind it is and parse accordingly
                 MesgNum::FileId => {
                     // File header
-                    my_session.parse_header(data.fields())?;
+                    my_session.parse_header(data.fields());
                 }
                 MesgNum::Session => {
-                    my_session.parse_session(data.fields())?;
+                    my_session.parse_session(data.fields());
                     num_sessions += 1;
                     my_session.num_sessions = Some(num_sessions);
                 }
                 MesgNum::Lap => {
-                    let mut lap = FITLap::from_fit_lap(data.fields(), &my_session)?;
+                    let mut lap = FITLap::from_fit_lap(data.fields(), &my_session);
                     lap_num += 1;
                     lap.lap_num = Some(lap_num);
                     lap_vec.push(lap); // push the lap onto the vector
                 }
                 MesgNum::Record => {
-                    let record = FITRecord::from_fit_record(data.fields(), &my_session)?;
+                    let record = FITRecord::from_fit_record(data.fields(), &my_session);
                     records_vec.push(record);
                     num_records += 1;
                 }
@@ -92,7 +99,7 @@ impl FITActivity {
         my_session.num_records = Some(num_records);
 
         // Build and return the activity
-        Ok(FITActivity {
+        Ok(Self {
             session: my_session,
             laps: lap_vec,
             records: records_vec,
@@ -113,6 +120,10 @@ impl FITActivity {
     /// # Returns
     ///
     /// `Result<(), Box<dyn Error>>` -- OK if successful, `Error` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Writing various exports may result in errors.
     pub fn export(&self) -> Result<(), Box<dyn Error>> {
         self.session.export_json()?;
         Self::export_laps_csv(self)?;
@@ -132,20 +143,28 @@ impl FITActivity {
     /// # Returns
     ///
     /// `Result<(), Box<dyn Error>>` -- `Ok(())` if successful, `Error` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Writing the CSV may fail.
+    ///
+    /// # Panics
+    ///
+    /// If the outfile is blank, setting the extension may panic.
     pub fn export_laps_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
-        let mut outfile = PathBuf::from(&self.session.filename.as_ref().unwrap());
+        let mut outfile = PathBuf::from(&self.session.filename.as_ref().unwrap_or(&String::new()));
         outfile.set_extension("laps.csv");
         log::trace!(
             "exporter::export_laps_csv() -- Writing lap CSV file {}",
-            &outfile.to_str().unwrap()
+            &outfile.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Create a buffer for the CSV
         let mut lap_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
         // Write the header separately since types::Duration doesn't get serialized properly
-        lap_writer.write_record(&[
+        lap_writer.write_record([
             "filename",
             "lap_num",
             "cadence_avg_bpm",
@@ -180,7 +199,7 @@ impl FITActivity {
         ])?;
 
         // Now write the actual laps
-        for lap in self.laps.iter() {
+        for lap in &self.laps {
             lap_writer.serialize(lap)?;
         }
 
@@ -200,20 +219,30 @@ impl FITActivity {
     /// # Returns
     ///
     /// `Result<(), Box<dyn Error>>` -- `Ok(())` if successful, `Error` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Creating a buffer for the CSV may fail. Serializing may fail. Flushing may fail.
     pub fn export_records_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
-        let mut outfile = PathBuf::from(&self.session.filename.as_ref().unwrap());
+        let mut outfile = PathBuf::from(
+            &self
+                .session
+                .filename
+                .as_ref()
+                .unwrap_or(&String::from("export-records.csv")),
+        );
         outfile.set_extension("records.csv");
         log::trace!(
             "exporter::export_records_csv() -- Writing records CSV file {}",
-            &outfile.to_str().unwrap()
+            &outfile.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Create a buffer for the CSV
         let mut rec_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
         // Write the header separately since types::Duration doesn't get serialized properly
-        rec_writer.write_record(&[
+        rec_writer.write_record([
             "timestamp",
             "duration_sec",
             "distance_m",
@@ -230,7 +259,7 @@ impl FITActivity {
         ])?;
 
         // Now write the actual laps
-        for rec in self.records.iter() {
+        for rec in &self.records {
             rec_writer.serialize(rec)?;
         }
 
@@ -241,12 +270,13 @@ impl FITActivity {
     }
 
     /// Print the metadata header from the FIT file.
+    #[allow(clippy::too_many_lines)]
     pub fn print(&self, detailed: bool) {
-        let unknown = "".to_string();
+        let unknown = String::new();
 
         println!(
             "\nFile:                     {}",
-            self.session.filename.as_ref().unwrap()
+            self.session.filename.as_ref().unwrap_or(&unknown)
         );
         println!(
             "Manufacturer:             {}",
@@ -262,7 +292,10 @@ impl FITActivity {
         );
         println!(
             "Time created:             {}",
-            self.session.time_created.as_ref().unwrap()
+            self.session
+                .time_created
+                .as_ref()
+                .unwrap_or(&Local.timestamp(0, 0))
         );
         println!(
             "Activity type:            {}",
@@ -286,63 +319,61 @@ impl FITActivity {
         );
         println!(
             "Total duration:             {}",
-            self.session.duration.unwrap()
+            self.session.duration.unwrap_or_default()
         );
         println!(
             "Calories Burned:           {:>9.2}",
-            self.session.calories.unwrap_or_default() as f64
+            f64::from(self.session.calories.unwrap_or_default())
         );
 
         println!(
             "Cadence Avg:               {:>9.2}",
-            self.session.cadence_avg.unwrap_or_default() as f64
+            f64::from(self.session.cadence_avg.unwrap_or_default())
         );
         println!(
             "Cadence Max:               {:>9.2}",
-            self.session.cadence_max.unwrap_or_default() as f64
+            f64::from(self.session.cadence_max.unwrap_or_default())
         );
         println!(
             "Heart Rate Min:            {:>9.2}",
-            self.session.heartrate_min.unwrap_or_default() as f64
+            f64::from(self.session.heartrate_min.unwrap_or_default())
         );
         println!(
             "Heart Rate Avg:            {:>9.2}",
-            self.session.heartrate_avg.unwrap_or_default() as f64
+            f64::from(self.session.heartrate_avg.unwrap_or_default())
         );
         println!(
             "Heart Rate Max:            {:>9.2}",
-            self.session.heartrate_max.unwrap_or_default() as f64
+            f64::from(self.session.heartrate_max.unwrap_or_default())
         );
 
-        println!(
-            "Speed Avg (m/s):           {:>9.2}",
-            self.session.speed_avg.unwrap_or_default().value as f64
-        );
-        println!(
-            "Speed Max (m/s):           {:>9.2}",
-            self.session.speed_max.unwrap_or_default().value as f64
-        );
+        println!("Speed Avg (m/s):           {:>9.2}", {
+            self.session.speed_avg.unwrap_or_default().value
+        });
+        println!("Speed Max (m/s):           {:>9.2}", {
+            self.session.speed_max.unwrap_or_default().value
+        });
 
         println!(
             "Power Avg:                 {:>9.2}",
-            self.session.power_avg.unwrap_or_default() as f64
+            f64::from(self.session.power_avg.unwrap_or_default())
         );
         println!(
             "Power Max:                 {:>9.2}",
-            self.session.power_max.unwrap_or_default() as f64
+            f64::from(self.session.power_max.unwrap_or_default())
         );
         println!(
             "Power Threshold:           {:>9.2}",
-            self.session.power_threshold.unwrap_or_default() as f64
+            f64::from(self.session.power_threshold.unwrap_or_default())
         );
 
         println!(
             "Ascent (m):                {:>9.2}",
-            self.session.ascent.unwrap_or_default().value as f64
+            f64::from(self.session.ascent.unwrap_or_default().value)
         );
         println!(
             "Descent (m):               {:>9.2}",
-            self.session.descent.unwrap_or_default().value as f64
+            f64::from(self.session.descent.unwrap_or_default().value)
         );
         println!(
             "Distance (m):              {:>9.2}",
@@ -383,32 +414,38 @@ impl FITActivity {
             );
             println!(
                 "Start time:                 {}",
-                self.session.start_time.as_ref().unwrap()
+                self.session
+                    .start_time
+                    .as_ref()
+                    .unwrap_or(&Local.timestamp(0, 0))
             );
             println!(
                 "Finish time:                {}",
-                self.session.finish_time.as_ref().unwrap()
+                self.session
+                    .finish_time
+                    .as_ref()
+                    .unwrap_or(&Local.timestamp(0, 0))
             );
             println!("Time in Zones:");
             println!(
                 "  Speed/Power:              {}",
-                self.session.time_in_hr_zones.hr_zone_4.unwrap()
+                self.session.time_in_hr_zones.hr_zone_4.unwrap_or_default()
             );
             println!(
                 "  Anaerobic:                {}",
-                self.session.time_in_hr_zones.hr_zone_3.unwrap()
+                self.session.time_in_hr_zones.hr_zone_3.unwrap_or_default()
             );
             println!(
                 "  Aerobic:                  {}",
-                self.session.time_in_hr_zones.hr_zone_2.unwrap()
+                self.session.time_in_hr_zones.hr_zone_2.unwrap_or_default()
             );
             println!(
                 "  Fat Burning:              {}",
-                self.session.time_in_hr_zones.hr_zone_1.unwrap()
+                self.session.time_in_hr_zones.hr_zone_1.unwrap_or_default()
             );
             println!(
                 "  Warmup:                   {}",
-                self.session.time_in_hr_zones.hr_zone_0.unwrap()
+                self.session.time_in_hr_zones.hr_zone_0.unwrap_or_default()
             );
         }
     }
@@ -447,13 +484,10 @@ mod tests {
     /// test FITActivity::from_file()
     fn test_from_file() {
         let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit";
-        let act = FITActivity::from_file(&filename)?;
+        let act = FITActivity::from_file(filename)?;
 
         assert!(!act.laps.is_empty());
         assert!(!act.records.is_empty());
-        assert_eq!(
-            act.session.filename.unwrap().to_string(),
-            filename.to_string()
-        );
+        assert_eq!(act.session.filename.unwrap(), filename.to_string());
     }
 }

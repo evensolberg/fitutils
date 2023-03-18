@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// An external destource could be a web page, digital photo,
 /// video clip, etc., with additional information.
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXLink {
     /// URL of hyperlink.
     pub href: String,

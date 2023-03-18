@@ -8,6 +8,7 @@ use crate::FITActivity;
 
 /// Holds a list of all activities. Used to export session totals.
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FITActivities {
     /// A list of activities.
     pub activities_list: Vec<FITActivity>,
@@ -23,8 +24,9 @@ impl FITActivities {
     ///
     /// let activities = FITActivities::new();
     /// ```
+    #[must_use]
     pub fn new() -> Self {
-        FITActivities::default()
+        Self::default()
     }
 
     /// Export the summary list of session information to a CSV file.
@@ -36,6 +38,10 @@ impl FITActivities {
     /// # Returns
     ///
     /// `Result<(), Box<dyn Error>>`: Nothing if everying went OK, or an `Error` if not.
+    ///
+    /// # Errors
+    ///
+    /// Failure to open a new writer may result in an error.
     ///
     /// # Example
     ///
@@ -50,7 +56,7 @@ impl FITActivities {
             .from_path(&outfile)?;
 
         // Write the header separately since types::Duration doesn't get serialized properly
-        writer.write_record(&[
+        writer.write_record([
             "filename",
             "manufacturer",
             "product",
@@ -94,7 +100,7 @@ impl FITActivities {
         ])?;
 
         // Now write the actual laps
-        for activity in self.activities_list.iter() {
+        for activity in &self.activities_list {
             log::trace!(
                 "activities::export_summary_csv() -- serializing: {:?}",
                 activity

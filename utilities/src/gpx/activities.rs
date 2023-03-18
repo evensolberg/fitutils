@@ -8,6 +8,7 @@ use crate::gpx::activity::GPXActivity;
 
 /// Holds a list of all activities. Used to export session totals
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXActivities {
     /// A list of activities
     pub activities_list: Vec<GPXActivity>,
@@ -15,8 +16,9 @@ pub struct GPXActivities {
 
 impl GPXActivities {
     /// Create a new, empty Activities list
+    #[must_use]
     pub fn new() -> Self {
-        GPXActivities::default()
+        Self::default()
     }
 
     /// Export the list of session information to a CSV file
@@ -27,7 +29,11 @@ impl GPXActivities {
     ///
     /// # Returns
     ///
-    /// `Result<(), Box<dyn Error>> -- Returns `Ok(())` if everything went well, otherwise `Error.
+    /// `Ok(())` if everything went well.
+    ///
+    /// # Errors
+    ///
+    /// Creating a new `WriterBuilder` may fail. Serializing the activity data may fail. Flushing the writer may fail.
     ///
     /// # Example
     ///

@@ -44,13 +44,14 @@ pub struct FITHrZones {
 }
 
 impl FITHrZones {
-    /// Initialize HrZones with default empty (`None`) values
+    /// Initialize `HrZones` with default empty (`None`) values
+    #[must_use]
     pub fn new() -> Self {
-        FITHrZones::default()
+        Self::default()
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// Initialize HrZones from a HrZone array from the fitparser
+    /// Initialize `HrZones` from a `HrZone` array from the fitparser
     ///
     /// # Parameters
     ///
@@ -76,14 +77,14 @@ impl FITHrZones {
     ///
     /// Struct [`fitparser::Value`](https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html)
     pub fn from(src: Option<&&fitparser::Value>) -> Self {
-        let mut hr_zones = FITHrZones::new();
+        let mut hr_zones = Self::new();
 
         if let Some(fitparser::Value::Array(tihz_vec)) = src {
             // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
             // FIXME: There HAS to be a better way to get the value
             let t2: Vec<Duration> = tihz_vec
                 .iter()
-                .map(|x| x.to_string().parse::<u64>().unwrap())
+                .map(|x| x.to_string().parse::<u64>().unwrap_or_default())
                 .map(Duration::from_millis_u64)
                 .collect();
 
@@ -102,7 +103,7 @@ impl FITHrZones {
 impl Default for FITHrZones {
     /// Set each heart rate zone value to be `None`.
     fn default() -> Self {
-        FITHrZones {
+        Self {
             hr_zone_0: None,
             hr_zone_1: None,
             hr_zone_2: None,

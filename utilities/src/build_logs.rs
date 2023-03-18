@@ -1,6 +1,7 @@
 use env_logger::Builder;
 use log::LevelFilter;
 
+#[must_use]
 pub fn build_log(cli_args: &clap::ArgMatches) -> Builder {
     let mut logbuilder = Builder::new();
 

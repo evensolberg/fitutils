@@ -1,13 +1,12 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
-use crate::fit::constfunc::*;
+use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
 use crate::{Duration, FITHrZones, FITSession};
 
 use chrono::{DateTime, Local};
 use fitparser::FitDataField;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::error::Error;
 use uom::si::{
     f64::{Length as Length_f64, Velocity},
     length::meter,
@@ -19,6 +18,7 @@ use uom::si::{
 /// Summary information per lap
 #[derive(Serialize, Deserialize, Debug, Clone)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FITLap {
     /// The name of the .FIT file in which the lap information is found.
     pub filename: Option<String>,
@@ -104,6 +104,7 @@ pub struct FITLap {
 
 impl FITLap {
     /// Return a new, empty `Lap` struct
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -121,6 +122,10 @@ impl FITLap {
     ///
     /// `Result<Self, Box<dyn Error>>` -- Returns `Ok(Lap)` if everything went well, `Error` if not.
     ///
+    /// # Errors
+    ///
+    ///
+    ///
     /// # Example
     ///
     /// - Assume `my_session` has been parsed and filled already.
@@ -132,17 +137,14 @@ impl FITLap {
     /// # References
     ///
     /// Struct [`fitparser::FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
-    pub fn from_fit_lap(
-        fields: &[FitDataField],
-        session: &FITSession,
-    ) -> Result<Self, Box<dyn Error>> {
+    pub fn from_fit_lap(fields: &[FitDataField], session: &FITSession) -> Self {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
-        let mut lap = FITLap::new();
+        let mut lap = Self::new();
 
-        lap.filename = session.filename.to_owned();
+        lap.filename = session.filename.clone();
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -233,7 +235,7 @@ impl FITLap {
 
         lap.time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
 
-        Ok(lap)
+        lap
     }
 
     // end impl Lap
@@ -242,7 +244,7 @@ impl FITLap {
 impl Default for FITLap {
     /// Return a `Lap` struct with all empty values.
     fn default() -> Self {
-        FITLap {
+        Self {
             filename: None,
             lap_num: None,
             cadence_avg: None,

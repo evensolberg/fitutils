@@ -2,11 +2,13 @@
 
 use chrono::{DateTime, Local, TimeZone};
 use serde::Serialize;
-// use gpx::Waypoint;
+
+use crate::set_string_field;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Waypoint represents a waypoint, point of interest, or named feature on a map.
 #[derive(Default, Clone, Debug, PartialEq, Serialize)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXWaypoint {
     /// Track number to which this waypoint belongs - `0` if part of Route or separate Waypoint.
     pub track_num: usize,
@@ -70,7 +72,7 @@ pub struct GPXWaypoint {
     pub symbol: Option<String>,
 
     /// Type (classification) of the waypoint.
-    pub _type: Option<String>,
+    pub w_type: Option<String>,
 
     // <magvar> degreesType </magvar> [0..1] ?
     /// Height of geoid in meters above WGS 84. This cordestpond to the sea level.
@@ -108,10 +110,13 @@ pub struct GPXWaypoint {
 }
 
 impl GPXWaypoint {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
+    #[allow(clippy::used_underscore_binding)]
     pub fn from_gpx_waypoint(src: &gpx::Waypoint) -> Self {
         let mut dest = Self::new();
 
@@ -121,25 +126,17 @@ impl GPXWaypoint {
         dest.elevation = src.elevation;
         dest.speed = src.speed;
 
-        dest.time = Some(time_to_dt_local(&src));
+        dest.time = Some(time_to_dt_local(src));
 
-        if let Some(name) = &src.name {
-            dest.name = Some(name.to_string())
-        }
-        if let Some(comment) = &src.comment {
-            dest.comment = Some(comment.to_string())
-        }
-        if let Some(description) = &src.description {
-            dest.description = Some(description.to_string())
-        }
-        if let Some(source) = &src.source {
-            dest.source = Some(source.to_string())
-        }
-        if let Some(symbol) = &src.symbol {
-            dest.symbol = Some(symbol.to_string())
-        }
-        if let Some(_type) = &src._type {
-            dest._type = Some(_type.to_string())
+        set_string_field!(src, name, dest);
+        set_string_field!(src, comment, dest);
+        set_string_field!(src, description, dest);
+        set_string_field!(src, source, dest);
+        set_string_field!(src, symbol, dest);
+        set_string_field!(src, symbol, dest);
+
+        if let Some(w_type) = &src._type {
+            dest.w_type = Some(w_type.to_string());
         }
 
         if !src.links.is_empty() {
@@ -150,7 +147,7 @@ impl GPXWaypoint {
         }
 
         if let Some(fix) = &src.fix {
-            dest.fix = Some(fix_to_string(fix))
+            dest.fix = Some(fix_to_string(fix));
         }
 
         dest.sat = src.sat;
@@ -169,7 +166,7 @@ impl GPXWaypoint {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Converts the Gpx::Fix struct to a string for easier export
+/// Converts the `Gpx::Fix` struct to a string for easier export
 ///
 /// # Parameters
 ///
@@ -201,21 +198,22 @@ fn fix_to_string(src: &gpx::Fix) -> String {
         gpx::Fix::ThreeDimensional => "ThreeDimensional".to_string(),
         gpx::Fix::DGPS => "DGPS".to_string(),
         gpx::Fix::PPS => "PPS".to_string(),
-        gpx::Fix::Other(str) => format!("Other({})", str.to_owned()),
+        gpx::Fix::Other(str) => format!("Other({})", str.clone()),
     }
 }
 
-/// Converts gpx::parser::time::Time to DateTime<Local>
+/// Converts `gpx::parser::time::Time` to `DateTime`<Local>
 fn time_to_dt_local(src: &gpx::Waypoint) -> DateTime<Local> {
     // let t = src.time.unwrap().format().unwrap_or_default();
-    if let Some(t) = src.time {
-        let tfs = t.format("%FT%TZ%z");
-        let tf = tfs.to_string().clone();
 
-        DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
-            .unwrap()
-            .with_timezone(&Local)
-    } else {
-        Local.timestamp(0, 0)
-    }
+    src.time.map_or_else(
+        || Local.timestamp(0, 0),
+        |t| {
+            let tfs = t.format("%FT%TZ%z");
+            let tf = tfs.to_string();
+
+            DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
+                .map_or_else(|_x| Local.timestamp(0, 0), |tp| tp.with_timezone(&Local))
+        },
+    )
 }

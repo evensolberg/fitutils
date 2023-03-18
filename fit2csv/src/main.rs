@@ -8,28 +8,28 @@ mod cli;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
     // If tracing, output the names of the files being processed
-    for argument in cli_args.values_of("read").unwrap() {
-        log::trace!("main::run() -- Arguments: {:?}", argument);
+    for argument in cli_args.values_of("read").unwrap_or_default() {
+        log::trace!("main::run() -- Arguments: {argument:?}");
     }
 
     // Find the name of the session output file
     let sessionfile = cli_args
         .value_of("summary-file")
         .unwrap_or("fit-sessions.csv");
-    log::debug!("main::run() -- session output file: {}", sessionfile);
+    log::debug!("main::run() -- session output file: {sessionfile}");
 
     // Let the user know if we're writing
-    if !cli_args.is_present("detail-off") {
-        log::info!("Writing detail files.");
+    if cli_args.is_present("detail-off") {
+        log::info!("Writing summary file {} only.", &sessionfile);
     } else {
-        log::info!("Writing summary file {} only.", &sessionfile)
+        log::info!("Writing detail files.");
     }
 
     ///////////////////////////////////
@@ -38,8 +38,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Create an empty placeholder for all the activities
     let mut activities = FITActivities::new();
 
-    for filename in cli_args.values_of("read").unwrap() {
-        log::info!("Processing file: {}", filename);
+    for filename in cli_args.values_of("read").unwrap_or_default() {
+        log::info!("Processing file: {filename}");
 
         // Parse the FIT file
         let activity = FITActivity::from_file(filename)?;

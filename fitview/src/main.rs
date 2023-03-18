@@ -8,13 +8,13 @@ mod cli;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap() {
+    for argument in cli_args.values_of("read").unwrap_or_default() {
         log::trace!("main::run() -- Arguments: {:?}", argument);
     }
 
@@ -25,7 +25,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let detailed = cli_args.is_present("print-detail");
 
     // The good stuff goes here
-    for filename in cli_args.values_of("read").unwrap() {
+    for filename in cli_args.values_of("read").unwrap_or_default() {
         log::debug!("Processing file: {}", filename);
         match utilities::get_extension(filename).as_ref() {
             "fit" => {

@@ -54,13 +54,16 @@ pub struct TCXTrackpoint {
 }
 
 impl TCXTrackpoint {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
+}
 
-    pub fn default() -> Self {
+impl Default for TCXTrackpoint {
+    fn default() -> Self {
         Self {
-            sport: "".to_string(),
+            sport: String::new(),
             start_time: Local.timestamp(0, 0),
             time: Local.timestamp(0, 0),
             duration: Duration::default(),
@@ -86,12 +89,14 @@ pub struct TCXTrackpointList {
 }
 
 impl TCXTrackpointList {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             trackpoints: Vec::new(),
         }
     }
 
+    #[must_use]
     pub fn from_activities(activities: &tcx::Activities) -> Self {
         let mut tpl = Self::new();
 
@@ -102,25 +107,25 @@ impl TCXTrackpointList {
             let mut l_num = 0;
             for lap in &activity.laps {
                 l_num += 1;
-                let mut t_num = 0;
+                let mut track_num = 0;
                 for track in &lap.tracks {
-                    t_num += 1;
-                    let mut tp_num = 0;
+                    track_num += 1;
+                    let mut trackpoint_num = 0;
                     for trackpoint in &track.trackpoints {
-                        tp_num += 1;
+                        trackpoint_num += 1;
 
                         // Extract a new Trackpoint
                         let mut tp = TCXTrackpoint::new();
                         tp.sport = activity.sport.clone();
                         tp.start_time = DateTime::parse_from_rfc3339(&activity.id)
-                            .unwrap_or(Local.timestamp(0, 0).into())
+                            .unwrap_or_else(|_| Local.timestamp(0, 0).into())
                             .into();
-                        tp.time = DateTime::from(trackpoint.time.with_timezone(&chrono::Local));
+                        tp.time = trackpoint.time.with_timezone(&chrono::Local);
                         tp.duration = Duration::between(&tp.start_time, &tp.time);
                         tp.activity_num = a_num;
                         tp.lap_num = l_num;
-                        tp.track_num = t_num;
-                        tp.trackpoint_num = tp_num;
+                        tp.track_num = track_num;
+                        tp.trackpoint_num = trackpoint_num;
                         if let Some(pos) = &trackpoint.position {
                             tp.latitude = Some(pos.latitude);
                             tp.longitude = Some(pos.longitude);
@@ -146,6 +151,27 @@ impl TCXTrackpointList {
     }
 
     /// Export the activity summary as a CSV file
+    ///
+    /// # Arguments
+    ///
+    /// `filename: &str` -- the filename into which the contents are to be exported.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if everything went well.
+    ///
+    /// # Errors
+    ///
+    /// The `WriterBuilder` may fail. Serialization may fail. Writer flush may fail.
+    ///
+    /// # Panics
+    ///
+    ///
+    ///
+    /// # Examples
+    ///
+    ///
+    ///
     pub fn export_csv(&self, filename: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV
         let outfile = PathBuf::from(filename);
@@ -153,7 +179,7 @@ impl TCXTrackpointList {
             .has_headers(false)
             .from_path(&outfile)?;
 
-        writer.write_record(&[
+        writer.write_record([
             "sport",
             "start_time",
             "time",
@@ -170,18 +196,12 @@ impl TCXTrackpointList {
             "cadence",
         ])?;
 
-        for trackpoint in self.trackpoints.iter() {
-            log::trace!(
-                "TrackpointsList::export_csv() -- serializing: {:?}",
-                trackpoint
-            );
-            writer.serialize(&trackpoint)?;
+        for trackpoint in &self.trackpoints {
+            log::trace!("TrackpointsList::export_csv() -- serializing: {trackpoint:?}");
+            writer.serialize(trackpoint)?;
         }
 
-        log::trace!(
-            "TrackpointsList::export_csv() -- information to be written: {:?}",
-            writer
-        );
+        log::trace!("TrackpointsList::export_csv() -- information to be written: {writer:?}");
 
         // Write the file
         writer.flush()?;

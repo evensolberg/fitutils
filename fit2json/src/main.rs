@@ -55,7 +55,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut all_fit_data: Vec<fitparser::FitDataRecord> = Vec::new();
     for file in opt.files {
         // open file and parse data
-        log::info!("Processing file: {}", &file.to_str().unwrap());
+        log::info!("Processing file: {}", &file.to_str().unwrap_or_default());
         let mut fp = File::open(&file)?;
         let mut data = fitparser::from_reader(&mut fp)?;
 

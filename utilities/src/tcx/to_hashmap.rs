@@ -4,20 +4,38 @@ use crate::TCXActivity;
 use chrono::{DateTime, Datelike, Timelike};
 use convert_case::{Case, Casing};
 
+/// Iterates through a TCX file and saves the information to a `HashMap`
+///
+/// # Arguments
+///
+/// `filename: &str` -- the name of the TCX file to be processed.
+///
+/// # Returns
+///
+/// `HashMap(String, String)` containing key (manufacturer, product, etc.)/value mappings.
+///
+/// # Errors
+///
+/// Opening the file may fail.
+///
+/// # Panics
+///
+/// None.
+#[allow(clippy::module_name_repetitions)]
 pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
 
     // Make sure we can open the file correctly
     let tcdb = match tcx::read_file(filename) {
         Ok(res) => res,
-        Err(err) => return Err(format!("Unable to open {}. Error: {}", filename, err).into()),
+        Err(err) => return Err(format!("Unable to open {filename}. Error: {err}").into()),
     };
 
     if let Some(activities) = tcdb.activities {
         let mut act = TCXActivity::from_activities(&activities);
         act.filename = Some(filename.to_string());
 
-        log::debug!("act = {:?}", act);
+        log::debug!("act = {act:?}");
 
         // Insert values into HashMap
         // Insert "unknown" into all the fields that don't have a corresponding field in the TCX.
@@ -56,7 +74,7 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
             values.insert("%h24".to_string(), format!("{:02}", tc.hour()));
 
             let (am, hrs) = tc.hour12();
-            let hr = format!("{:02}", hrs);
+            let hr = format!("{hrs:02}");
             values.insert("%hour12".to_string(), hr.clone());
             values.insert("%h12".to_string(), hr);
             if am {
@@ -123,7 +141,7 @@ mod tests {
         let tm = tcx_to_hashmap(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture
-        println!("tm = {:?}", tm);
+        println!("tm = {tm:?}");
         println!("tm.len() = {}", tm.len());
 
         // Perform the actual tests

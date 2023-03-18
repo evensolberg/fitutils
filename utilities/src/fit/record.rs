@@ -1,6 +1,6 @@
 //! Defines the `Record` struct which contains detailed information about each record/data point in the workout session.
 
-use crate::fit::constfunc::*;
+use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
 use crate::fit::session::FITSession;
 use crate::Duration;
 
@@ -9,7 +9,6 @@ use chrono::{DateTime, Local, TimeZone};
 use fitparser::{FitDataField, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::error::Error;
 use uom::si::f64::{Length as Length_f64, Velocity};
 use uom::si::{length::meter, velocity::meter_per_second};
 
@@ -17,6 +16,7 @@ use uom::si::{length::meter, velocity::meter_per_second};
 /// Detailed information about each record/data point in the workout session.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FITRecord {
     /// Record timestamp.
     pub timestamp: Option<DateTime<Local>>,
@@ -60,6 +60,7 @@ pub struct FITRecord {
 
 impl FITRecord {
     /// Return a new, empty Record
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -89,16 +90,13 @@ impl FITRecord {
     /// # References
     ///
     /// Struct [`FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
-    pub fn from_fit_record(
-        fields: &[FitDataField],
-        session: &FITSession,
-    ) -> Result<FITRecord, Box<dyn Error>> {
+    pub fn from_fit_record(fields: &[FitDataField], session: &FITSession) -> Self {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
 
-        let mut record = FITRecord::new();
+        let mut record = Self::new();
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -106,13 +104,18 @@ impl FITRecord {
         if let Some(Value::Timestamp(ts)) = field_map.get("timestamp") {
             record.timestamp = Some(*ts);
         } else {
-            record.timestamp = Some(Local.timestamp(0, 0));
+            record.timestamp = None;
         }
 
-        let duration = record
-            .timestamp
-            .as_ref()
-            .map(|x| Duration::between(x, session.time_created.as_ref().unwrap()));
+        let duration = record.timestamp.as_ref().map(|x| {
+            Duration::between(
+                x,
+                session
+                    .time_created
+                    .as_ref()
+                    .unwrap_or(&Local.timestamp(0, 0)),
+            )
+        });
 
         record.duration = duration;
 
@@ -150,7 +153,7 @@ impl FITRecord {
             .and_then(map_sint32)
             .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 
-        Ok(record)
+        record
     }
 }
 

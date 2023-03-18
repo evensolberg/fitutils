@@ -5,6 +5,23 @@ use fitparser::profile::field_types::MesgNum;
 use std::{collections::HashMap, error::Error, fs::File};
 
 /// Process a .FIT file and return the results
+///
+/// # Arguments
+///
+/// `filename: &str` -- The name of the FIT file to be read
+///
+/// # Returns
+///
+/// A `Result<HashMap<String, String>>` - a `HashMap` with mappings of keys (i.e., manufacturer, activity, etc.) and values.
+///
+/// # Errors
+///
+/// Reading the file may fail.
+///
+/// # Panics
+///
+/// None.
+#[allow(clippy::module_name_repetitions, clippy::too_many_lines)]
 pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut values = HashMap::<String, String>::new();
 
@@ -13,7 +30,7 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
     let file = fitparser::from_reader(&mut fp)?;
 
     // Create a bunch of placeholder variables.
-    let mut my_session = FITSession::with_filename(filename)?;
+    let mut my_session = FITSession::with_filename(filename);
     let mut num_sessions = 0;
 
     // This is where the actual parsing happens
@@ -23,10 +40,10 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
             // Figure out what kind it is and parse accordingly
             MesgNum::FileId => {
                 // File header
-                my_session.parse_header(data.fields())?;
+                my_session.parse_header(data.fields());
             }
             MesgNum::Session => {
-                my_session.parse_session(data.fields())?;
+                my_session.parse_session(data.fields());
                 num_sessions += 1;
                 my_session.num_sessions = Some(num_sessions);
             }
@@ -83,7 +100,7 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         values.insert("%h24".to_string(), format!("{:02}", tc.hour()));
 
         let (am, hrs) = tc.hour12();
-        let hr = format!("{:02}", hrs);
+        let hr = format!("{hrs:02}");
         values.insert("%hour12".to_string(), hr.clone());
         values.insert("%h12".to_string(), hr);
         if am {
@@ -147,7 +164,7 @@ mod tests {
         let fm = fit_to_hashmap(filename).unwrap();
 
         // File contents only get printed if run with cargo test -- --nocapture
-        println!("tm = {:?}", fm);
+        println!("tm = {fm:?}");
         println!("tm.len() = {}", fm.len());
     }
 }

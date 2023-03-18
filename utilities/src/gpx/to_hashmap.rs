@@ -7,10 +7,32 @@ use gpx::Gpx;
 use crate::GPXMetadata;
 
 /// Parses a GPX file and returns the relevant metadata
+///
+/// # Arguments
+///
+/// `filename: &str` - The name of the file to be read and fed into the `HashMap`
+///
+/// # Returns
+///
+/// `Result<HashMap<String, String>>` with key/value pairs on success.
+///
+/// # Errors
+///
+/// Reading the GPX file may fail.
+///
+/// # Panics
+///
+///
+///
+/// # Examples
+///
+///
+///
+#[allow(clippy::module_name_repetitions)]
 pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let gpx: Gpx = gpx::read(BufReader::new(File::open(&filename)?))?;
+    let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
     log::debug!("process_gpx::gpx = {:?}", gpx);
-    let gpxmeta = GPXMetadata::from_header(&gpx, filename)?;
+    let gpxmeta = GPXMetadata::from_header(&gpx, filename);
     log::debug!("process_gpx::gpxmeta = {:?}", gpxmeta);
 
     let mut values = HashMap::<String, String>::new();
@@ -58,7 +80,7 @@ pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         values.insert("%h24".to_string(), format!("{:02}", tc.hour()));
 
         let (am, hrs) = tc.hour12();
-        let hr = format!("{:02}", hrs);
+        let hr = format!("{hrs:02}");
         values.insert("%hour12".to_string(), hr.clone());
         values.insert("%h12".to_string(), hr);
         if am {

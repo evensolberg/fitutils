@@ -5,6 +5,7 @@ use crate::gpx::{link::GPXLink, waypoint::GPXWaypoint};
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Route repdestents an ordered list of waypoints representing a series of turn points leading to a destination.
 #[derive(Clone, Default, Debug, PartialEq, Serialize)]
+#[allow(clippy::module_name_repetitions)]
 pub struct GPXRoute {
     pub name: Option<String>,
     pub comment: Option<String>,

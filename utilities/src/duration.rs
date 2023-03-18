@@ -9,31 +9,35 @@ use std::ops::{Add, AddAssign, Sub};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Wrapper for `std::time::Duration` so we can derive Serialize and Deserialize traits
-#[derive(Deserialize, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
+#[derive(Deserialize, PartialEq, Eq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Duration(pub std::time::Duration);
 
 impl Duration {
     /// Get duration from seconds.
+    #[must_use]
     pub fn from_secs_f64(secs: f64) -> Self {
-        Duration(std::time::Duration::from_secs_f64(secs))
+        Self(std::time::Duration::from_secs_f64(secs))
     }
 
     #[allow(dead_code)]
     /// Get duration from milliseconds (u64).
-    pub fn from_millis_u64(millis: u64) -> Self {
-        Duration(std::time::Duration::from_millis(millis))
+    #[must_use]
+    pub const fn from_millis_u64(millis: u64) -> Self {
+        Self(std::time::Duration::from_millis(millis))
     }
 
     #[allow(dead_code)]
     /// Get duration from milliseconds (u32).
+    #[must_use]
     pub fn from_millis_u32(millis: u32) -> Self {
-        Duration(std::time::Duration::from_millis(millis as u64))
+        Self(std::time::Duration::from_millis(u64::from(millis)))
     }
 
-    /// Calculate the duration between two TimeStamps, regardless of which comes first.
+    /// Calculate the duration between two `TimeStamps`, regardless of which comes first.
+    #[must_use]
     pub fn between(ts1: &DateTime<Local>, ts2: &DateTime<Local>) -> Self {
         log::trace!("types::Duration::between() -- ts1: {ts1:?} -- ts2: {ts2:?}");
-        Duration(if ts2 > ts1 {
+        Self(if ts2 > ts1 {
             // ts2 is after ts1
             log::trace!("types::Duration::between() -- ts2 > ts1");
             chrono::Duration::to_std(&ts2.signed_duration_since(ts1.with_timezone(&Local)))
@@ -49,8 +53,8 @@ impl Duration {
 impl Add for Duration {
     type Output = Self;
     /// Implements the `+` operation for Duration.
-    fn add(self, rhs: Duration) -> Self::Output {
-        Duration(
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(
             self.0
                 .checked_add(rhs.0)
                 .expect("overflow when adding durations."),
@@ -60,16 +64,16 @@ impl Add for Duration {
 
 impl AddAssign for Duration {
     /// Implements the `+=` operation for Duration.
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: Self) {
         self.0 = self.0 + rhs.0;
     }
 }
 
 impl Sub for Duration {
-    type Output = Duration;
+    type Output = Self;
     /// Implements the `-` operation for Duration.
-    fn sub(self, rhs: Duration) -> Duration {
-        Duration(
+    fn sub(self, rhs: Self) -> Self {
+        Self(
             self.0
                 .checked_sub(rhs.0)
                 .expect("overflow when subtracting durations"),
@@ -83,7 +87,7 @@ impl std::fmt::Display for Duration {
         let s = self.0.as_secs();
         let (h, s) = (s / 3600, s % 3600);
         let (m, s) = (s / 60, s % 60);
-        write!(f, "{:02}:{:02}:{:02}", h, m, s)
+        write!(f, "{h:02}:{m:02}:{s:02}")
     }
 }
 
@@ -118,7 +122,7 @@ mod tests {
         let dur = Duration::from_millis_u64(123_123);
 
         assert_eq!(dur.0.as_secs(), 123);
-        assert_eq!(dur.0.as_secs_f32(), 123.123 as f32);
+        assert_eq!(dur.0.as_secs_f32(), 123.123_f32);
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
@@ -127,7 +131,7 @@ mod tests {
         let dur = Duration::from_millis_u32(123_123);
 
         assert_eq!(dur.0.as_secs(), 123);
-        assert_eq!(dur.0.as_secs_f32(), 123.123 as f32);
+        assert_eq!(dur.0.as_secs_f32(), 123.123_f32);
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
@@ -138,7 +142,7 @@ mod tests {
         let t2 = Local::now();
         let b1 = Duration::between(&t1, &t2);
         let b2 = Duration::between(&t2, &t1);
-        println!("b1 = {}, b2 = {}", b1, b2);
+        println!("b1 = {b1}, b2 = {b2}");
 
         assert_eq!(b1.to_string(), "00:00:01".to_string());
         assert_eq!(b2.to_string(), "00:00:01".to_string());
@@ -282,8 +286,8 @@ mod tests {
     ///
     fn test_display() {
         let d1 = Duration::from_secs_f64(3750.2);
-        println!("d1 = {}", d1);
+        println!("d1 = {d1}");
 
-        assert_eq!(format!("{}", d1), "01:02:30");
+        assert_eq!(format!("{d1}"), "01:02:30");
     }
 }

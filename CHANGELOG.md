@@ -26,6 +26,10 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - More commonalities and simplification
+- Remove TimeStamp (#113)
+- Lint fixes
+- Clean up lints
+- Remove lint
 
 ### Build
 
