@@ -11,9 +11,9 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 # chrono = "0.4.19"
-clap = { version = "4.1.9", features = ["cargo", "wrap_help", "env"] }
+clap = { version = "4.1.13", features = ["cargo", "wrap_help", "env"] }
 env_logger = "0.10.0"
-log = "0.4.16"
+log = "0.4.17"
 tcx = "0.9.3"
 
 # Our own crate

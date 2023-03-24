@@ -10,10 +10,10 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "0.4.19", features = ["serde"] }
-clap = { version = "4.1.9", features = ["cargo", "wrap_help", "env"] }
+chrono = { version = "0.4.24", features = ["serde"] }
+clap = { version = "4.1.13", features = ["cargo", "wrap_help", "env"] }
 env_logger = "0.10.0"
-log = "0.4.16"
+log = "0.4.17"
 
 # Our own package
 utilities = { path = "../utilities" }
