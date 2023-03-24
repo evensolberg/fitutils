@@ -2,6 +2,8 @@ use env_logger::Target;
 use std::error::Error;
 use utilities::{FITActivities, FITActivity};
 
+use clap::parser::ValueSource;
+
 mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,19 +17,25 @@ fn run() -> Result<(), Box<dyn Error>> {
     logbuilder.target(Target::Stdout).init();
 
     // If tracing, output the names of the files being processed
-    for argument in cli_args.values_of("read").unwrap_or_default() {
+    for argument in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::trace!("main::run() -- Arguments: {argument:?}");
     }
 
     // Find the name of the session output file
+    let session_file_name = String::from("fit-sessions.csv");
     let sessionfile = cli_args
-        .value_of("summary-file")
-        .unwrap_or("fit-sessions.csv");
+        .get_one::<String>("summary-file")
+        .unwrap_or(&session_file_name)
+        .as_str();
     log::debug!("main::run() -- session output file: {sessionfile}");
 
     // Let the user know if we're writing
-    if cli_args.is_present("detail-off") {
-        log::info!("Writing summary file {} only.", &sessionfile);
+    if cli_args.value_source("detail-off") == Some(ValueSource::CommandLine) {
+        log::info!("Writing summary file {sessionfile} only.");
     } else {
         log::info!("Writing detail files.");
     }
@@ -38,19 +46,23 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Create an empty placeholder for all the activities
     let mut activities = FITActivities::new();
 
-    for filename in cli_args.values_of("read").unwrap_or_default() {
+    for filename in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::info!("Processing file: {filename}");
 
         // Parse the FIT file
         let activity = FITActivity::from_file(filename)?;
 
         // Output the files
-        if cli_args.is_present("print-summary") {
+        if cli_args.value_source("print-summary") == Some(ValueSource::CommandLine) {
             activity.session.print_summary();
         }
 
         // Export the data if requested
-        if !cli_args.is_present("detail-off") {
+        if cli_args.value_source("detail-off") != Some(ValueSource::CommandLine) {
             activity.export()?;
         }
 
@@ -59,8 +71,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Export the summary information
-    if cli_args.is_present("summary-file") {
-        log::info!("Summary information written to: {}", &sessionfile);
+    if cli_args.value_source("summary-file") == Some(ValueSource::CommandLine) {
+        log::info!("Summary information written to: {sessionfile}");
         activities.export_summary_csv(sessionfile)?;
     }
 

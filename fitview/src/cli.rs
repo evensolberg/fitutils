@@ -1,5 +1,5 @@
 //! Contains a single function to build the CLI
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
 pub fn build() -> ArgMatches {
@@ -12,17 +12,18 @@ pub fn build() -> ArgMatches {
             Arg::new("read")
                 .value_name("FILE(S)")
                 .help("One or more .fit, .gpx or .tcx file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.gpx) are supported.")
-                .takes_value(true)
+                .num_args(1..)
                 .required(true)
-                .multiple_occurrences(true),
+                .action(ArgAction::Append)
         )
         .arg( // Hidden debug parameter
             Arg::new("debug")
                 .short('d')
                 .long("debug")
                 .help("Output debug information as we go. Supply it twice for trace-level logs.")
-                .multiple_occurrences(true)
-                .takes_value(false)
+                .env("FIT_DEBUG")
+                .num_args(0)
+                .action(ArgAction::SetTrue)
                 .hide(true),
         )
         .arg( // Print summary information
@@ -30,24 +31,22 @@ pub fn build() -> ArgMatches {
                 .short('s')
                 .long("print-summary")
                 .help("Print a summary of the number of files processed, errors, etc.")
-                .multiple_occurrences(false)
-                .takes_value(false)
+                .num_args(0)
         )
         .arg( // Print summary information
             Arg::new("print-detail")
                 .short('l')
                 .long("print-detail")
                 .help("Print more detail for each file processed.")
-                .multiple_occurrences(false)
-                .takes_value(false)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Don't print any information
             Arg::new("quiet")
                 .short('q')
                 .long("quiet")
-                .multiple_occurrences(false)
                 .help("Don't produce any output except errors while working.")
-                .takes_value(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
                 .hide(true)
         )
         .get_matches()

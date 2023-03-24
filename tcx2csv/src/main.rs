@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 
+use clap::parser::ValueSource;
 use utilities::{TCXActivitiesList, TCXActivity, TCXTrackpointList};
 
 mod cli;
@@ -16,17 +17,23 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap_or_default() {
+    for argument in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::trace!("main::run() -- Arguments: {argument:?}");
     }
     // Find the name of the session output file
+    let summary_file_name = String::from("tcx-activities.csv");
     let summaryfile = cli_args
-        .value_of("summary-file")
-        .unwrap_or("tcx-activities.csv");
+        .get_one::<String>("summary-file")
+        .unwrap_or(&summary_file_name)
+        .as_str();
     log::trace!("main::run() -- session output file: {summaryfile}");
 
     // Let the user know if we're writing
-    if cli_args.is_present("detail-off") {
+    if cli_args.value_source("detail-off") == Some(ValueSource::CommandLine) {
         log::debug!("Writing summary file {} only.", &summaryfile);
     } else {
         log::debug!("Writing summary and detail files.");
@@ -38,14 +45,20 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let mut act_list = TCXActivitiesList::new();
 
-    for filename in cli_args.values_of("read").unwrap_or_default() {
+    for filename in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::info!("Processing file: {filename}");
 
         let mut tcdb = tcx::read(&mut BufReader::new(File::open(filename)?))?;
         tcdb.calc_heartrates();
 
         // If -d then export the activity to JSON
-        if cli_args.is_present("debug") {
+        if cli_args.value_source("debug") == Some(ValueSource::CommandLine)
+            || cli_args.value_source("debug") == Some(ValueSource::EnvVariable)
+        {
             let outfile = utilities::set_extension(filename, "json")
                 .as_str()
                 .to_owned();
@@ -60,7 +73,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             curr_activities.filename = Some(file_name.clone());
 
             log::trace!("main::run() -- activities summary: {curr_activities:?}");
-            if !cli_args.is_present("detail-off") {
+            if cli_args.value_source("detail-off") != Some(ValueSource::CommandLine) {
                 // Export the activity summary to JSON
                 log::debug!("main::run() -- Writing activity summary for {file_name}");
                 curr_activities.export_json()?;
@@ -76,7 +89,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // If we're tracing, export the summary in JSON format
-    if cli_args.occurrences_of("debug") > 1 {
+    if cli_args.get_count("debug") > 1 {
         log::trace!("main::run() -- Exporting summary JSON file.");
         act_list.export_json(&utilities::set_extension(summaryfile, "json"))?;
     }

@@ -1,6 +1,6 @@
 [package]
 name = "utilities"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Shared utility types and functions for the fitness utilities."
 license = "Apache-2.0"
@@ -19,7 +19,7 @@ env_logger = "0.10.0"
 log = "0.4.16"
 csv = "1.1.6"
 convert_case = "0.6.0"
-clap = { version = "3.1.12", features = ["cargo", "color"] }
+clap = { version = "4.1.9", features = ["cargo", "wrap_help"] }
 
 # Fitness
 fitparser = "0.5.0"

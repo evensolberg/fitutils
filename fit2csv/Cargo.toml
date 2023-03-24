@@ -1,6 +1,6 @@
 [package]
 name = "fit2csv"
-version = "0.4.1"
+version = "0.5.0"
 description = "Parses .FIT files to .JSON and .CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
@@ -8,7 +8,7 @@ edition = "2021"
 include = ["src/**/*", "README.md"]
 
 [dependencies]
-clap = { version = "3.1.12", features = ["cargo", "color"] }
+clap = { version = "4.1.9", features = ["cargo", "wrap_help", "env"] }
 env_logger = "0.10.0"
 log = "0.4.16"
 

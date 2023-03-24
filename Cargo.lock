@@ -171,32 +171,31 @@ dependencies = [
  "atty",
  "bitflags",
  "strsim 0.8.0",
- "textwrap 0.11.0",
+ "textwrap",
  "unicode-width",
  "vec_map",
 ]
 
 [[package]]
 name = "clap"
-version = "3.1.12"
+version = "4.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c167e37342afc5f33fd87bbc870cedd020d2a6dffa05d45ccd9241fbdd146db"
+checksum = "3c911b090850d79fc64fe9ea01e28e465f65e821e08813ced95bced72f7a8a9b"
 dependencies = [
- "atty",
  "bitflags",
  "clap_lex",
- "indexmap",
- "lazy_static",
+ "is-terminal",
+ "once_cell",
  "strsim 0.10.0",
  "termcolor",
- "textwrap 0.15.0",
+ "terminal_size",
 ]
 
 [[package]]
 name = "clap_lex"
-version = "0.1.1"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "189ddd3b5d32a70b35e7686054371742a937b0d99128e76dde6340210e966669"
+checksum = "033f6b7a4acb1f358c742aaca805c939ee73b4c6209ae4318ec7aca81c42e646"
 dependencies = [
  "os_str_bytes",
 ]
@@ -330,10 +329,10 @@ dependencies = [
 
 [[package]]
 name = "fit2csv"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "assay",
- "clap 3.1.12",
+ "clap 4.1.13",
  "env_logger",
  "log",
  "utilities",
@@ -365,11 +364,11 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "assay",
  "chrono",
- "clap 3.1.12",
+ "clap 4.1.13",
  "env_logger",
  "fitparser",
  "gpx",
@@ -380,11 +379,11 @@ dependencies = [
 
 [[package]]
 name = "fitview"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "assay",
  "chrono",
- "clap 3.1.12",
+ "clap 4.1.13",
  "env_logger",
  "log",
  "utilities",
@@ -439,20 +438,14 @@ dependencies = [
 
 [[package]]
 name = "gpx2csv"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "assay",
- "clap 3.1.12",
+ "clap 4.1.13",
  "env_logger",
  "log",
  "utilities",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 
 [[package]]
 name = "heck"
@@ -483,16 +476,6 @@ name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
-
-[[package]]
-name = "indexmap"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f647032dfaa1f8b6dc29bd3edb7bbef4861b8b8007ebb118d6db284fd59f6ee"
-dependencies = [
- "autocfg",
- "hashbrown",
-]
 
 [[package]]
 name = "instant"
@@ -647,9 +630,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.10.0"
+version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87f3e037eac156d1775da914196f0f37741a274155e34a0b7e427c35d2a2ecb9"
+checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
 
 [[package]]
 name = "os_str_bytes"
@@ -926,10 +909,10 @@ dependencies = [
 
 [[package]]
 name = "tcx2csv"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "assay",
- "clap 3.1.12",
+ "clap 4.1.13",
  "env_logger",
  "log",
  "tcx",
@@ -960,6 +943,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "terminal_size"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c9afddd2cec1c0909f06b00ef33f94ab2cc0578c4a610aa208ddfec8aa2b43a"
+dependencies = [
+ "rustix",
+ "windows-sys",
+]
+
+[[package]]
 name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -967,12 +960,6 @@ checksum = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 dependencies = [
  "unicode-width",
 ]
-
-[[package]]
-name = "textwrap"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1141d4d61095b28419e22cb0bbf02755f5e54e0526f97f1e3d1d160e60885fb"
 
 [[package]]
 name = "thiserror"
@@ -1054,11 +1041,11 @@ dependencies = [
 
 [[package]]
 name = "utilities"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "assay",
  "chrono",
- "clap 3.1.12",
+ "clap 4.1.13",
  "convert_case",
  "csv",
  "env_logger",
