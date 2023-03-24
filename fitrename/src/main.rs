@@ -1,6 +1,8 @@
 use env_logger::Target;
 use std::{collections::HashMap, error::Error, path::Path};
 
+use clap::parser::ValueSource;
+
 mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,23 +17,35 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args.values_of("read").unwrap_or_default() {
+    for argument in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::trace!("main::run() -- Arguments: {argument:?}");
     }
 
-    let dry_run = cli_args.is_present("dry-run");
+    let dry_run = cli_args.value_source("dry-run") == Some(ValueSource::CommandLine);
     if dry_run {
         log::info!("Dry-run. Will not perform actual rename.");
     }
 
-    let pattern = cli_args.value_of("pattern").unwrap_or_default();
+    let default_pattern = String::new();
+    let pattern = cli_args
+        .get_one::<String>("pattern")
+        .unwrap_or(&default_pattern)
+        .as_str();
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
     ///////////////////////////////////
     // Working section
-    for filename in cli_args.values_of("read").unwrap_or_default() {
+    for filename in cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .map(std::string::String::as_str)
+    {
         log::debug!("Processing file: {filename}");
 
         // Check if the target file exists, otherwise just continue
@@ -82,7 +96,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         total_files += 1;
     }
 
-    if cli_args.is_present("print-summary") {
+    if cli_args.value_source("print-summary") == Some(ValueSource::CommandLine) {
         log::info!("Total files examined:        {total_files:6}");
         log::info!("Files processed:             {processed_files:6}");
         log::info!("Files skipped due to errors: {skipped_files:6}");

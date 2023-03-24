@@ -1,5 +1,5 @@
 //! Contains a single function to build the CLI
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
 pub fn build() -> ArgMatches {
@@ -12,52 +12,54 @@ pub fn build() -> ArgMatches {
             Arg::new("read")
                 .value_name("FILE(S)")
                 .help("One or more .fit file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.fit) are supported.")
-                .takes_value(true)
+                .num_args(1..)
                 .required(true)
-                .multiple_occurrences(true),
+                .action(ArgAction::Append)
         )
         .arg( // Hidden debug parameter
             Arg::new("debug")
                 .short('d')
                 .long("debug")
-                .multiple_occurrences(true)
                 .help("Output debug information as we go. Supply it twice for trace-level logs.")
-                .takes_value(false)
+                .env("FIT_DEBUG")
+                .num_args(0)
+                .action(ArgAction::Count)
                 .hide(true),
         )
         .arg( // Don't print any information
             Arg::new("quiet")
                 .short('q')
                 .long("quiet")
-                .multiple_occurrences(false)
                 .help("Don't produce any output except errors while working.")
-                .takes_value(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Print summary information
             Arg::new("print-summary")
                 .short('p')
                 .long("print-summary")
-                .multiple_occurrences(false)
                 .help("Print summary detail for each session processed.")
-                .takes_value(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("detail-off")
                 .short('o')
                 .long("detail-off")
-                .multiple_occurrences(false)
                 .help("Don't export detailed information from each file parsed.")
-                .takes_value(false)
                 .requires("summary-file")
+                .num_args(0)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Summary file name
             Arg::new("summary-file")
                 .short('s')
                 .value_name("summary output file name")
                 .long("summary-file")
-                .multiple_occurrences(false)
                 .help("Summary output file name.")
-                .takes_value(true)
+                .num_args(1)
+                .required(false)
+                .action(ArgAction::Set)
         )
         .get_matches()
 }

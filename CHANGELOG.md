@@ -27,9 +27,8 @@ All notable changes to this project will be documented in this file.
 
 - More commonalities and simplification
 - Remove TimeStamp (#113)
-- Lint fixes
-- Clean up lints
-- Remove lint
+- Lint fix (#116)
+- Switch to Clap v4
 
 ### Build
 
