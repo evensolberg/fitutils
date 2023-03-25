@@ -36,14 +36,11 @@ impl Duration {
     /// Calculate the duration between two `TimeStamps`, regardless of which comes first.
     #[must_use]
     pub fn between(ts1: &DateTime<Local>, ts2: &DateTime<Local>) -> Self {
-        log::trace!("types::Duration::between() -- ts1: {ts1:?} -- ts2: {ts2:?}");
         Self(if ts2 > ts1 {
             // ts2 is after ts1
-            log::trace!("types::Duration::between() -- ts2 > ts1");
             chrono::Duration::to_std(&ts2.signed_duration_since(ts1.with_timezone(&Local)))
                 .expect("types::Duration::between() -- ts2 > ts1: Duration out of bounds.")
         } else {
-            log::trace!("types::Duration::between() -- ts1 >= ts2");
             chrono::Duration::to_std(&ts1.signed_duration_since(ts2.with_timezone(&Local)))
                 .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
         })
