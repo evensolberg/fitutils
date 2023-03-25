@@ -1,6 +1,6 @@
 //! Defines the `Waypoint` struct (waypoints, points of interest, or named feature on a map), and associated functions.
 
-use chrono::{DateTime, Local, TimeZone};
+use chrono::{DateTime, Local};
 use serde::Serialize;
 
 use crate::set_string_field;
@@ -126,7 +126,7 @@ impl GPXWaypoint {
         dest.elevation = src.elevation;
         dest.speed = src.speed;
 
-        dest.time = Some(time_to_dt_local(src));
+        dest.time = Some(time_to_dt_local(src)).unwrap_or_default();
 
         set_string_field!(src, name, dest);
         set_string_field!(src, comment, dest);
@@ -203,17 +203,11 @@ fn fix_to_string(src: &gpx::Fix) -> String {
 }
 
 /// Converts `gpx::parser::time::Time` to `DateTime`<Local>
-fn time_to_dt_local(src: &gpx::Waypoint) -> DateTime<Local> {
-    // let t = src.time.unwrap().format().unwrap_or_default();
+fn time_to_dt_local(src: &gpx::Waypoint) -> Option<DateTime<Local>> {
+    let t = src.time.unwrap().format().unwrap_or_default();
+    if let Ok(ltz_w) = DateTime::parse_from_rfc3339(t.as_str()) {
+        return Some(ltz_w.with_timezone(&Local));
+    }
 
-    src.time.map_or_else(
-        || Local.timestamp(0, 0),
-        |t| {
-            let tfs = t.format("%FT%TZ%z");
-            let tf = tfs.to_string();
-
-            DateTime::parse_from_str(tf.as_str(), "%FT%TZ%z")
-                .map_or_else(|_x| Local.timestamp(0, 0), |tp| tp.with_timezone(&Local))
-        },
-    )
+    None
 }

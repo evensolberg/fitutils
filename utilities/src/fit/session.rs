@@ -109,7 +109,9 @@ impl FITSession {
         println!(
             "Manufacturer: {}    Time created: {}",
             self.manufacturer.as_ref().unwrap_or(&unknown),
-            self.time_created.as_ref().unwrap_or(&Local.timestamp(0, 0))
+            self.time_created
+                .as_ref()
+                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
         );
         println!(
             "Sessions: {}      Laps: {:2}      Records: {}",

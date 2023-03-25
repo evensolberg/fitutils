@@ -295,7 +295,7 @@ impl FITActivity {
             self.session
                 .time_created
                 .as_ref()
-                .unwrap_or(&Local.timestamp(0, 0))
+                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
         );
         println!(
             "Activity type:            {}",
@@ -417,14 +417,14 @@ impl FITActivity {
                 self.session
                     .start_time
                     .as_ref()
-                    .unwrap_or(&Local.timestamp(0, 0))
+                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
             );
             println!(
                 "Finish time:                {}",
                 self.session
                     .finish_time
                     .as_ref()
-                    .unwrap_or(&Local.timestamp(0, 0))
+                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
             );
             println!("Time in Zones:");
             println!(

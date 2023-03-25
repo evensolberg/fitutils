@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "gpx2csv"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "assay",
  "clap 4.1.13",
@@ -1195,7 +1195,7 @@ dependencies = [
 
 [[package]]
 name = "utilities"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "assay",
  "chrono",

@@ -113,7 +113,7 @@ impl FITRecord {
                 session
                     .time_created
                     .as_ref()
-                    .unwrap_or(&Local.timestamp(0, 0)),
+                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap()),
             )
         });
 
