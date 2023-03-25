@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- GPX time output fix
+
 ### Features
 
 - First stab at the Fitshow utility
