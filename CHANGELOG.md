@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Gpx time displayed incorrectly (#124)
+
 ### Features
 
 - First stab at the Fitshow utility
@@ -30,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - Remove TimeStamp (#113)
 - Lint fix (#116)
 - Switch to Clap v4 (#122)
+- Lint cleanup
 
 ### Build
 
