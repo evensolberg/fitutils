@@ -190,7 +190,7 @@ impl GPXWaypoint {
 ///
 /// # References
 ///
-/// - [Gpx Fix](https://docs.rs/gpx/0.8.3/gpx/enum.Fix.html) enum documentation.
+/// - [Gpx Fix](https://docs.rs/gpx/latest/gpx/enum.Fix.html) enum documentation.
 fn fix_to_string(src: &gpx::Fix) -> String {
     match src {
         gpx::Fix::None => "None".to_string(),
