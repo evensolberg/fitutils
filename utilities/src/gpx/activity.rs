@@ -282,7 +282,7 @@ impl GPXActivity {
             self.metadata
                 .time
                 .as_ref()
-                .unwrap_or(&Local.timestamp(0, 0))
+                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
         );
         println!(
             "Duration:          {}",

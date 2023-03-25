@@ -142,11 +142,13 @@ impl GPXMetadata {
         set_string_field!(src_meta, keywords, dest);
 
         if let Some(time) = &src_meta.time {
-            let tfs = time.format("%FT%TZ%z");
-            let t = tfs.to_string();
-            if let Ok(ltz_w) = DateTime::parse_from_str(t.as_str(), "%FT%TZ%z") {
+            let t = time.format().unwrap_or_default();
+
+            if let Ok(ltz_w) = DateTime::parse_from_rfc3339(t.as_str()) {
                 let ltz = ltz_w.with_timezone(&Local);
                 dest.time = Some(ltz);
+            } else {
+                log::warn!("Unable to parse the time from the header. Yikes.");
             }
         }
 
@@ -178,8 +180,12 @@ impl GPXMetadata {
         // Debatable if this is kosher, but I'm going with it for now.
         // If the copyright year is none, set it to the year the activity started.
         if dest.copyright_year.is_none() {
-            let year = dest.time.as_ref().unwrap_or(&Local.timestamp(0, 0)).year();
-            log::debug!("year = {year}");
+            let year = dest
+                .time
+                .as_ref()
+                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                .year();
+            log::debug!("copyright_year = {year}");
             dest.copyright_year = Some(year);
         }
 

@@ -25,7 +25,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Find the name of the session output file
     let session_file_name = String::from("fit-sessions.csv");
     let sessionfile = cli_args
-        .get_one::<String>("summary-only")
+        .get_one::<String>("summary-file")
         .unwrap_or(&session_file_name)
         .as_str();
     log::trace!("main::run() -- session output file: {sessionfile}");

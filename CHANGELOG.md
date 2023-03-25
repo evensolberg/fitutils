@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Clean up lints
 - Fix spelling mistakes
 - Dependencies version update
+- Dependencies update
 
 ### Refactor
 

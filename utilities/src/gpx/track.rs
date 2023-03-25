@@ -137,17 +137,25 @@ impl GPXTrack {
         }
 
         dest.num_waypoints = dest.waypoints.len();
+        log::debug!(
+            "from_gpx_track() -- dest.num_waypoints = {}",
+            dest.num_waypoints
+        );
+
         if dest.num_waypoints > 0 {
-            let t = dest.waypoints[0]
-                .time
-                .unwrap_or_else(|| Local.timestamp(0, 0));
+            let t_wp = dest.waypoints[0].time;
+            log::debug!("from_gpx_track -- t_wp = {t_wp:?}");
+
+            let t = t_wp.unwrap_or_else(|| Local.timestamp_opt(0, 0).unwrap());
+
+            log::debug!("from_gpx_track() -- t = {t:?}");
             dest.start_time = Some(t);
-            let t_new = Local.timestamp(0, 0);
+            let t_new = Local.timestamp_opt(0, 0).unwrap();
             let t_last = &dest.waypoints[dest.num_waypoints - 1]
                 .time
                 .as_ref()
                 .unwrap_or(&t_new);
-            let t_empty = &Local.timestamp(0, 0);
+            let t_empty = &Local.timestamp_opt(0, 0).unwrap();
             let t_first = &dest.waypoints[0].time.as_ref().unwrap_or(t_empty);
 
             dest.duration = Some(Duration::between(t_first, t_last));

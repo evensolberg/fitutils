@@ -64,8 +64,8 @@ impl Default for TCXTrackpoint {
     fn default() -> Self {
         Self {
             sport: String::new(),
-            start_time: Local.timestamp(0, 0),
-            time: Local.timestamp(0, 0),
+            start_time: Local.timestamp_opt(0, 0).unwrap(),
+            time: Local.timestamp_opt(0, 0).unwrap(),
             duration: Duration::default(),
             activity_num: 0,
             lap_num: 0,
@@ -118,7 +118,7 @@ impl TCXTrackpointList {
                         let mut tp = TCXTrackpoint::new();
                         tp.sport = activity.sport.clone();
                         tp.start_time = DateTime::parse_from_rfc3339(&activity.id)
-                            .unwrap_or_else(|_| Local.timestamp(0, 0).into())
+                            .unwrap_or_else(|_| Local.timestamp_opt(0, 0).unwrap().into())
                             .into();
                         tp.time = trackpoint.time.with_timezone(&chrono::Local);
                         tp.duration = Duration::between(&tp.start_time, &tp.time);

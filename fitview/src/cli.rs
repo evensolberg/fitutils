@@ -23,7 +23,7 @@ pub fn build() -> ArgMatches {
                 .help("Output debug information as we go. Supply it twice for trace-level logs.")
                 .env("FIT_DEBUG")
                 .num_args(0)
-                .action(ArgAction::SetTrue)
+                .action(ArgAction::Count)
                 .hide(true),
         )
         .arg( // Print summary information

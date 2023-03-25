@@ -21,7 +21,7 @@ pub fn build() -> ArgMatches {
             .short('d')
             .long("debug")
             .help("Output debug information as we go. Supply it twice for trace-level logs.")
-            .num_args(0..)
+            .num_args(0)
             .action(ArgAction::Count)
             .hide(true),
     )
