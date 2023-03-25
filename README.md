@@ -16,3 +16,10 @@ More files may come in the future.
 See the [Kanban Boards](https://github.com/evensolberg/fit2csv/projects) for the overall roadmap and To Do lists.
 
 NOTE: This repository uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for PRs.
+
+## Handy tools
+
+To process the output from these utilities, the following tools may be of use:
+
+- [XSV](https://github.com/BurntSushi/xsv) - slice and dice CSV files
+- [jq](https://stedolan.github.io/jq/) - slice and dice JSON files
