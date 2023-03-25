@@ -204,9 +204,12 @@ fn fix_to_string(src: &gpx::Fix) -> String {
 
 /// Converts `gpx::parser::time::Time` to `DateTime`<Local>
 fn time_to_dt_local(src: &gpx::Waypoint) -> Option<DateTime<Local>> {
-    let t = src.time.unwrap().format().unwrap_or_default();
-    if let Ok(ltz_w) = DateTime::parse_from_rfc3339(t.as_str()) {
-        return Some(ltz_w.with_timezone(&Local));
+    if let Some(time_result) = src.time {
+        if let Ok(time) = time_result.format() {
+            if let Ok(dt) = DateTime::parse_from_rfc3339(time.as_str()) {
+                return Some(dt.with_timezone(&Local));
+            }
+        }
     }
 
     None

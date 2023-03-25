@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- GPX time output fix
+- Gpx time displayed incorrectly (#124)
 
 ### Features
 
