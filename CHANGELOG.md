@@ -1,11 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.5.1] - 2023-04-04
 
 ### Bug Fixes
 
 - Gpx time displayed incorrectly (#124)
+
+### Chore
+
+- Dependencies update
+
+### Documentation
+
+- GPX doc reference update
 
 ### Features
 
@@ -27,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - Fix spelling mistakes
 - Dependencies version update
 - Dependencies update
+- Changelog
 
 ### Refactor
 
@@ -35,6 +44,7 @@ All notable changes to this project will be documented in this file.
 - Lint fix (#116)
 - Switch to Clap v4 (#122)
 - Lint cleanup
+- Clean up the Duration::between function
 
 ### Build
 
