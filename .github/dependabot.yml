@@ -8,12 +8,20 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/fit2csv" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "cargo"
     directory: "/fit2json" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "cargo"
     directory: "/gpx2csv" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/fitview" # Location of package manifests
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/fitrename" # Location of package manifests
+    schedule:
+      interval: "weekly"
