@@ -423,7 +423,7 @@ name = "fit2json"
 version = "0.1.4"
 dependencies = [
  "env_logger",
- "fitparser",
+ "fitparser 0.5.1",
  "log",
  "serde",
  "serde_json",
@@ -443,6 +443,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fitparser"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0a6c59368e109b43aa21125d87157349e13a2c5c265d8c29407f1eb9352fe0c"
+dependencies = [
+ "chrono",
+ "nom",
+ "serde",
+]
+
+[[package]]
 name = "fitrename"
 version = "0.4.1"
 dependencies = [
@@ -450,7 +461,7 @@ dependencies = [
  "chrono",
  "clap 4.3.0",
  "env_logger",
- "fitparser",
+ "fitparser 0.6.0",
  "gpx",
  "log",
  "tcx",
@@ -1200,7 +1211,7 @@ dependencies = [
  "convert_case",
  "csv",
  "env_logger",
- "fitparser",
+ "fitparser 0.5.1",
  "gpx",
  "log",
  "serde",
