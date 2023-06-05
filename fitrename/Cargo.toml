@@ -18,7 +18,7 @@ log = "0.4.18"
 
 # Fitness
 fitparser = "0.6.0"
-gpx = "0.8.6"
+gpx = "0.9.1"
 tcx = "0.9.3"
 
 # chrono = { version = "0.4", features = ["serde"] }
