@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### CICD
+
+- Remove Lint PR automation
+
+### Security
+
+- Bumped crate versions
+- Update Dependabot settings
+
+### Build
+
+- Update fitparser requirement in /fitrename (#126)
+- Update gpx requirement from 0.8.6 to 0.9.1 in /fitrename (#127)
+- Update fitparser requirement in /fit2json (#125)
+
 ## [0.5.1] - 2023-04-04
 
 ### Bug Fixes
