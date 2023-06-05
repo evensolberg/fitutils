@@ -17,7 +17,7 @@ env_logger = "0.10.0"
 log = "0.4.18"
 
 # Fitness
-fitparser = "0.5.1"
+fitparser = "0.6.0"
 gpx = "0.8.6"
 tcx = "0.9.3"
 
