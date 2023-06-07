@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 - Remove Lint PR automation
 
+### Chore
+
+- Update changelog, remove lock file
+
 ### Security
 
 - Bumped crate versions

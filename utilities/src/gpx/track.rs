@@ -109,7 +109,7 @@ impl GPXTrack {
         set_string_field!(src, comment, dest);
         set_string_field!(src, description, dest);
         set_string_field!(src, source, dest);
-        set_string_field!(src, _type, dest, t_type);
+        set_string_field!(src, type_, dest, t_type);
 
         // See if we have links
         if !src.links.is_empty() {

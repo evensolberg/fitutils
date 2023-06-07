@@ -9,7 +9,6 @@
 *.DS_Store
 
 # Cargo housekeeping
-*.lock
 Cargo.lock
 
 # Data output
@@ -30,5 +29,3 @@ geiger.txt
 pants.txt
 trace.txt
 tree.txt
-Cargo.lock
-Cargo.lock

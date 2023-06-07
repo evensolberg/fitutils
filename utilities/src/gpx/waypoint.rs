@@ -135,7 +135,7 @@ impl GPXWaypoint {
         set_string_field!(src, symbol, dest);
         set_string_field!(src, symbol, dest);
 
-        if let Some(w_type) = &src._type {
+        if let Some(w_type) = &src.type_ {
             dest.w_type = Some(w_type.to_string());
         }
 
