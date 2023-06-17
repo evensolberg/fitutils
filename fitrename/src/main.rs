@@ -12,20 +12,19 @@ mod cli;
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build();
+    let dry_run = cli_args.value_source("dry-run") == Some(ValueSource::CommandLine);
+    let print_summary = cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for argument in cli_args
+    let filenames = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
-        log::trace!("main::run() -- Arguments: {argument:?}");
-    }
+        .map(std::string::String::as_str);
+    log::trace!("main::run() -- Filenames: {filenames:?}");
 
-    let dry_run = cli_args.value_source("dry-run") == Some(ValueSource::CommandLine);
     if dry_run {
         log::info!("Dry-run. Will not perform actual rename.");
     }
@@ -41,22 +40,18 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     ///////////////////////////////////
     // Working section
-    for filename in cli_args
-        .get_many::<String>("read")
-        .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
+    for filename in filenames {
         log::debug!("Processing file: {filename}");
 
         // Check if the target file exists, otherwise just continue
         if !Path::new(&filename).exists() {
-            log::warn!("No such file or directory: {filename}");
+            log::warn!("File not found: {filename}");
             continue;
         }
 
         // Read the metadata from files
         let mut value_res = Ok(HashMap::<String, String>::new());
-        match utilities::get_extension(filename).as_ref() {
+        match utilities::get_extension(filename).to_lowercase().as_ref() {
             "fit" => {
                 value_res = utilities::fit_to_hashmap(filename);
                 log::debug!("FIT: {value_res:?}");
@@ -69,7 +64,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 value_res = utilities::tcx_to_hashmap(filename);
                 log::debug!("TCX: {value_res:?}");
             }
-            _ => log::warn!("Unknown file type: {}.", &filename),
+            _ => log::warn!("Unknown file type: {filename}."),
         }
 
         // Process the result of reading metadata
@@ -96,7 +91,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         total_files += 1;
     }
 
-    if cli_args.value_source("print-summary") == Some(ValueSource::CommandLine) {
+    if print_summary {
         log::info!("Total files examined:        {total_files:6}");
         log::info!("Files processed:             {processed_files:6}");
         log::info!("Files skipped due to errors: {skipped_files:6}");

@@ -3,7 +3,7 @@
 use serde::Serialize;
 use std::path::PathBuf;
 
-use chrono::{DateTime, Local, TimeZone};
+use chrono::{DateTime, Local};
 
 use crate::gpx::waypoint::GPXWaypoint;
 use crate::set_string_field; // from the macros crate
@@ -11,7 +11,7 @@ use crate::Duration; // from the macros crate
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Default)]
 #[serde(default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct GPXTrack {
@@ -60,12 +60,6 @@ pub struct GPXTrack {
 }
 
 impl GPXTrack {
-    /// Instantiate a new, empty `Track`
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Sets the filename in the `Track` struct.
     ///
     /// # Parameters
@@ -102,7 +96,7 @@ impl GPXTrack {
     #[must_use]
     #[allow(clippy::used_underscore_binding)]
     pub fn from_gpx_track(src: &gpx::Track, filename: &str) -> Self {
-        let mut dest = Self::new();
+        let mut dest = Self::default();
         dest.set_filename(filename);
 
         set_string_field!(src, name, dest);
@@ -112,78 +106,82 @@ impl GPXTrack {
         set_string_field!(src, type_, dest, t_type);
 
         // See if we have links
-        if !src.links.is_empty() {
-            dest.links_href = Some(src.links[0].href.to_string());
-            if let Some(text) = &src.links[0].text {
-                dest.links_text = Some(text.to_string());
-            }
-        }
+        get_links(src, &mut dest);
 
         // Count the number of segments
         dest.num_segments = src.segments.len();
 
         // Get the list of segments and their waypoints
-        let mut segnum: usize = 0;
-        for curr_seg in &src.segments {
-            segnum += 1;
-            let mut wptnum: usize = 0;
-            for curr_wpt in &curr_seg.points {
-                let mut wpt = GPXWaypoint::from_gpx_waypoint(curr_wpt);
-                wptnum += 1;
-                wpt.segment_num = segnum;
-                wpt.waypoint_mum = wptnum;
-                dest.waypoints.push(wpt);
-            }
-        }
+        get_waypoints(src, &mut dest);
 
-        dest.num_waypoints = dest.waypoints.len();
-        log::debug!(
-            "from_gpx_track() -- dest.num_waypoints = {}",
-            dest.num_waypoints
-        );
+        // Set the start time and duration
+        set_times(&mut dest);
 
-        if dest.num_waypoints > 0 {
-            let t_wp = dest.waypoints[0].time;
-            log::debug!("from_gpx_track -- t_wp = {t_wp:?}");
-
-            let t = t_wp.unwrap_or_else(|| Local.timestamp_opt(0, 0).unwrap());
-
-            log::debug!("from_gpx_track() -- t = {t:?}");
-            dest.start_time = Some(t);
-            let t_new = Local.timestamp_opt(0, 0).unwrap();
-            let t_last = &dest.waypoints[dest.num_waypoints - 1]
-                .time
-                .as_ref()
-                .unwrap_or(&t_new);
-            let t_empty = &Local.timestamp_opt(0, 0).unwrap();
-            let t_first = &dest.waypoints[0].time.as_ref().unwrap_or(t_empty);
-
-            dest.duration = Some(Duration::between(t_first, t_last));
-        }
-
-        // return it
         dest
     }
 }
 
-impl Default for GPXTrack {
-    /// Set defaults to be either empty or zero.
-    fn default() -> Self {
-        Self {
-            filename: None,
-            track_num: 0,
-            name: None,
-            start_time: None,
-            duration: None,
-            comment: None,
-            description: None,
-            source: None,
-            links_href: None,
-            links_text: None,
-            t_type: None,
-            num_segments: 0,
-            num_waypoints: 0,
-            waypoints: Vec::new(),
+/// Reads the waypoints from the original file and adds them to the `Track` struct.
+///
+/// # Arguments
+///
+/// - `src: &gpx::Track` -- The original `gpx::Track` struct.
+/// - `dest: &mut Track` -- The `Track` struct to which the waypoints are added.
+fn get_waypoints(src: &gpx::Track, dest: &mut GPXTrack) {
+    let mut segnum: usize = 0;
+    for curr_seg in &src.segments {
+        segnum += 1;
+        let mut wptnum: usize = 0;
+        for curr_wpt in &curr_seg.points {
+            let mut wpt = GPXWaypoint::from_gpx_waypoint(curr_wpt);
+            wptnum += 1;
+            wpt.segment_num = segnum;
+            wpt.waypoint_mum = wptnum;
+            dest.waypoints.push(wpt);
+        }
+    }
+
+    dest.num_waypoints = dest.waypoints.len();
+    log::debug!(
+        "from_gpx_track() -- dest.num_waypoints = {}",
+        dest.num_waypoints
+    );
+}
+
+/// Sets the start time and duration for the track based on the waypoints in the track. Note that this needs the number of waypoints to be set.
+///
+/// # Arguments
+///
+/// - `dest: &mut Track` -- The `Track` struct to which the times are added. This also contains the waypoint information.
+fn set_times(dest: &mut GPXTrack) {
+    if dest.num_waypoints > 0 {
+        let t_now = Local::now();
+
+        // Get the start time
+        let t_start = dest.waypoints[0].time.unwrap_or(t_now);
+        dest.start_time = Some(t_start);
+
+        // Get the end time
+        let t_finish = &dest.waypoints[dest.num_waypoints - 1]
+            .time
+            .as_ref()
+            .unwrap_or(&t_now);
+
+        dest.duration = Some(Duration::between(&t_start, t_finish));
+    }
+}
+
+/// Sets the links in the `Track` struct, if the source `gpx::Track` has any.
+///
+/// # Arguments
+///
+/// - `src: &gpx::Track` -- The source `gpx::Track` struct.
+/// - `dest: &mut GPXTrack` -- The destination `GPXTrack` struct.
+fn get_links(src: &gpx::Track, dest: &mut GPXTrack) {
+    if !src.links.is_empty() {
+        dest.links_href = Some(src.links[0].href.to_string());
+        if let Some(text) = &src.links[0].text {
+            dest.links_text = Some(text.to_string());
         }
     }
 }

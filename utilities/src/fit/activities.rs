@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use crate::FITActivity;
 
 /// Holds a list of all activities. Used to export session totals.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct FITActivities {
     /// A list of activities.
@@ -15,20 +15,6 @@ pub struct FITActivities {
 }
 
 impl FITActivities {
-    /// Create a new, empty Activities list.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use utilities::FITActivities;
-    ///
-    /// let activities = FITActivities::new();
-    /// ```
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Export the summary list of session information to a CSV file.
     ///
     /// # Parameters
@@ -101,16 +87,12 @@ impl FITActivities {
 
         // Now write the actual laps
         for activity in &self.activities_list {
-            log::trace!(
-                "activities::export_summary_csv() -- serializing: {:?}",
-                activity
-            );
+            log::trace!("activities::export_summary_csv() -- serializing: {activity:?}");
             writer.serialize(&activity.session)?;
         }
 
         log::trace!(
-            "activities::export_summary_csv() -- session information to be written: {:?}",
-            writer
+            "activities::export_summary_csv() -- session information to be written: {writer:?}"
         );
 
         // Write the file
@@ -118,29 +100,5 @@ impl FITActivities {
 
         // Return safely
         Ok(())
-    }
-}
-
-impl Default for FITActivities {
-    /// Sets up the Activities with empty data placeholders.
-    fn default() -> Self {
-        Self {
-            activities_list: Vec::new(),
-        }
-    }
-}
-
-#[cfg(test)]
-///
-mod tests {
-    use super::*;
-    use assay::assay;
-
-    #[assay]
-    ///
-    fn test_new() {
-        let act = FITActivities::new();
-
-        assert!(act.activities_list.is_empty());
     }
 }

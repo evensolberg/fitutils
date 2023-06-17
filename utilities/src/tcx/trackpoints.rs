@@ -8,7 +8,7 @@ use tcx;
 use crate::Duration;
 
 /// Holds each Trackpoint as a Record
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 pub struct TCXTrackpoint {
     /// Sport
     pub sport: String,
@@ -53,34 +53,6 @@ pub struct TCXTrackpoint {
     pub cadence: Option<u8>,
 }
 
-impl TCXTrackpoint {
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Default for TCXTrackpoint {
-    fn default() -> Self {
-        Self {
-            sport: String::new(),
-            start_time: Local.timestamp_opt(0, 0).unwrap(),
-            time: Local.timestamp_opt(0, 0).unwrap(),
-            duration: Duration::default(),
-            activity_num: 0,
-            lap_num: 0,
-            track_num: 0,
-            trackpoint_num: 0,
-            latitude: None,
-            longitude: None,
-            altitude_meters: None,
-            distance_meters: None,
-            heart_rate: None,
-            cadence: None,
-        }
-    }
-}
-
 /// Contains the list of activity trackpoints from the TCX file
 #[derive(Serialize, Debug, Clone, Default)]
 pub struct TCXTrackpointList {
@@ -90,15 +62,8 @@ pub struct TCXTrackpointList {
 
 impl TCXTrackpointList {
     #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            trackpoints: Vec::new(),
-        }
-    }
-
-    #[must_use]
     pub fn from_activities(activities: &tcx::Activities) -> Self {
-        let mut tpl = Self::new();
+        let mut tpl = Self::default();
 
         let mut a_num = 0;
 
@@ -115,7 +80,7 @@ impl TCXTrackpointList {
                         trackpoint_num += 1;
 
                         // Extract a new Trackpoint
-                        let mut tp = TCXTrackpoint::new();
+                        let mut tp = TCXTrackpoint::default();
                         tp.sport = activity.sport.clone();
                         tp.start_time = DateTime::parse_from_rfc3339(&activity.id)
                             .unwrap_or_else(|_| Local.timestamp_opt(0, 0).unwrap().into())

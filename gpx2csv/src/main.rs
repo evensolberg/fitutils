@@ -14,13 +14,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    for filename in cli_args
+    let filenames = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
-        log::trace!("main::run() -- Files to be read: {filename}");
-    }
+        .map(std::string::String::as_str);
+
+    log::trace!("main::run() -- Files to be read: {filenames:?}");
 
     // Find the name of the session output file
     let session_file_name = String::from("fit-sessions.csv");
@@ -28,13 +27,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         .get_one::<String>("summary-file")
         .unwrap_or(&session_file_name)
         .as_str();
-    log::trace!("main::run() -- session output file: {sessionfile}");
 
     // Let the user know if we're writing details
     if cli_args.value_source("detail-off") == Some(ValueSource::CommandLine) {
         log::info!("Writing summary file {sessionfile} only.");
     } else {
-        log::info!("Writing detail files.");
+        log::info!("Writing summary file {sessionfile} and details.");
     }
 
     ///////////////////////////////////
@@ -44,12 +42,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut activities = utilities::GPXActivities::new();
 
     // Do the parsing
-    for filename in cli_args
-        .get_many::<String>("read")
-        .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
-        log::info!("Processing file: {}", filename);
+    for filename in filenames {
+        log::info!("Processing file: {filename}");
 
         // Extract the activity from the file
         let activity = utilities::GPXActivity::from_file(filename)?;

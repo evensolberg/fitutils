@@ -43,7 +43,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
     // Do the parsing
 
-    let mut act_list = TCXActivitiesList::new();
+    let mut act_list = TCXActivitiesList::default();
 
     for filename in cli_args
         .get_many::<String>("read")

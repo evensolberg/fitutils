@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Local, TimeZone};
+use chrono::{DateTime, Datelike, Local};
 /// Defines the `GpxMetadata` struct whih holds the metadata information about the file and its contents, with associated functions.
 use gpx;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use crate::Duration;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
 pub struct GPXMetadata {
     /// THe name of the GPX file from which the information was read.
@@ -112,53 +112,20 @@ impl GPXMetadata {
         dest.set_filename(filename);
 
         // Parse the GPX header
-        dest.version = Some(gpx_ver_to_string(src.version));
+        dest.version = Some(src.version.to_string());
         set_string_field!(src, creator, dest);
 
         // Parse the source metadata
         let md_new = gpx::Metadata::default();
         let src_meta = src.metadata.as_ref().unwrap_or(&md_new);
-        if let Some(activity) = &src_meta.name {
-            dest.activity = Some(activity.to_string());
-        } else if src
-            .tracks
-            .first()
-            .unwrap_or(&gpx::Track::default())
-            .name
-            .is_some()
-        {
-            dest.activity = Some(
-                src.tracks
-                    .first()
-                    .unwrap_or(&gpx::Track::default())
-                    .name
-                    .as_ref()
-                    .unwrap_or(&"Unknown".to_string())
-                    .to_string(),
-            );
-        }
+        set_activity(src_meta, &mut dest, src);
 
         set_string_field!(src_meta, description, dest);
         set_string_field!(src_meta, keywords, dest);
-
-        if let Some(time) = &src_meta.time {
-            let t = time.format().unwrap_or_default();
-
-            if let Ok(ltz_w) = DateTime::parse_from_rfc3339(t.as_str()) {
-                let ltz = ltz_w.with_timezone(&Local);
-                dest.time = Some(ltz);
-            } else {
-                log::warn!("Unable to parse the time from the header. Yikes.");
-            }
-        }
+        set_time(src_meta, &mut dest);
 
         // For now, only read the first href in the list of links (if there is one)
-        if !src_meta.links.is_empty() {
-            dest.links_href = Some(src_meta.links[0].href.to_string());
-            if let Some(text) = &src_meta.links[0].text {
-                dest.links_text = Some(text.to_string());
-            }
-        }
+        set_link(src_meta, &mut dest);
 
         // Parse the copyright information if there is any.
         match &src_meta.copyright {
@@ -177,17 +144,7 @@ impl GPXMetadata {
             }
         }
 
-        // Debatable if this is kosher, but I'm going with it for now.
-        // If the copyright year is none, set it to the year the activity started.
-        if dest.copyright_year.is_none() {
-            let year = dest
-                .time
-                .as_ref()
-                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
-                .year();
-            log::debug!("copyright_year = {year}");
-            dest.copyright_year = Some(year);
-        }
+        set_copyright_year(&mut dest);
 
         // Parse src_meta.author if there is anything there.
         match &src_meta.author {
@@ -246,37 +203,80 @@ impl GPXMetadata {
     }
 }
 
-impl Default for GPXMetadata {
-    /// Set defaults to be either `None` or zero.
-    fn default() -> Self {
-        Self {
-            filename: None,
-            version: None,
-            creator: None,
-            activity: None,
-            description: None,
-            author_name: None,
-            author_email: None,
-            links_href: None,
-            links_text: None,
-            keywords: None,
-            time: None,
-            duration: None,
-            copyright_author: None,
-            copyright_year: None,
-            copyright_license: None,
-            num_waypoints: 0,
-            num_tracks: 0,
-            num_routes: 0,
+/// Sets the copyright year based on the timestamp found in the metadata. If the
+/// timestamp is not found, set it to the year the activity started. If that isn't found either,
+/// set it to the current year.
+fn set_copyright_year(dest: &mut GPXMetadata) {
+    // Debatable if this is kosher, but I'm going with it for now.
+    // If the copyright year is none, set it to the year the activity started.
+    if dest.copyright_year.is_none() {
+        let year = dest.time.as_ref().unwrap_or(&Local::now()).year();
+        log::debug!("copyright_year = {year}");
+        dest.copyright_year = Some(year);
+    }
+}
+
+/// Sets the links field in the `GPXMetadata` struct based on the links in the `gpx::Metadata` struct.
+/// Only the first link is used.
+///
+/// # Arguments
+///
+/// - `src_meta: &gpx::Metadata` -- The metadata from the original GPX file.
+/// - `dest: &mut GPXMetadata` -- The destination `GPXMetadata` struct, which gets modified.
+fn set_link(src_meta: &gpx::Metadata, dest: &mut GPXMetadata) {
+    if !src_meta.links.is_empty() {
+        dest.links_href = Some(src_meta.links[0].href.to_string());
+        if let Some(text) = &src_meta.links[0].text {
+            dest.links_text = Some(text.to_string());
         }
     }
 }
 
-/// Turn the `gpx::GpxVersion` enum into a string
-pub fn gpx_ver_to_string(version: gpx::GpxVersion) -> String {
-    match version {
-        gpx::GpxVersion::Gpx10 => "Gpx10".to_string(),
-        gpx::GpxVersion::Gpx11 => "Gpx11".to_string(),
-        gpx::GpxVersion::Unknown => "unknown".to_string(),
+/// Sets the time field in the `GPXMetadata` struct based on the time in the `gpx::Metadata` struct.
+///
+/// # Arguments
+///
+/// - `src_meta: &gpx::Metadata` -- The metadata from the original GPX file.
+/// - `dest: &mut GPXMetadata` -- The destination `GPXMetadata` struct, which gets modified.
+fn set_time(src_meta: &gpx::Metadata, dest: &mut GPXMetadata) {
+    if let Some(time) = &src_meta.time {
+        let t = time.format().unwrap_or_default();
+
+        if let Ok(ltz_w) = DateTime::parse_from_rfc3339(t.as_str()) {
+            let ltz = ltz_w.with_timezone(&Local);
+            dest.time = Some(ltz);
+        } else {
+            log::warn!("Unable to parse the time from the header. Yikes.");
+        }
+    }
+}
+
+/// Set the activity based on either the activity from the metadata,
+/// or if that's not found, from the first track activity.
+///
+/// # Arguments
+///
+/// - `src_meta: &gpx::Metadata` -- The metadata from the original GPX file.
+/// - `dest: &mut GPXMetadata` -- The destination `GPXMetadata` struct, which gets modified.
+/// - `src: &gpx::Gpx` -- The original contents of the GPX file being parsed.
+fn set_activity(src_meta: &gpx::Metadata, dest: &mut GPXMetadata, src: &gpx::Gpx) {
+    if let Some(activity) = &src_meta.name {
+        dest.activity = Some(activity.to_string());
+    } else if src
+        .tracks
+        .first()
+        .unwrap_or(&gpx::Track::default())
+        .name
+        .is_some()
+    {
+        dest.activity = Some(
+            src.tracks
+                .first()
+                .unwrap_or(&gpx::Track::default())
+                .name
+                .as_ref()
+                .unwrap_or(&"Unknown".to_string())
+                .to_string(),
+        );
     }
 }

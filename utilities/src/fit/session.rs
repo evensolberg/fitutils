@@ -29,7 +29,7 @@ use uom::si::{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information about the workout session
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct FITSession {
     pub filename: Option<String>, // TODO: Switch to PathBuf
@@ -71,12 +71,6 @@ pub struct FITSession {
 }
 
 impl FITSession {
-    /// Initialize Session with default empty values
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Creates a new, empty session and seft the `filename` value to the filename supplied.
     ///
     /// # Arguments
@@ -92,7 +86,8 @@ impl FITSession {
     ///
     #[must_use]
     pub fn with_filename(filename: &str) -> Self {
-        let mut session = Self::new();
+        let mut session = Self::default();
+        // trunk-ignore(clippy/field_reassign_with_default)
         session.filename = Some(filename.to_string());
 
         session
@@ -126,23 +121,23 @@ impl FITSession {
         );
         println!("\nTime in Zones:");
         println!(
-            "Speed/Power: {}",
+            "  Speed/Power: {}",
             self.time_in_hr_zones.hr_zone_4.unwrap_or_default()
         );
         println!(
-            "Anaerobic:   {}",
+            "  Anaerobic:   {}",
             self.time_in_hr_zones.hr_zone_3.unwrap_or_default()
         );
         println!(
-            "Aerobic:     {}",
+            "  Aerobic:     {}",
             self.time_in_hr_zones.hr_zone_2.unwrap_or_default()
         );
         println!(
-            "Fat Burning: {}",
+            "  Fat Burning: {}",
             self.time_in_hr_zones.hr_zone_1.unwrap_or_default()
         );
         println!(
-            "Warmup:      {}",
+            "  Warmup:      {}",
             self.time_in_hr_zones.hr_zone_0.unwrap_or_default()
         );
     }
@@ -189,10 +184,7 @@ impl FITSession {
     pub fn parse_session(&mut self, fields: &[FitDataField]) {
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
-        log::trace!(
-            "Sparsers::parse_session() -- ession field_map = {:?}",
-            field_map
-        );
+        log::trace!("Sparsers::parse_session() -- ession field_map = {field_map:?}");
 
         self.activity_type = field_map.get("sport").and_then(map_string);
         self.activity_type = Some(
@@ -328,48 +320,4 @@ impl FITSession {
     }
 
     // end impl Session
-}
-
-impl Default for FITSession {
-    /// Set defaulft to be either empty or zero.
-    fn default() -> Self {
-        Self {
-            filename: None,
-            manufacturer: None,
-            product: None,
-            serial_number: None,
-            time_created: None,
-            activity_type: None,
-            activity_detailed: None,
-            num_sessions: None,
-            num_laps: None,
-            num_records: None,
-            cadence_avg: None,
-            cadence_max: None,
-            heartrate_avg: None,
-            heartrate_max: None,
-            heartrate_min: None,
-            speed_avg: None,
-            speed_max: None,
-            power_avg: None,
-            power_max: None,
-            power_threshold: None,
-            nec_lat: None,
-            nec_lon: None,
-            swc_lat: None,
-            swc_lon: None,
-            stance_time_avg: None,
-            vertical_oscillation_avg: None,
-            ascent: None,
-            descent: None,
-            calories: None,
-            distance: None,
-            duration: None,
-            duration_active: None,
-            duration_moving: None,
-            start_time: None,
-            finish_time: None,
-            time_in_hr_zones: FITHrZones::default(),
-        }
-    }
 }

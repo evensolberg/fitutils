@@ -35,14 +35,14 @@ fn run() -> Result<(), Box<dyn Error>> {
         .target(Target::Stdout)
         .init();
 
-    let opt = Cli::from_args();
-    let output_loc = opt
+    let cli = Cli::from_args();
+    let output_loc = cli
         .output
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
     // If no files have been provided, read from STDIN
-    if opt.files.is_empty() {
+    if cli.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
         output_loc.write_json_file(
             &PathBuf::from("<stdin>"),
@@ -53,7 +53,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Read each FIT file and output it
     let mut all_fit_data: Vec<fitparser::FitDataRecord> = Vec::new();
-    for file in opt.files {
+    for file in cli.files {
         // open file and parse data
         log::info!("Processing file: {}", &file.to_str().unwrap_or_default());
         let mut fp = File::open(&file)?;
