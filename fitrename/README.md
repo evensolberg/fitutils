@@ -34,7 +34,7 @@ The following tokens can be used. Note that date and times indicate the *start* 
 `%month`|`%mo`|Y|Y|Y|The month (01-12).
 `%day`|`%dy`|Y|Y|Y|The day (01-31).
 `%weekday`|`%wd`|Y|Y|Y|The day of the week (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
-`%hour`|`%h`|Y|Y|Y|The hour (00-23).
+`%hour`|`%hr`|Y|Y|Y|The hour (00-23).
 `%hour24`|`%24`|Y|Y|Y|The hour (00-23).
 `%hour12`|`%12`|Y|Y|Y|The hour (00-12).
 `%minute`|`%mi`|Y|Y|Y|The minute (00-59).
