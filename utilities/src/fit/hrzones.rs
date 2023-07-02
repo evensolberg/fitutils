@@ -24,7 +24,7 @@ use crate::Duration;
 /// # References
 ///
 /// <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates><br>
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy, Default)]
 #[serde(default)]
 pub struct FITHrZones {
     /// Time spent in Heart Rate zone 0 (Warmup).
@@ -44,12 +44,6 @@ pub struct FITHrZones {
 }
 
 impl FITHrZones {
-    /// Initialize `HrZones` with default empty (`None`) values
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Initialize `HrZones` from a `HrZone` array from the fitparser
     ///
@@ -77,7 +71,7 @@ impl FITHrZones {
     ///
     /// Struct [`fitparser::Value`](https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html)
     pub fn from(src: Option<&&fitparser::Value>) -> Self {
-        let mut hr_zones = Self::new();
+        let mut hr_zones = Self::default();
 
         if let Some(fitparser::Value::Array(tihz_vec)) = src {
             // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
@@ -97,19 +91,6 @@ impl FITHrZones {
 
         // return it
         hr_zones
-    }
-}
-
-impl Default for FITHrZones {
-    /// Set each heart rate zone value to be `None`.
-    fn default() -> Self {
-        Self {
-            hr_zone_0: None,
-            hr_zone_1: None,
-            hr_zone_2: None,
-            hr_zone_3: None,
-            hr_zone_4: None,
-        }
     }
 }
 

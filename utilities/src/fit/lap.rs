@@ -16,7 +16,7 @@ use uom::si::{
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Summary information per lap
-#[derive(Serialize, Deserialize, Debug, Clone)] // Don't need to impl anything since we derive defaults
+#[derive(Serialize, Deserialize, Debug, Clone, Default)] // Don't need to impl anything since we derive defaults
 #[serde(default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct FITLap {
@@ -103,12 +103,6 @@ pub struct FITLap {
 }
 
 impl FITLap {
-    /// Return a new, empty `Lap` struct
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Parses lap information from `FitDataRecord` into more detail and returns a new `Lap`.
     ///
@@ -124,7 +118,7 @@ impl FITLap {
     ///
     /// # Errors
     ///
-    ///
+    /// None.
     ///
     /// # Example
     ///
@@ -142,7 +136,7 @@ impl FITLap {
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
-        let mut lap = Self::new();
+        let mut lap = Self::default();
 
         lap.filename = session.filename.clone();
 
@@ -239,39 +233,4 @@ impl FITLap {
     }
 
     // end impl Lap
-}
-
-impl Default for FITLap {
-    /// Return a `Lap` struct with all empty values.
-    fn default() -> Self {
-        Self {
-            filename: None,
-            lap_num: None,
-            cadence_avg: None,
-            cadence_max: None,
-            heartrate_min: None,
-            heartrate_avg: None,
-            heartrate_max: None,
-            speed_avg: None,
-            speed_max: None,
-            power_avg: None,
-            power_max: None,
-            lat_start: None,
-            lon_start: None,
-            lat_end: None,
-            lon_end: None,
-            stance_time_avg: None,
-            vertical_oscillation_avg: None,
-            ascent: None,
-            descent: None,
-            calories: None,
-            distance: None,
-            duration: None,
-            duration_active: None,
-            duration_moving: None,
-            start_time: None,
-            finish_time: None,
-            time_in_hr_zones: FITHrZones::new(),
-        }
-    }
 }

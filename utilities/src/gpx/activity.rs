@@ -139,7 +139,7 @@ impl GPXActivity {
     ///
     /// None.
     ///
-    pub fn set_duration(&mut self) {
+    fn set_duration(&mut self) {
         let mut duration = Duration::from_secs_f64(0.0);
 
         // If there are no tracks, protest!
@@ -176,7 +176,7 @@ impl GPXActivity {
     /// # Panics
     ///
     /// None.
-    pub fn export_tracks_csv(&self) -> Result<(), Box<dyn Error>> {
+    fn export_tracks_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
         if tracks.is_empty() {
             return Err("track::export_tracks_csv() -- No Tracks in the Activity.".into());
@@ -222,7 +222,7 @@ impl GPXActivity {
     /// # Panics
     ///
     /// None.
-    pub fn export_waypoints_csv(&self) -> Result<(), Box<dyn Error>> {
+    fn export_waypoints_csv(&self) -> Result<(), Box<dyn Error>> {
         let tracks = &self.tracks;
         if tracks.is_empty() {
             return Err("track::export_waypoints_csv() -- No Tracks in the Activity.".into());

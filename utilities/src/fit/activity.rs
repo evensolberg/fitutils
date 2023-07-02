@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the all the information about a FIT file and its contents
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct FITActivity {
@@ -25,22 +25,16 @@ pub struct FITActivity {
 }
 
 impl FITActivity {
-    /// Creates a new, empty `Activity`.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Parses the input file into its constituent parts.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    ///    `filename: &str` -- The filename for the FIT file to be parsed.
+    /// - `filename: &str` -- The filename for the FIT file to be parsed.
     ///
     /// # Returns
     ///
-    ///    `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if successful, otherwise an `Error`.
+    /// - `Result<Activity, Box<dyn Error>>` -- `Ok(Activity)` if successful, otherwise an `Error`.
     ///
     /// # Errors
     ///
@@ -453,32 +447,11 @@ impl FITActivity {
     // end impl Activity
 }
 
-impl Default for FITActivity {
-    /// Returns an empty `Activity`.
-    fn default() -> Self {
-        Self {
-            session: FITSession::new(),
-            laps: Vec::new(),
-            records: Vec::new(),
-        }
-    }
-}
-
 #[cfg(test)]
 ///
 mod tests {
     use super::*;
     use assay::assay;
-
-    #[assay]
-    /// Test FitActivity::new()
-    fn test_new() {
-        let act = FITActivity::new();
-
-        assert!(act.session.filename.is_none());
-        assert!(act.laps.is_empty());
-        assert!(act.records.is_empty());
-    }
 
     #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit"])]
     /// test FITActivity::from_file()

@@ -111,15 +111,11 @@ pub struct GPXWaypoint {
 
 impl GPXWaypoint {
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    #[must_use]
     #[allow(clippy::used_underscore_binding)]
     pub fn from_gpx_waypoint(src: &gpx::Waypoint) -> Self {
-        let mut dest = Self::new();
+        let mut dest = Self::default();
 
+        // trunk-ignore(clippy/field_reassign_with_default)
         dest.longitude = Some(src.point().x());
         dest.latitude = Some(src.point().y());
 

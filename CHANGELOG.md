@@ -11,6 +11,14 @@ All notable changes to this project will be documented in this file.
 
 - Update changelog, remove lock file
 
+### Miscellaneous Tasks
+
+- Dependency updates
+
+### Refactor
+
+- Refactor all the things!
+
 ### Security
 
 - Bumped crate versions

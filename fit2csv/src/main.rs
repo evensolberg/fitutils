@@ -44,7 +44,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Working section
 
     // Create an empty placeholder for all the activities
-    let mut activities = FITActivities::new();
+    let mut activities = FITActivities::default();
 
     for filename in cli_args
         .get_many::<String>("read")

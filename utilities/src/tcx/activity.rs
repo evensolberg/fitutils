@@ -9,7 +9,7 @@ use tcx::{self};
 use crate::{set_extension, Duration};
 
 /// Holds a summary of the activities in the file
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct TCXActivity {
     /// Filename of the original file from which the data was read
@@ -74,12 +74,6 @@ pub struct TCXActivity {
 }
 
 impl TCXActivity {
-    /// Create a new, empty Activities Summary
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Creates a new `TCXActivity` from the file specified. The activities are read into the struct.
     ///
     /// # Arguments
@@ -107,7 +101,7 @@ impl TCXActivity {
             act = Self::from_activities(&activities);
             act.filename = Some(filename.to_string());
         } else {
-            act = Self::new();
+            act = Self::default();
         }
 
         // return safely
@@ -123,7 +117,7 @@ impl TCXActivity {
         clippy::cast_possible_truncation
     )]
     pub fn from_activities(activities: &tcx::Activities) -> Self {
-        let mut act_s = Self::new();
+        let mut act_s = Self::default();
 
         let mut hr: f64 = 0.0;
         let mut cad: f64 = 0.0;
@@ -364,55 +358,13 @@ impl TCXActivity {
     }
 }
 
-impl Default for TCXActivity {
-    /// Sets up the `ActivitiesSummary` with defaults or empty fields
-    fn default() -> Self {
-        Self {
-            filename: None,
-            num_activities: None,
-            sport: None,
-            start_time: None,
-            duration: None,
-            notes: None,
-            num_laps: None,
-            num_tracks: None,
-            num_trackpoints: None,
-            distance_meters: None,
-            start_altitude: None,
-            max_altitude: None,
-            ascent_meters: None,
-            average_speed: None,
-            maximum_speed: None,
-            calories: None,
-            average_heart_rate: None,
-            maximum_heart_rate: None,
-            average_cadence: None,
-            maximum_cadence: None,
-        }
-    }
-}
-
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Default)]
 pub struct TCXActivitiesList {
     /// The list of activities
     pub activities: Vec<TCXActivity>,
 }
 
-impl Default for TCXActivitiesList {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl TCXActivitiesList {
-    /// Create a new, empty `ActivitiesList`.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            activities: Vec::new(),
-        }
-    }
-
     /// Export the activity summary as a JSON file
     ///
     /// # Arguments
@@ -483,8 +435,8 @@ mod tests {
 
     #[assay]
     ///
-    fn test_activities_summary_new() {
-        let mut act = TCXActivity::new();
+    fn test_activities_summary_default() {
+        let mut act = TCXActivity::default();
 
         assert!(act.filename.is_none());
         assert!(act.num_activities.is_none());

@@ -367,7 +367,7 @@ dependencies = [
 
 [[package]]
 name = "fit2csv"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "assay",
  "clap 4.3.2",
@@ -401,7 +401,7 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "assay",
  "chrono",
@@ -416,7 +416,7 @@ dependencies = [
 
 [[package]]
 name = "fitview"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "assay",
  "chrono",
@@ -465,7 +465,7 @@ dependencies = [
 
 [[package]]
 name = "gpx2csv"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "assay",
  "clap 4.3.2",
@@ -955,7 +955,7 @@ dependencies = [
 
 [[package]]
 name = "tcx2csv"
-version = "0.3.1"
+version = "0.3.12"
 dependencies = [
  "assay",
  "clap 4.3.2",
@@ -1121,7 +1121,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
 name = "utilities"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "assay",
  "chrono",

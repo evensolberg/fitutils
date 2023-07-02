@@ -14,7 +14,7 @@ use uom::si::{length::meter, velocity::meter_per_second};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Detailed information about each record/data point in the workout session.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(default)]
 #[allow(clippy::module_name_repetitions)]
 pub struct FITRecord {
@@ -59,12 +59,6 @@ pub struct FITRecord {
 }
 
 impl FITRecord {
-    /// Return a new, empty Record
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Parses record information into more detail.
     ///
@@ -96,7 +90,7 @@ impl FITRecord {
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
 
-        let mut record = Self::new();
+        let mut record = Self::default();
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -107,16 +101,15 @@ impl FITRecord {
             record.timestamp = None;
         }
 
-        let duration = record.timestamp.as_ref().map(|x| {
+        let duration = record.timestamp.as_ref().map(|start_time| {
             Duration::between(
-                x,
+                start_time,
                 session
                     .time_created
                     .as_ref()
                     .unwrap_or(&Local.timestamp_opt(0, 0).unwrap()),
             )
         });
-
         record.duration = duration;
 
         record.distance = field_map
@@ -154,26 +147,5 @@ impl FITRecord {
             .map(|x| f64::from(x) * LATLON_MULTIPLIER);
 
         record
-    }
-}
-
-impl Default for FITRecord {
-    /// Returns a `Record` struct with no values.
-    fn default() -> Self {
-        Self {
-            timestamp: None,
-            duration: None,
-            distance: None,
-            altitude: None,
-            stance_time: None,
-            vertical_oscillation: None,
-            cadence: None,
-            speed: None,
-            power: None,
-            heartrate: None,
-            calories: None,
-            lat: None,
-            lon: None,
-        }
     }
 }

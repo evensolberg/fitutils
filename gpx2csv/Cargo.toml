@@ -1,6 +1,6 @@
 [package]
 name = "gpx2csv"
-version = "0.4.2"
+version = "0.4.3"
 description = "Parses .GPX files to .JSON and .CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]

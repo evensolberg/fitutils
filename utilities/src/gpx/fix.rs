@@ -34,16 +34,17 @@ impl GPXFix {
     }
 }
 
-impl ToString for GPXFix {
-    fn to_string(&self) -> String {
-        match self {
-            GPXFix::None => "None".to_string(),
-            GPXFix::TwoDimensional => "TwoDimensional".to_string(),
-            GPXFix::ThreeDimensional => "ThreeDimensional".to_string(),
-            GPXFix::DGPS => "DGPS".to_string(),
-            GPXFix::PPS => "PPS".to_string(),
-            GPXFix::Other(_) => "Other".to_string(),
-        }
+impl Display for GPXFix {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let r = match self {
+            GPXFix::None => "None",
+            GPXFix::TwoDimensional => "TwoDimensional",
+            GPXFix::ThreeDimensional => "ThreeDimensional",
+            GPXFix::DGPS =>"DGPS",
+            GPXFix::PPS => "PPS",
+            GPXFix::Other(st) => format!("Other({st})"),
+        };
+        write!(f, "{r}")
     }
 }
 

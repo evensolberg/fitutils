@@ -32,14 +32,14 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
 
     for (key, value) in values {
         // Make sure to pad disc and track numbers with leading zeros
-        let mut fixed_value = value.clone();
-        fixed_value = fixed_value.trim().to_string();
+        let fixed_value = value.clone().trim().to_string();
 
         // Do the actual filename replacement
-        new_filename = new_filename.replace(key, &fixed_value);
-
-        new_filename = new_filename.replace('/', "-");
-        new_filename = new_filename.trim().to_string();
+        new_filename
+            .replace(key, &fixed_value)
+            .replace('/', "-")
+            .trim()
+            .to_string();
     }
 
     // Get the path before the filename (eg. "music/01.flac" returns "music/")
@@ -61,19 +61,18 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
     }
 
     // Perform the actual rename
+    let npl = new_path.to_string_lossy();
     if dry_run {
-        log::debug!("dr: {filename} --> {}", new_path.display());
+        log::debug!("dr: {filename} --> {npl}");
     } else {
         // Perform rename
         let rn_res = std::fs::rename(filename, &new_path);
         match rn_res {
-            Ok(_) => log::debug!("{filename} --> {}", new_path.to_string_lossy()),
+            Ok(_) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
-                return Err(format!(
-                    "Unable to rename {filename} to {}. Error message: {err}",
-                    new_path.to_string_lossy()
-                )
-                .into());
+                return Err(
+                    format!("Unable to rename {filename} to {npl}. Error message: {err}").into(),
+                );
             }
         }
     }
