@@ -10,22 +10,21 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# System
-chrono = { version = "0.4.26", features = ["serde"] }
-uom = { version = "0.34.0", default-features = false, features = ["si", "u16", "f64", "use_serde", "autoconvert"] }
-serde = { version = "1.0.163", features = ["derive"] }
-serde_json = "1.0.96"
-env_logger = "0.10.0"
-log = "0.4.18"
-csv = "1.2.2"
-convert_case = "0.6.0"
-clap = { version = "4.3.2", features = ["cargo", "wrap_help"] }
+clap = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+chrono = { workspace = true }
+csv = {workspace = true }
+serde = {workspace = true }
 
+uom = { version = "0.35.0", default-features = false, features = ["si", "u16", "f64", "use_serde", "autoconvert"] }
+serde_json = "1.0.105"
+convert_case = "0.6.0"
 
 # Fitness
-fitparser = "0.6.0"
-gpx = "0.9.1"
-tcx = "0.9.3"
+fitparser = { workspace = true }
+gpx = { workspace = true }
+tcx = { workspace = true }
 
 [dev-dependencies]
 assay = "0.1.1"

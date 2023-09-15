@@ -8,9 +8,9 @@ edition = "2021"
 include = ["src/**/*", "README.md"]
 
 [dependencies]
-clap = { version = "4.3.2", features = ["cargo", "wrap_help", "env"] }
-env_logger = "0.10.0"
-log = "0.4.18"
+clap = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
 
 # Our own package
 utilities = { path = "../utilities" }

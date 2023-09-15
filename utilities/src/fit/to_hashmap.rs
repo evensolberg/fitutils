@@ -148,6 +148,8 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         values.insert("%du".to_string(), "0".to_string());
     }
 
+    log::debug!("values = {values:?}");
+
     // return safely
     Ok(values)
 }

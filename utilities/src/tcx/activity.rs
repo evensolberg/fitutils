@@ -74,6 +74,11 @@ pub struct TCXActivity {
 }
 
 impl TCXActivity {
+    /// Creates a new `TCXActivity` struct
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Creates a new `TCXActivity` from the file specified. The activities are read into the struct.
     ///
     /// # Arguments

@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Refactor
 
-- Refactor all the things!
+- Refactor all the things! (#128)
 
 ### Security
 

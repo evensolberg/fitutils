@@ -30,17 +30,22 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
 ) -> Result<String, Box<dyn Error>> {
     let mut new_filename = pattern.to_string();
 
+    log::debug!("rename_file() -- values: {values:?}");
+    log::debug!("rename_file() -- pattern: {pattern}");
+
     for (key, value) in values {
         // Make sure to pad disc and track numbers with leading zeros
         let fixed_value = value.clone().trim().to_string();
 
+        log::debug!("rename_file() -- key: {key}, fixed_value: {fixed_value}");
+
         // Do the actual filename replacement
-        new_filename
-            .replace(key, &fixed_value)
-            .replace('/', "-")
-            .trim()
-            .to_string();
+        let nf = new_filename.replace(key, &fixed_value).replace('/', "-");
+        new_filename = nf;
+        log::debug!("rename_file() -- new_filename: {new_filename}");
     }
+
+    log::debug!("rename_file() -- new_filename: {new_filename}");
 
     // Get the path before the filename (eg. "music/01.flac" returns "music/")
     let parent = Path::new(&filename)

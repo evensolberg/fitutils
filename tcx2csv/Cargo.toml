@@ -11,10 +11,10 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 # chrono = "0.4.19"
-clap = { version = "4.3.2", features = ["cargo", "wrap_help", "env"] }
-env_logger = "0.10.0"
-log = "0.4.18"
-tcx = "0.9.3"
+clap = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+tcx = { workspace = true }
 
 # Our own crate
 utilities = { path = "../utilities" }

@@ -1,5 +1,4 @@
 [workspace]
-
 members = [
     "fit2csv",
     "fit2json",
@@ -10,5 +9,18 @@ members = [
     "utilities",
 ]
 
+resolver = "2"
+
 [profile.release]
 strip = true
+
+[workspace.dependencies]
+clap = { version = "4.4.0", features = ["cargo", "wrap_help", "env"] }
+log = "0.4.20"
+env_logger = "0.10.0"
+chrono = { version = "0.4.26", features = ["serde"] }
+csv = "1.2.2"
+serde = { version = "1.0.187", features = ["derive"] }
+fitparser = "0.6.0"
+gpx = "0.9.1"
+tcx = "0.9.3"
