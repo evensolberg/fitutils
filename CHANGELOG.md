@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 - Update changelog, remove lock file
 
+### Fix
+
+- Fitrename not working
+
 ### Miscellaneous Tasks
 
 - Dependency updates

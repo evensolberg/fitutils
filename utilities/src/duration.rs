@@ -45,6 +45,12 @@ impl Duration {
                 .expect("types::Duration::between() -- ts1 >= ts2: Duration out of bounds.")
         })
     }
+
+    /// Get the number of seconds in the duration.
+    #[must_use]
+    pub fn as_secs(&self) -> u64 {
+        self.0.as_secs()
+    }
 }
 
 impl Add for Duration {
