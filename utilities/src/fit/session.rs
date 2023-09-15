@@ -281,7 +281,11 @@ impl FITSession {
         if let Some(fitparser::Value::Timestamp(ft)) = field_map.get("DateTime<Local>") {
             self.finish_time = Some(*ft);
         } else {
-            self.finish_time = None;
+            let dur = self.duration.unwrap_or_default();
+            let c_dur = chrono::Duration::seconds(dur.0.as_secs() as i64);
+            let st = self.start_time.unwrap();
+            let ft = st + c_dur;
+            self.finish_time = Some(ft);
         }
         self.num_laps = field_map.get("num_laps").and_then(map_uint16);
 

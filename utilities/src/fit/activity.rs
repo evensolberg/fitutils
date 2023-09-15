@@ -413,13 +413,12 @@ impl FITActivity {
                     .as_ref()
                     .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
             );
-            let dur = self.session.duration.unwrap_or_default();
-            let c_dur = chrono::Duration::seconds(dur.0.as_secs() as i64);
-            let st = self.session.start_time.unwrap();
-            let ft = st + c_dur;
             println!(
                 "Finish time:                {}",
-                self.session.finish_time.as_ref().unwrap_or(&ft)
+                self.session
+                    .finish_time
+                    .as_ref()
+                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
             );
             println!("Time in Zones:");
             println!(

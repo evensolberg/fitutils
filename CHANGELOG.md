@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Fix
 
 - Fitrename not working
+- Fitview displayed wrong finish time
 
 ### Miscellaneous Tasks
 
