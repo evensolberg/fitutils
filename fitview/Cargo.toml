@@ -11,7 +11,7 @@ include = ["src/**/*", "README.md"]
 
 [dependencies]
 
-chrono = { version = "0.4.26", features = ["serde"] }
+chrono = { version = "0.4.31", features = ["serde"] }
 clap = { workspace = true }
 env_logger = { workspace = true }
 log  = { workspace = true }

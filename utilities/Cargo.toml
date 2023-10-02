@@ -1,6 +1,6 @@
 [package]
 name = "utilities"
-version = "0.4.6"
+version = "0.4.7"
 edition = "2021"
 description = "Shared utility types and functions for the fitness utilities."
 license = "Apache-2.0"
@@ -18,7 +18,7 @@ csv = {workspace = true }
 serde = {workspace = true }
 
 uom = { version = "0.35.0", default-features = false, features = ["si", "u16", "f64", "use_serde", "autoconvert"] }
-serde_json = "1.0.105"
+serde_json = "1.0.107"
 convert_case = "0.6.0"
 
 # Fitness

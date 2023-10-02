@@ -4,7 +4,6 @@ mod extensions;
 mod fit;
 mod gpx;
 mod macros;
-mod rename_file;
 mod tcx;
 
 pub use crate::fit::{
@@ -27,5 +26,4 @@ pub use crate::{
     build_logs::build_log,
     duration::Duration,
     extensions::{get_extension, set_extension},
-    rename_file::rename_file,
 };

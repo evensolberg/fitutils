@@ -4,6 +4,7 @@ use std::{collections::HashMap, error::Error, path::Path};
 use clap::parser::ValueSource;
 
 mod cli;
+mod rename_file;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -72,7 +73,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             // Metadata read OK - try to rename
             Ok(values) => {
                 let result =
-                    utilities::rename_file(filename, pattern, &values, total_files, dry_run);
+                    rename_file::rename_file(filename, pattern, &values, total_files, dry_run);
                 match result {
                     // How did the rename go?
                     Ok(result) => {

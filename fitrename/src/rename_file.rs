@@ -1,4 +1,5 @@
 use std::{collections::HashMap, error::Error, path::Path};
+use utilities::get_extension;
 
 /// Renames the target file based on the provided patterntar
 ///
@@ -34,9 +35,7 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
     log::debug!("rename_file() -- pattern: {pattern}");
 
     for (key, value) in values {
-        // Make sure to pad disc and track numbers with leading zeros
         let fixed_value = value.clone().trim().to_string();
-
         log::debug!("rename_file() -- key: {key}, fixed_value: {fixed_value}");
 
         // Do the actual filename replacement
@@ -45,7 +44,7 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
         log::debug!("rename_file() -- new_filename: {new_filename}");
     }
 
-    log::debug!("rename_file() -- new_filename: {new_filename}");
+    log::debug!("rename_file() -- final new_filename: {new_filename}");
 
     // Get the path before the filename (eg. "music/01.flac" returns "music/")
     let parent = Path::new(&filename)
@@ -54,15 +53,14 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
 
     // Create the new filename
     let mut new_path =
-        parent.join(Path::new(&new_filename).with_extension(crate::get_extension(filename)));
+        parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     log::debug!("new_path = {new_path:?}");
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
     if Path::new(&new_path).exists() {
         log::warn!("{new_filename} already exists. Appending unique identifier.");
         new_filename = format!("{new_filename} ({unique_val})");
-        new_path =
-            parent.join(Path::new(&new_filename).with_extension(crate::get_extension(filename)));
+        new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     }
 
     // Perform the actual rename
