@@ -2,7 +2,7 @@
 
 [package]
 name = "fitrename"
-version = "0.4.4"
+version = "0.4.5"
 edition = "2021"
 description = "Renames .FIT, .GPX and .TCX files based on metadata."
 license = "Apache-2.0"
@@ -15,14 +15,6 @@ include = ["src/**/*", "README.md"]
 clap = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
-
-# Fitness
-fitparser = { workspace = true }
-gpx  = { workspace = true }
-tcx  = { workspace = true }
-
-# chrono = { version = "0.4", features = ["serde"] }
-chrono = { workspace = true }
 
 # Our own package
 utilities = { path = "../utilities" }

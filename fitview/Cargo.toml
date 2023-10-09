@@ -1,6 +1,6 @@
 [package]
 name = "fitview"
-version = "0.4.3"
+version = "0.4.4"
 edition = "2021"
 description = "Shows the metadata from .FIT, .GPX and .TCX files."
 license = "Apache-2.0"
@@ -10,8 +10,6 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-chrono = { version = "0.4.31", features = ["serde"] }
 clap = { workspace = true }
 env_logger = { workspace = true }
 log  = { workspace = true }

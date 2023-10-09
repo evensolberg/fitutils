@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Chore
 
 - Update changelog, remove lock file
+- Move the rename_file to fitrename
 
 ### Fix
 

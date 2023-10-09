@@ -399,25 +399,20 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "assay",
- "chrono",
  "clap 4.4.6",
  "env_logger",
- "fitparser",
- "gpx",
  "log",
- "tcx",
  "utilities",
 ]
 
 [[package]]
 name = "fitview"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "assay",
- "chrono",
  "clap 4.4.6",
  "env_logger",
  "log",
