@@ -110,9 +110,8 @@ impl Serialize for Duration {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     fn test_from_secs_f64() {
         let dur = Duration::from_secs_f64(120.100);
 
@@ -120,7 +119,7 @@ mod tests {
         assert_eq!(dur.0.as_millis(), 120_100);
     }
 
-    #[assay]
+    #[test]
     fn test_from_millis_u64() {
         let dur = Duration::from_millis_u64(123_123);
 
@@ -129,7 +128,7 @@ mod tests {
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
-    #[assay]
+    #[test]
     fn test_from_millis_u32() {
         let dur = Duration::from_millis_u32(123_123);
 
@@ -138,7 +137,7 @@ mod tests {
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
-    #[assay]
+    #[test]
     fn test_between() {
         let t1 = Local::now();
         std::thread::sleep(std::time::Duration::from_secs(1));
@@ -153,7 +152,7 @@ mod tests {
         assert_eq!(b2.0.as_secs(), 1);
     }
 
-    #[assay]
+    #[test]
     /// Tests the addition functionality to add two durations together
     fn test_add() {
         assert_eq!(
@@ -209,7 +208,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     /// Tests the add assign (+=) functionality
     fn test_add_assign() {
         let mut d1 = Duration::from_secs_f64(1.0);
@@ -224,7 +223,7 @@ mod tests {
         assert_eq!(d1.0.as_secs(), 3);
     }
 
-    #[assay]
+    #[test]
     /// Tests the subtraction functionality
     fn test_sub() {
         assert_eq!(
@@ -285,7 +284,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_display() {
         let d1 = Duration::from_secs_f64(3750.2);

@@ -75,18 +75,28 @@ impl FITHrZones {
 
         if let Some(fitparser::Value::Array(tihz_vec)) = src {
             // Array[UInt32(23372), UInt32(31681), UInt32(32669), UInt32(447453), UInt32(1394934)]
+            // TODO: Make sure the vector has 5 elements
             // FIXME: There HAS to be a better way to get the value
-            let t2: Vec<Duration> = tihz_vec
-                .iter()
-                .map(|x| x.to_string().parse::<u64>().unwrap_or_default())
-                .map(Duration::from_millis_u64)
-                .collect();
 
-            hr_zones.hr_zone_0 = Some(t2[0]);
-            hr_zones.hr_zone_1 = Some(t2[1]);
-            hr_zones.hr_zone_2 = Some(t2[2]);
-            hr_zones.hr_zone_3 = Some(t2[3]);
-            hr_zones.hr_zone_4 = Some(t2[4]);
+            // Make sure tihz_vec has 5 elements
+            if tihz_vec.len() == 5 {
+                let t2: Vec<Duration> = tihz_vec
+                    .iter()
+                    .map(|x| x.to_string().parse::<u64>().unwrap_or_default())
+                    .map(Duration::from_millis_u64)
+                    .collect();
+
+                hr_zones.hr_zone_0 = Some(t2[0]);
+                hr_zones.hr_zone_1 = Some(t2[1]);
+                hr_zones.hr_zone_2 = Some(t2[2]);
+                hr_zones.hr_zone_3 = Some(t2[3]);
+                hr_zones.hr_zone_4 = Some(t2[4]);
+            } else {
+                log::warn!(
+                    "FITHrZones::from() -- tihz_vec has {} elements, expected 5.",
+                    tihz_vec.len()
+                );
+            }
         }
 
         // return it

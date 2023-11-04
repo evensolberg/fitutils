@@ -75,6 +75,7 @@ pub struct TCXActivity {
 
 impl TCXActivity {
     /// Creates a new `TCXActivity` struct
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -436,9 +437,8 @@ impl TCXActivitiesList {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     ///
     fn test_activities_summary_default() {
         let mut act = TCXActivity::default();
@@ -539,7 +539,7 @@ mod tests {
         assert_eq!(act.maximum_cadence.unwrap(), 101);
     }
 
-    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
+    #[test(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
     // TODO: Figure out relative paths.
     fn test_from_activities() {
         // Create an empty summary struct and load data into it.

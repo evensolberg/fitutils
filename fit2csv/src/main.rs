@@ -1,16 +1,15 @@
+use clap::parser::ValueSource;
 use env_logger::Target;
 use std::error::Error;
+
 use utilities::{FITActivities, FITActivity};
-
-use clap::parser::ValueSource;
-
 mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);

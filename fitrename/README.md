@@ -51,4 +51,4 @@ The following tokens can be used. Note that date and times indicate the *start* 
 
 > **NOTE:** Not all file types contain all of this information. Notably, FIT tends to be the most data-rich. You should do a dry run before attempting to rename files to ensure you get the expected result.
 
-If a file before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unique_id)` where `filename` is the duplicate name.
+Before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unique_id)` where `filename` is the duplicate name.

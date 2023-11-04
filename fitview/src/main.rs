@@ -10,7 +10,7 @@ mod cli;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
     let detailed = cli_args.value_source("print-detail") == Some(ValueSource::CommandLine);
     let print_summary = cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
 

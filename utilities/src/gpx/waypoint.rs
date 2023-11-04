@@ -113,16 +113,15 @@ impl GPXWaypoint {
     #[must_use]
     #[allow(clippy::used_underscore_binding)]
     pub fn from_gpx_waypoint(src: &gpx::Waypoint) -> Self {
-        let mut dest = Self::default();
-
-        // trunk-ignore(clippy/field_reassign_with_default)
-        dest.longitude = Some(src.point().x());
-        dest.latitude = Some(src.point().y());
-
-        dest.elevation = src.elevation;
-        dest.speed = src.speed;
-
-        dest.time = Some(time_to_dt_local(src)).unwrap_or_default();
+        // let mut dest = Self::default();
+        let mut dest = Self {
+            longitude: Some(src.point().x()),
+            latitude: Some(src.point().y()),
+            elevation: src.elevation,
+            speed: src.speed,
+            time: time_to_dt_local(src),
+            ..Default::default()
+        };
 
         set_string_field!(src, name, dest);
         set_string_field!(src, comment, dest);

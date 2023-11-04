@@ -86,11 +86,10 @@ impl FITSession {
     ///
     #[must_use]
     pub fn with_filename(filename: &str) -> Self {
-        let mut session = Self::default();
-        // trunk-ignore(clippy/field_reassign_with_default)
-        session.filename = Some(filename.to_string());
-
-        session
+        Self {
+            filename: Some(filename.to_string()),
+            ..Default::default()
+        }
     }
 
     /// Output details about the session
@@ -181,6 +180,7 @@ impl FITSession {
     /// **Returns:**
     ///
     ///    `Result<(), Box<dyn Error>>` -- Returns nothing if OK, error if problematic.
+    #[allow(clippy::cast_possible_wrap)]
     pub fn parse_session(&mut self, fields: &[FitDataField]) {
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();
@@ -283,7 +283,7 @@ impl FITSession {
         } else {
             let dur = self.duration.unwrap_or_default();
             let c_dur = chrono::Duration::seconds(dur.0.as_secs() as i64);
-            let st = self.start_time.unwrap();
+            let st = self.start_time.unwrap_or_default();
             let ft = st + c_dur;
             self.finish_time = Some(ft);
         }

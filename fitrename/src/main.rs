@@ -1,5 +1,5 @@
 use env_logger::Target;
-use std::{collections::HashMap, error::Error, path::Path};
+use std::{error::Error, path::Path};
 
 use clap::parser::ValueSource;
 
@@ -12,7 +12,7 @@ mod rename_file;
 #[allow(clippy::unnecessary_wraps)]
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
     let dry_run = cli_args.value_source("dry-run") == Some(ValueSource::CommandLine);
     let print_summary = cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
 
@@ -51,7 +51,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         // Read the metadata from files
-        let mut value_res = Ok(HashMap::<String, String>::new());
+        let value_res;
         match utilities::get_extension(filename).to_lowercase().as_ref() {
             "fit" => {
                 value_res = utilities::fit_to_hashmap(filename);
@@ -65,7 +65,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                 value_res = utilities::tcx_to_hashmap(filename);
                 log::debug!("TCX: {value_res:?}");
             }
-            _ => log::warn!("Unknown file type: {filename}."),
+            _ => {
+                log::warn!("Unknown file type: {filename}.");
+                value_res = Err("Unknown file type".into());
+            }
         }
 
         // Process the result of reading metadata
