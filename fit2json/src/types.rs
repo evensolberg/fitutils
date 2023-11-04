@@ -96,7 +96,7 @@ impl OutputLocation {
         // Write the data to the selected output and return the result.
         let mut fp = File::create(outname)?;
         match fp.write_all(json.as_bytes()) {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(e) => Err(Box::new(e)),
         }
     }

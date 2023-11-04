@@ -539,7 +539,7 @@ mod tests {
         assert_eq!(act.maximum_cadence.unwrap(), 101);
     }
 
-    #[test(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
+    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
     // TODO: Figure out relative paths.
     fn test_from_activities() {
         // Create an empty summary struct and load data into it.
