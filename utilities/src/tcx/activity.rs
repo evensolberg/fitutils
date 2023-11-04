@@ -437,6 +437,7 @@ impl TCXActivitiesList {
 ///
 mod tests {
     use super::*;
+    use assay::assay;
 
     #[test]
     ///
@@ -545,7 +546,7 @@ mod tests {
         // Create an empty summary struct and load data into it.
         let mut act = TCXActivity::new();
         let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
-        let tcdb = tcx::read_file(filename)?;
+        let tcdb = tcx::read_file(filename).unwrap();
 
         if let Some(activities) = tcdb.activities {
             act = TCXActivity::from_activities(&activities);
