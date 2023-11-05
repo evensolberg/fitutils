@@ -105,7 +105,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory
+        Ok(()) => 0, // everying is hunky dory
         Err(err) => {
             log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem

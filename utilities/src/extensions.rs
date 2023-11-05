@@ -58,16 +58,16 @@ mod tests {
     use super::*;
 
     #[test]
-    /// Test the set_extension function
+    /// Test the `set_extension` function
     fn test_get_extension() {
         assert_eq!(get_extension("filename.txt"), "txt".to_string());
         assert_eq!(get_extension("filename"), "unknown".to_string());
-        assert_eq!(get_extension("filename."), "".to_string());
+        assert_eq!(get_extension("filename."), String::new());
         assert_eq!(get_extension("filename.txt.txt"), "txt".to_string());
         assert_eq!(get_extension("filename.TXT"), "txt".to_string());
     }
 
-    /// Test the set_extension function
+    /// Test the `set_extension` function
     #[test]
     fn test_set_extension() {
         assert_eq!(

@@ -588,7 +588,7 @@ mod tests {
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);
         assert_eq!(act.num_trackpoints.unwrap(), 1325);
-        assert_eq!(act.distance_meters.unwrap(), 2_963.318_848);
+        assert_eq!(act.distance_meters.unwrap(), 2_963.318_848 as f64);
         assert_eq!(act.start_altitude.unwrap(), 107.041_348);
         assert_eq!(act.max_altitude.unwrap(), 133.028_357);
         assert_eq!(act.ascent_meters.unwrap(), 25.987_009);
