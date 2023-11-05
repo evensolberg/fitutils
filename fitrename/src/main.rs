@@ -4,6 +4,7 @@ use std::{error::Error, path::Path};
 use clap::parser::ValueSource;
 
 mod cli;
+mod move_file;
 mod rename_file;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("main::run() -- Filenames: {filenames:?}");
 
     if dry_run {
-        log::info!("Dry-run. Will not perform actual rename.");
+        log::info!("Dry-run. Will not perform actual rename or move.");
     }
 
     let default_pattern = String::new();
@@ -35,6 +36,18 @@ fn run() -> Result<(), Box<dyn Error>> {
         .get_one::<String>("pattern")
         .unwrap_or(&default_pattern)
         .as_str();
+
+    // Get the move pattern
+    let move_files = cli_args.value_source("move") == Some(ValueSource::CommandLine);
+    let move_pattern = if move_files {
+        cli_args
+            .get_one::<String>("move")
+            .unwrap_or(&default_pattern)
+            .as_str()
+    } else {
+        ""
+    };
+
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
@@ -72,20 +85,48 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         // Process the result of reading metadata
+        let new_filename;
         match value_res {
-            // Metadata read OK - try to rename
+            // Metadata read OK - try to rename and move
             Ok(values) => {
                 let result =
                     rename_file::rename_file(filename, pattern, &values, total_files, dry_run);
                 match result {
                     // How did the rename go?
                     Ok(result) => {
-                        log::info!("{filename} --> {result}");
-                        processed_files += 1;
+                        new_filename = result.clone();
+                        log::info!("{filename} --> {new_filename}");
+                        if !move_files {
+                            // If we're not moving the file, we're done with this file.
+                            processed_files += 1;
+                            continue;
+                        }
                     }
                     Err(err) => {
                         log::error!("Unable to rename {filename} : {}", err.to_string());
                         skipped_files += 1;
+                        continue;
+                    }
+                }
+
+                if move_files {
+                    let result = move_file::move_file(
+                        &new_filename,
+                        move_pattern,
+                        &values,
+                        total_files,
+                        dry_run,
+                    );
+                    match result {
+                        // How did the move go?
+                        Ok(result) => {
+                            log::info!("{new_filename} --> {result}");
+                            processed_files += 1;
+                        }
+                        Err(err) => {
+                            log::error!("Unable to move {new_filename} : {}", err.to_string());
+                            skipped_files += 1;
+                        }
                     }
                 }
             }

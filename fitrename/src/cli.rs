@@ -26,6 +26,16 @@ pub fn build() -> Command {
                 .required(true)
                 .hide(false),
         )
+        .arg( // FIle move pattern}
+            Arg::new("move")
+                .short('m')
+                .long("move")
+                .help("Move the file to the directory specified (patterns allowed).")
+                .num_args(1)
+                .action(ArgAction::Set)
+                .required(false)
+                .hide(false),
+        )
         .arg( // Hidden debug parameter
             Arg::new("debug")
                 .short('d')
@@ -75,7 +85,9 @@ mod tests {
             "--read",
             "test.fit",
             "--pattern",
-            "{%year}-{%month}-{%day} {%hour24}{%minute}{%second}",
+            "{%year}-{%month}-{%day} {%24hour}{%minute}{%second}",
+            "--move",
+            "{%year}",
             "--debug",
             "--quiet",
             "--print-summary",
@@ -84,6 +96,7 @@ mod tests {
 
         assert!(args.contains_id("read"));
         assert!(args.contains_id("pattern"));
+        assert!(args.contains_id("move"));
         assert!(args.contains_id("debug"));
         assert!(args.contains_id("quiet"));
         assert!(args.contains_id("print-summary"));
@@ -94,7 +107,9 @@ mod tests {
             "--read",
             "test.fit",
             "-p",
-            "{%yr}-{%mo}-{%dy} {%h24}{%mi}{%se}",
+            "{%yr}-{%mn}-{%dy} {%24}{%mt}{%sc}",
+            "-m",
+            "{%yr}",
             "-d",
             "-q",
             "-s",
@@ -103,6 +118,7 @@ mod tests {
 
         assert!(args2.contains_id("read"));
         assert!(args2.contains_id("pattern"));
+        assert!(args2.contains_id("move"));
         assert!(args2.contains_id("debug"));
         assert!(args2.contains_id("quiet"));
         assert!(args2.contains_id("print-summary"));

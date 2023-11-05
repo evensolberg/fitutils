@@ -233,18 +233,18 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.6"
+version = "4.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d04704f56c2cde07f43e8e2c154b43f216dc5c92fc98ada720177362f953b956"
+checksum = "ac495e00dcec98c83465d5ad66c5c4fabd652fd6686e7c6269b117e729a6f17b"
 dependencies = [
  "clap_builder",
 ]
 
 [[package]]
 name = "clap_builder"
-version = "4.4.6"
+version = "4.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e231faeaca65ebd1ea3c737966bf858971cd38c3849107aa3ea7de90a804e45"
+checksum = "c77ed9a32a62e6ca27175d00d29d05ca32e396ea1eb5fb01d8256b669cec7663"
 dependencies = [
  "anstream",
  "anstyle",
@@ -255,9 +255,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd7cc57abe963c6d3b9d8be5b06ba7c8957a930305ca90304f24ef040aa6f961"
+checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
 
 [[package]]
 name = "colorchoice"
@@ -368,7 +368,7 @@ name = "fit2csv"
 version = "0.5.2"
 dependencies = [
  "assay",
- "clap 4.4.6",
+ "clap 4.4.7",
  "env_logger",
  "log",
  "utilities",
@@ -399,10 +399,10 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.4.5"
+version = "0.5.0"
 dependencies = [
  "assay",
- "clap 4.4.6",
+ "clap 4.4.7",
  "env_logger",
  "log",
  "utilities",
@@ -413,7 +413,7 @@ name = "fitview"
 version = "0.4.4"
 dependencies = [
  "assay",
- "clap 4.4.6",
+ "clap 4.4.7",
  "env_logger",
  "log",
  "utilities",
@@ -461,7 +461,7 @@ name = "gpx2csv"
 version = "0.4.3"
 dependencies = [
  "assay",
- "clap 4.4.6",
+ "clap 4.4.7",
  "env_logger",
  "log",
  "utilities",
@@ -921,7 +921,7 @@ name = "tcx2csv"
 version = "0.3.12"
 dependencies = [
  "assay",
- "clap 4.4.6",
+ "clap 4.4.7",
  "env_logger",
  "log",
  "tcx",
@@ -1076,7 +1076,7 @@ version = "0.4.7"
 dependencies = [
  "assay",
  "chrono",
- "clap 4.4.6",
+ "clap 4.4.7",
  "convert_case",
  "csv",
  "env_logger",

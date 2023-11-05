@@ -31,16 +31,16 @@ The following tokens can be used. Note that date and times indicate the *start* 
 |Token Long|Token Short|FIT|GPX|TCX|Description|
 |:----|:----|:---:|:---:|:---:|:----------|
 `%year`|`%yr`|Y|Y|Y|The year.
-`%month`|`%mo`|Y|Y|Y|The month (01-12).
+`%month`|`%mn`|Y|Y|Y|The month (01-12).
 `%day`|`%dy`|Y|Y|Y|The day (01-31).
 `%weekday`|`%wd`|Y|Y|Y|The day of the week (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
 `%hour`|`%hr`|Y|Y|Y|The hour (00-23).
-`%hour24`|`%24`|Y|Y|Y|The hour (00-23).
-`%hour12`|`%12`|Y|Y|Y|The hour (00-12).
-`%minute`|`%mi`|Y|Y|Y|The minute (00-59).
-`%second`|`%se`|Y|Y|Y|The second (00-59).
+`%24hour`|`%24`|Y|Y|Y|The hour (00-23).
+`%12hour`|`%12`|Y|Y|Y|The hour (00-12).
+`%minute`|`%mt`|Y|Y|Y|The minute (00-59).
+`%second`|`%sc`|Y|Y|Y|The second (00-59).
 `%ampm`|`%ap`|Y|Y|Y|Indicates whether the time is `AM` or `PM`.
-`%activity`|`%ac`|Y| | |The name of the activity, eg. "Running", "Walking" or "Cycling", etc.
+`%activity`|`%at`|Y| | |The name of the activity, eg. "Running", "Walking" or "Cycling", etc.
 `%activity_detailed`|`%ad`|Y| | |The detailed part of the activity, eg "indoor_cycling", "spin" or "generic".
 `%duration`|`%du`|Y|Y|Y|The duration of the activity in seconds.
 `%manufacturer`|`%mf`|Y| | |The manufacturer of the product that crated the file, eg. "Garmin", "Wahoo".

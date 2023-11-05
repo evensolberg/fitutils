@@ -518,7 +518,7 @@ mod tests {
         assert_eq!(act.sport.unwrap(), "cycling".to_string());
 
         // Time will have passed, so these should not be the same.
-        let act_time = act.start_time.unwrap_or("Unknown".to_string());
+        let act_time = act.start_time.unwrap_or_else(|| "Unknown".to_string());
         assert_ne!(act_time, chrono::Local::now().to_string());
         assert_ne!(act_time, "Unknown".to_string());
 
