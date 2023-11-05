@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - More lint fixes
 - Allow unwrap in tests
 - Allow unwrap in tests
+- Clean up some lints
 
 ### Security
 
