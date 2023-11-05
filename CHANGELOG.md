@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 - Move the rename_file to fitrename
 - Clean up dependencies and bump patch level
 
+### Feat
+
+- Add file move
+
 ### Fix
 
 - Fitrename not working

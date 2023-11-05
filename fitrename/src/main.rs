@@ -86,6 +86,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Process the result of reading metadata
         let new_filename;
+
+        // TODO: Refactor - move the file rename and file move code into a separate function
         match value_res {
             // Metadata read OK - try to rename and move
             Ok(values) => {

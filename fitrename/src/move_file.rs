@@ -33,7 +33,7 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
         if dry_run {
             log::debug!("mkdir -p {target}");
         } else {
-            let md_res = std::fs::create_dir_all(&target_path);
+            let md_res = std::fs::create_dir_all(target_path);
             match md_res {
                 Ok(()) => log::debug!("mkdir -p {target}"),
                 Err(err) => {
@@ -61,10 +61,7 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
             "{} already exists. Appending unique identifier.",
             target_file.to_string_lossy()
         );
-        let target_filename = format!(
-            "{} ({unique_val})",
-            target_filename.to_string_lossy().to_string()
-        );
+        let target_filename = format!("{} ({unique_val})", target_filename.to_string_lossy());
         target_file = target_path.join(target_filename);
     }
 

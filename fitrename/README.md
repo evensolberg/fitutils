@@ -26,7 +26,7 @@ Wildcards and multiple file names are supported, eg.
 
 ## Rename Tokens
 
-The following tokens can be used. Note that date and times indicate the *start* of the activity:
+The following tokens can be used. Note that date and times indicate the *start* of the activity. Also, some of the short tokens can seem awkward - this is due to having to ensure uniqueness of the token. For example, `%month` is shortened to `%mn`, while `%minute` is shortened to `%mt`. If this isn't done and we used `%month` and `%mo` (which may seem logical), `%month` might result in a substitution to `01nth`, which is not what we want.
 
 |Token Long|Token Short|FIT|GPX|TCX|Description|
 |:----|:----|:---:|:---:|:---:|:----------|
