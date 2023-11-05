@@ -133,8 +133,9 @@ mod tests {
     use super::*;
     use assay::assay;
 
+    /// Test the processing of a TCX file
     #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
-    ///
+    #[allow(clippy::unwrap_used)]
     fn test_process_tcx() {
         // Read the file
         let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
