@@ -439,8 +439,11 @@ mod tests {
     use super::*;
     use assay::assay;
 
+    // TODO: Refactor to conform with the `float_cmp` lint: https://rust-lang.github.io/rust-clippy/master/index.html#/float_cmp
+
     #[test]
-    ///
+    #[allow(clippy::unwrap_used)]
+    /// Test the default `TCXActivity` struct
     fn test_activities_summary_default() {
         let mut act = TCXActivity::default();
 
