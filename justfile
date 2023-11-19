@@ -242,6 +242,10 @@ alias tp := testp
 
 # Testing actions
 
+# Report on code coverage
+@tarp:
+    cargo tarpaulin
+
 # Run the program with a bunch of parameters to test things
 @runit:
     -rm my_application.log

@@ -34,6 +34,34 @@ impl Duration {
     }
 
     /// Calculate the duration between two `TimeStamps`, regardless of which comes first.
+    ///
+    /// # Parameters
+    ///
+    /// * `ts1: &DateTime<Local>` -- The first timestamp.
+    /// * `ts2: &DateTime<Local>` -- The second timestamp.
+    ///
+    /// # Returns
+    ///
+    /// * `Self` -- The duration between the two timestamps.
+    ///
+    /// # Panics
+    ///
+    /// * If the duration is out of bounds. This should never happen.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use chrono::{DateTime, Local};
+    /// use fit2json::types::Duration;
+    ///
+    /// let t1 = Local::now();
+    /// std::thread::sleep(std::time::Duration::from_secs(1));
+    /// let t2 = Local::now();
+    /// let b1 = Duration::between(&t1, &t2);
+    /// let b2 = Duration::between(&t2, &t1);
+    /// println!("b1 = {b1}, b2 = {b2}");
+    /// assert_eq(b1, b2);
+    /// ```
     #[must_use]
     pub fn between(ts1: &DateTime<Local>, ts2: &DateTime<Local>) -> Self {
         Self(if ts2 > ts1 {
@@ -48,7 +76,7 @@ impl Duration {
 
     /// Get the number of seconds in the duration.
     #[must_use]
-    pub fn as_secs(&self) -> u64 {
+    pub const fn as_secs(&self) -> u64 {
         self.0.as_secs()
     }
 }
@@ -110,9 +138,8 @@ impl Serialize for Duration {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     fn test_from_secs_f64() {
         let dur = Duration::from_secs_f64(120.100);
 
@@ -120,7 +147,7 @@ mod tests {
         assert_eq!(dur.0.as_millis(), 120_100);
     }
 
-    #[assay]
+    #[test]
     fn test_from_millis_u64() {
         let dur = Duration::from_millis_u64(123_123);
 
@@ -129,7 +156,7 @@ mod tests {
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
-    #[assay]
+    #[test]
     fn test_from_millis_u32() {
         let dur = Duration::from_millis_u32(123_123);
 
@@ -138,7 +165,7 @@ mod tests {
         assert_eq!(dur.0.as_nanos(), 123_123_000_000);
     }
 
-    #[assay]
+    #[test]
     fn test_between() {
         let t1 = Local::now();
         std::thread::sleep(std::time::Duration::from_secs(1));
@@ -153,7 +180,7 @@ mod tests {
         assert_eq!(b2.0.as_secs(), 1);
     }
 
-    #[assay]
+    #[test]
     /// Tests the addition functionality to add two durations together
     fn test_add() {
         assert_eq!(
@@ -209,7 +236,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     /// Tests the add assign (+=) functionality
     fn test_add_assign() {
         let mut d1 = Duration::from_secs_f64(1.0);
@@ -224,7 +251,7 @@ mod tests {
         assert_eq!(d1.0.as_secs(), 3);
     }
 
-    #[assay]
+    #[test]
     /// Tests the subtraction functionality
     fn test_sub() {
         assert_eq!(
@@ -285,7 +312,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_display() {
         let d1 = Duration::from_secs_f64(3750.2);

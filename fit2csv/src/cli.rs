@@ -1,8 +1,8 @@
 //! Contains a single function to build the CLI
-use clap::{Arg, ArgAction, ArgMatches, Command};
+use clap::{Arg, ArgAction, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build() -> ArgMatches {
+pub fn build() -> Command {
     Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
@@ -61,5 +61,52 @@ pub fn build() -> ArgMatches {
                 .required(false)
                 .action(ArgAction::Set)
         )
-        .get_matches()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cli_build() {
+        // Test long form arguments
+        let args = build().get_matches_from(vec![
+            "--read",
+            "test.fit",
+            "--debug",
+            "--debug",
+            "--quiet",
+            "--print-summary",
+            "--detail-off",
+            "--summary-file",
+            "summary.csv",
+        ]);
+        assert!(args.contains_id("read"));
+        assert!(args.contains_id("debug"));
+        assert!(args.contains_id("quiet"));
+        assert!(args.contains_id("print-summary"));
+        assert!(args.contains_id("detail-off"));
+        assert!(args.contains_id("summary-file"));
+        assert_eq!(args.get_count("debug"), 2);
+
+        // Test short form arguments
+        let args2 = build().get_matches_from(vec![
+            "--read",
+            "test.fit",
+            "-d",
+            "-d",
+            "-q",
+            "-p",
+            "-o",
+            "-s",
+            "summary.csv",
+        ]);
+        assert!(args2.contains_id("read"));
+        assert!(args2.contains_id("debug"));
+        assert!(args2.contains_id("quiet"));
+        assert!(args2.contains_id("print-summary"));
+        assert!(args2.contains_id("detail-off"));
+        assert!(args2.contains_id("summary-file"));
+        assert_eq!(args2.get_count("debug"), 2);
+    }
 }

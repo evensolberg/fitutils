@@ -10,7 +10,7 @@ mod cli;
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
     let detailed = cli_args.value_source("print-detail") == Some(ValueSource::CommandLine);
     let print_summary = cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
 
@@ -66,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
+        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
             log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem

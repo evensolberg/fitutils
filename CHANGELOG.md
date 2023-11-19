@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
 
 - Update changelog, remove lock file
 - Move the rename_file to fitrename
+- Clean up dependencies and bump patch level
+
+### Feat
+
+- Add file move
 
 ### Fix
 
@@ -21,10 +26,18 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Dependency updates
+- Clean up code
 
 ### Refactor
 
 - Refactor all the things! (#128)
+- Clean up lints
+- Fix lints
+- Clean up lints
+- More lint fixes
+- Allow unwrap in tests
+- Allow unwrap in tests
+- Clean up some lints
 
 ### Security
 
@@ -36,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - Update fitparser requirement in /fitrename (#126)
 - Update gpx requirement from 0.8.6 to 0.9.1 in /fitrename (#127)
 - Update fitparser requirement in /fit2json (#125)
+- Bump rustix from 0.38.15 to 0.38.19 (#130)
 
 ## [0.5.1] - 2023-04-04
 

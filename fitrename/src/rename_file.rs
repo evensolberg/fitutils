@@ -71,7 +71,7 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
         // Perform rename
         let rn_res = std::fs::rename(filename, &new_path);
         match rn_res {
-            Ok(_) => log::debug!("{filename} --> {npl}"),
+            Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 return Err(
                     format!("Unable to rename {filename} to {npl}. Error message: {err}").into(),

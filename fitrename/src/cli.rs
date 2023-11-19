@@ -1,8 +1,8 @@
 //! Contains a single function to build the CLI
-use clap::{Arg, ArgAction, ArgMatches, Command};
+use clap::{Arg, ArgAction, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build() -> ArgMatches {
+pub fn build() -> Command {
     Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
@@ -24,6 +24,16 @@ pub fn build() -> ArgMatches {
                 .num_args(1)
                 .action(ArgAction::Set)
                 .required(true)
+                .hide(false),
+        )
+        .arg( // FIle move pattern}
+            Arg::new("move")
+                .short('m')
+                .long("move")
+                .help("Move the file to the directory specified (patterns allowed).")
+                .num_args(1)
+                .action(ArgAction::Set)
+                .required(false)
                 .hide(false),
         )
         .arg( // Hidden debug parameter
@@ -60,5 +70,58 @@ pub fn build() -> ArgMatches {
                 .num_args(0)
                 .action(ArgAction::SetTrue)
         )
-        .get_matches()
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+
+    /// Test that the CLI is built correctly
+    #[test]
+    fn test_cli_build() {
+        // Test using long form arguments/flags.
+        let args = build().get_matches_from(vec![
+            "--read",
+            "test.fit",
+            "--pattern",
+            "{%year}-{%month}-{%day} {%24hour}{%minute}{%second}",
+            "--move",
+            "{%year}",
+            "--debug",
+            "--quiet",
+            "--print-summary",
+            "--dry-run",
+        ]);
+
+        assert!(args.contains_id("read"));
+        assert!(args.contains_id("pattern"));
+        assert!(args.contains_id("move"));
+        assert!(args.contains_id("debug"));
+        assert!(args.contains_id("quiet"));
+        assert!(args.contains_id("print-summary"));
+        assert!(args.contains_id("dry-run"));
+
+        // Test using short form arguments/flags.
+        let args2 = build().get_matches_from(vec![
+            "--read",
+            "test.fit",
+            "-p",
+            "{%yr}-{%mn}-{%dy} {%24}{%mt}{%sc}",
+            "-m",
+            "{%yr}",
+            "-d",
+            "-q",
+            "-s",
+            "-r",
+        ]);
+
+        assert!(args2.contains_id("read"));
+        assert!(args2.contains_id("pattern"));
+        assert!(args2.contains_id("move"));
+        assert!(args2.contains_id("debug"));
+        assert!(args2.contains_id("quiet"));
+        assert!(args2.contains_id("print-summary"));
+        assert!(args2.contains_id("dry-run"));
+    }
 }

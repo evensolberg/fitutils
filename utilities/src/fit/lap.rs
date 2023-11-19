@@ -136,9 +136,10 @@ impl FITLap {
         // x.name is the key and x.value is the value
         // Note that the value is an enum and contain a number of different types
         // See the fitparser crate for details
-        let mut lap = Self::default();
-
-        lap.filename = session.filename.clone();
+        let mut lap = Self {
+            filename: session.filename.clone(),
+            ..Default::default()
+        };
 
         let field_map: HashMap<&str, &fitparser::Value> =
             fields.iter().map(|x| (x.name(), x.value())).collect();

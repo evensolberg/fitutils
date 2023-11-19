@@ -78,7 +78,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// Main executable entry point. Hands off to the `run` function.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0,
+        Ok(()) => 0,
         Err(err) => {
             Builder::new()
                 .filter_level(LevelFilter::Error)

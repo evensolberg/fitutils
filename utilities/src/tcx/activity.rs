@@ -75,6 +75,7 @@ pub struct TCXActivity {
 
 impl TCXActivity {
     /// Creates a new `TCXActivity` struct
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -438,8 +439,11 @@ mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay]
-    ///
+    // TODO: Refactor to conform with the `float_cmp` lint: https://rust-lang.github.io/rust-clippy/master/index.html#/float_cmp
+
+    #[test]
+    #[allow(clippy::unwrap_used)]
+    /// Test the default `TCXActivity` struct
     fn test_activities_summary_default() {
         let mut act = TCXActivity::default();
 
@@ -514,7 +518,7 @@ mod tests {
         assert_eq!(act.sport.unwrap(), "cycling".to_string());
 
         // Time will have passed, so these should not be the same.
-        let act_time = act.start_time.unwrap_or("Unknown".to_string());
+        let act_time = act.start_time.unwrap_or_else(|| "Unknown".to_string());
         assert_ne!(act_time, chrono::Local::now().to_string());
         assert_ne!(act_time, "Unknown".to_string());
 
@@ -545,7 +549,7 @@ mod tests {
         // Create an empty summary struct and load data into it.
         let mut act = TCXActivity::new();
         let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
-        let tcdb = tcx::read_file(filename)?;
+        let tcdb = tcx::read_file(filename).unwrap();
 
         if let Some(activities) = tcdb.activities {
             act = TCXActivity::from_activities(&activities);
@@ -587,7 +591,7 @@ mod tests {
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);
         assert_eq!(act.num_trackpoints.unwrap(), 1325);
-        assert_eq!(act.distance_meters.unwrap(), 2_963.318_848);
+        assert_eq!(act.distance_meters.unwrap(), 2_963.318_848_f64);
         assert_eq!(act.start_altitude.unwrap(), 107.041_348);
         assert_eq!(act.max_altitude.unwrap(), 133.028_357);
         assert_eq!(act.ascent_meters.unwrap(), 25.987_009);

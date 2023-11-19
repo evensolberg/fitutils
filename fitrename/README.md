@@ -26,21 +26,21 @@ Wildcards and multiple file names are supported, eg.
 
 ## Rename Tokens
 
-The following tokens can be used. Note that date and times indicate the *start* of the activity:
+The following tokens can be used. Note that date and times indicate the *start* of the activity. Also, some of the short tokens can seem awkward - this is due to having to ensure uniqueness of the token. For example, `%month` is shortened to `%mn`, while `%minute` is shortened to `%mt`. If this isn't done and we used `%month` and `%mo` (which may seem logical), `%month` might result in a substitution to `01nth`, which is not what we want.
 
 |Token Long|Token Short|FIT|GPX|TCX|Description|
 |:----|:----|:---:|:---:|:---:|:----------|
 `%year`|`%yr`|Y|Y|Y|The year.
-`%month`|`%mo`|Y|Y|Y|The month (01-12).
+`%month`|`%mn`|Y|Y|Y|The month (01-12).
 `%day`|`%dy`|Y|Y|Y|The day (01-31).
 `%weekday`|`%wd`|Y|Y|Y|The day of the week (Mon, Tue, Wed, Thu, Fri, Sat, Sun).
 `%hour`|`%hr`|Y|Y|Y|The hour (00-23).
-`%hour24`|`%24`|Y|Y|Y|The hour (00-23).
-`%hour12`|`%12`|Y|Y|Y|The hour (00-12).
-`%minute`|`%mi`|Y|Y|Y|The minute (00-59).
-`%second`|`%se`|Y|Y|Y|The second (00-59).
+`%24hour`|`%24`|Y|Y|Y|The hour (00-23).
+`%12hour`|`%12`|Y|Y|Y|The hour (00-12).
+`%minute`|`%mt`|Y|Y|Y|The minute (00-59).
+`%second`|`%sc`|Y|Y|Y|The second (00-59).
 `%ampm`|`%ap`|Y|Y|Y|Indicates whether the time is `AM` or `PM`.
-`%activity`|`%ac`|Y| | |The name of the activity, eg. "Running", "Walking" or "Cycling", etc.
+`%activity`|`%at`|Y| | |The name of the activity, eg. "Running", "Walking" or "Cycling", etc.
 `%activity_detailed`|`%ad`|Y| | |The detailed part of the activity, eg "indoor_cycling", "spin" or "generic".
 `%duration`|`%du`|Y|Y|Y|The duration of the activity in seconds.
 `%manufacturer`|`%mf`|Y| | |The manufacturer of the product that crated the file, eg. "Garmin", "Wahoo".
@@ -51,4 +51,4 @@ The following tokens can be used. Note that date and times indicate the *start* 
 
 > **NOTE:** Not all file types contain all of this information. Notably, FIT tends to be the most data-rich. You should do a dry run before attempting to rename files to ensure you get the expected result.
 
-If a file before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unique_id)` where `filename` is the duplicate name.
+Before attempting to rename a file, the application will check if the target already exists. If it does, a unique identifier will be appended thusly: `filename (unique_id)` where `filename` is the duplicate name.

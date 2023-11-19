@@ -8,7 +8,7 @@ mod cli;
 /// This is where the actual processing takes place.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
@@ -71,7 +71,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory
+        Ok(()) => 0, // everying is hunky dory
         Err(err) => {
             log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem

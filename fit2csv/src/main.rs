@@ -1,16 +1,15 @@
+use clap::parser::ValueSource;
 use env_logger::Target;
 use std::error::Error;
+
 use utilities::{FITActivities, FITActivity};
-
-use clap::parser::ValueSource;
-
 mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
 
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
@@ -84,7 +83,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
+        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
             log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem
