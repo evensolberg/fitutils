@@ -29,5 +29,5 @@ NOTE: This repository uses [Conventional Commits](https://www.conventionalcommit
 
 To process the output from these utilities, the following tools may be of use:
 
-- [XSV](https://github.com/BurntSushi/xsv) - slice and dice CSV files
+- [QSV](https://github.com/jqnatividad/qsv) - slice and dice CSV files
 - [jq](https://stedolan.github.io/jq/) - slice and dice JSON files
