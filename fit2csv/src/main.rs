@@ -33,7 +33,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::debug!("main::run() -- session output file: {sessionfile}");
 
     // Let the user know if we're writing
-    if cli_args.value_source("detail-off") == Some(ValueSource::CommandLine) {
+    if cli_args.get_flag("detail-off") {
         log::info!("Writing summary file {sessionfile} only.");
     } else {
         log::info!("Writing detail files.");

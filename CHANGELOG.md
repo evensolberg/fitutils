@@ -1,5 +1,4 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 ## [unreleased]
@@ -13,10 +12,12 @@ All notable changes to this project will be documented in this file.
 - Update changelog, remove lock file
 - Move the rename_file to fitrename
 - Clean up dependencies and bump patch level
+- Update the Mergify config (#132)
 
-### Feat
+### Doc
 
-- Add file move
+- Update README.md
+- Update README.md
 
 ### Fix
 
@@ -27,18 +28,10 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Dependency updates
-- Clean up code
 
 ### Refactor
 
 - Refactor all the things! (#128)
-- Clean up lints
-- Fix lints
-- Clean up lints
-- More lint fixes
-- Allow unwrap in tests
-- Allow unwrap in tests
-- Clean up some lints
 
 ### Security
 
@@ -118,8 +111,8 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog update
-- Changelog update
 - Changelog
+- Changelog update
 
 ### Refactor
 

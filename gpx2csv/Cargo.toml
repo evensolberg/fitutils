@@ -10,12 +10,12 @@ include = ["src/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.4.6", features = ["cargo", "wrap_help"] }
-env_logger = "0.10.0"
-log = "0.4.20"
+clap = { workspace = true, features = ["cargo", "wrap_help"] }
+env_logger = { workspace = true }
+log = { workspace = true }
 
 # Our own crate
 utilities = { path = "../utilities" }
 
 [dev-dependencies]
-assay = "0.1.1"
+assay = { workspace = true }

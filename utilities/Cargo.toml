@@ -17,9 +17,9 @@ chrono = { workspace = true }
 csv = {workspace = true }
 serde = {workspace = true }
 
-uom = { version = "0.35.0", default-features = false, features = ["si", "u16", "f64", "use_serde", "autoconvert"] }
-serde_json = "1.0.107"
-convert_case = "0.6.0"
+uom = { workspace = true, features = ["si", "u16", "f64", "use_serde", "autoconvert"] }
+serde_json = { workspace = true }
+convert_case = { workspace = true }
 
 # Fitness
 fitparser = { workspace = true }
@@ -27,4 +27,4 @@ gpx = { workspace = true }
 tcx = { workspace = true }
 
 [dev-dependencies]
-assay = "0.1.1"
+assay = { workspace = true }

@@ -20,7 +20,8 @@ alias tp := testp
 # SHORTCUTS AND COMMANDS
 
 # Builds and documents the project - Default; runs if nothing else is specified
-@default: check
+@default:
+    just --list
 
 # Check if it builds at all
 @check: format
@@ -163,7 +164,6 @@ alias tp := testp
     -cp ~/CloudStation/Source/_Templates/cliff.toml {{invocation_directory()}}/
 
 # Re-initialize the directory for various services -- stripped down version of init
-
 @reinit:
     git mit-install
     git mit-config lint enable subject-line-not-capitalized

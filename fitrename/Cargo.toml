@@ -20,4 +20,4 @@ env_logger = { workspace = true }
 utilities = { path = "../utilities" }
 
 [dev-dependencies]
-assay = "0.1.1"
+assay = { workspace = true }
