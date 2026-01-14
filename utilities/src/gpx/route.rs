@@ -13,7 +13,7 @@ pub struct GPXRoute {
     pub source: Option<String>,
     pub links: Vec<GPXLink>,
     pub number: Option<u32>,
-    pub _type: Option<String>,
+    _type: Option<String>,
     #[serde(skip)] // Do not serialize - we'll handle it in the export. Maybe.
     pub points: Vec<GPXWaypoint>,
 }

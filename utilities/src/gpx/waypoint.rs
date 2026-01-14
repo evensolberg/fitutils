@@ -34,7 +34,7 @@ pub struct GPXWaypoint {
     /// Speed (in meters per second) (only in GPX 1.0)
     pub speed: Option<f64>,
 
-    /// Creation/modification DateTime<Utc> for element. Date and time in are in
+    /// Creation/modification `DateTime<Utc>` for element. Date and time in are in
     /// Universal Coordinated Time (UTC), not local time! Conforms to ISO 8601
     /// specification for date/time repdestentation. Fractional seconds are
     /// allowed for millisecond timing in tracklogs.
@@ -131,13 +131,13 @@ impl GPXWaypoint {
         set_string_field!(src, symbol, dest);
 
         if let Some(w_type) = &src.type_ {
-            dest.w_type = Some(w_type.to_string());
+            dest.w_type = Some(w_type.clone());
         }
 
         if !src.links.is_empty() {
-            dest.links_href = Some(src.links[0].href.to_string());
+            dest.links_href = Some(src.links[0].href.clone());
             if let Some(text) = &src.links[0].text {
-                dest.links_text = Some(text.to_string());
+                dest.links_text = Some(text.clone());
             }
         }
 

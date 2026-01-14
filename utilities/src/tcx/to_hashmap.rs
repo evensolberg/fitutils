@@ -134,11 +134,11 @@ mod tests {
     use assay::assay;
 
     /// Test the processing of a TCX file
-    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
+    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/running.tcx"])]
     #[allow(clippy::unwrap_used)]
     fn test_process_tcx() {
         // Read the file
-        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
+        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx";
         let tm = tcx_to_hashmap(filename)?;
 
         // File contents only get printed if run with cargo test -- --nocapture

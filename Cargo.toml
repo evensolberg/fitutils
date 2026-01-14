@@ -15,17 +15,17 @@ resolver = "2"
 strip = true
 
 [workspace.dependencies]
-clap = { version = "4.4.7", features = ["env"] }
-log = "0.4.20"
-env_logger = "0.11.3"
-chrono = "0.4.31"
-csv = "1.2.2"
-serde = "1.0.188"
-fitparser = "0.7.0"
+clap = { version = "4.5.54", features = ["env"] }
+log = "0.4.29"
+env_logger = "0.11.7"
+chrono = "0.4.40"
+csv = "1.3.1"
+serde = "1.0.219"
+fitparser = "0.10.0"
 gpx = "0.10.0"
 tcx = "0.9.3"
 assay = "0.1.1"
-convert_case = "0.6.0"
-serde_json = "1.0.107"
+convert_case = "0.10.0"
+serde_json = "1.0.149"
 structopt = "0.3.26"
-uom = { version = "0.36.0", default-features = false }
+uom = { version = "0.37.0", default-features = false }

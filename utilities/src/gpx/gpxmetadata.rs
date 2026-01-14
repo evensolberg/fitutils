@@ -12,7 +12,7 @@ use crate::Duration;
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
 pub struct GPXMetadata {
-    /// THe name of the GPX file from which the information was read.
+    /// The name of the GPX file from which the information was read.
     pub filename: Option<PathBuf>,
 
     /// Gpx version used (`Gpx10`, `Gpx11`, or `Unknown`) in this file.
@@ -135,7 +135,7 @@ impl GPXMetadata {
 
                 if let Some(year) = cr_data.year {
                     dest.copyright_year = Some(year);
-                };
+                }
             }
             None => {
                 log::trace!(
@@ -225,9 +225,9 @@ fn set_copyright_year(dest: &mut GPXMetadata) {
 /// - `dest: &mut GPXMetadata` -- The destination `GPXMetadata` struct, which gets modified.
 fn set_link(src_meta: &gpx::Metadata, dest: &mut GPXMetadata) {
     if !src_meta.links.is_empty() {
-        dest.links_href = Some(src_meta.links[0].href.to_string());
+        dest.links_href = Some(src_meta.links[0].href.clone());
         if let Some(text) = &src_meta.links[0].text {
-            dest.links_text = Some(text.to_string());
+            dest.links_text = Some(text.clone());
         }
     }
 }
@@ -261,7 +261,7 @@ fn set_time(src_meta: &gpx::Metadata, dest: &mut GPXMetadata) {
 /// - `src: &gpx::Gpx` -- The original contents of the GPX file being parsed.
 fn set_activity(src_meta: &gpx::Metadata, dest: &mut GPXMetadata, src: &gpx::Gpx) {
     if let Some(activity) = &src_meta.name {
-        dest.activity = Some(activity.to_string());
+        dest.activity = Some(activity.clone());
     } else if src
         .tracks
         .first()
@@ -276,7 +276,7 @@ fn set_activity(src_meta: &gpx::Metadata, dest: &mut GPXMetadata, src: &gpx::Gpx
                 .name
                 .as_ref()
                 .unwrap_or(&"Unknown".to_string())
-                .to_string(),
+                .clone(),
         );
     }
 }

@@ -1,0 +1,16 @@
+ls:
+  fit2csv/src/*:
+    .rs: snake_case
+  fit2json/src/*:
+    .rs: snake_case
+  fitrename/src/*:
+    .rs: snake_case
+  fitview/src/*:
+    .rs: snake_case
+  gpx2csv/src/*:
+    .rs: snake_case
+  tcx2csv/src/*:
+    .rs: snake_case
+  utilities/src/*:
+    .rs: snake_case
+    

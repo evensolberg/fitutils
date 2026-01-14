@@ -448,15 +448,15 @@ impl FITActivity {
 }
 
 #[cfg(test)]
-///
+
 mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit"])]
+    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/rowing.fit"])]
     /// test FITActivity::from_file()
     fn test_from_file() {
-        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/rowing.fit";
+        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/rowing.fit";
         let act = FITActivity::from_file(filename)?;
 
         assert!(!act.laps.is_empty());

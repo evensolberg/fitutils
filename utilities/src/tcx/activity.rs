@@ -146,7 +146,7 @@ impl TCXActivity {
             act_s.num_activities = Some(act_s.num_activities.unwrap_or(0) + 1);
             act_s.sport = Some(activity.sport.clone());
             act_s.start_time = Some(activity.id.clone()); // TODO: https://github.com/evensolberg/fitparser/projects/6#card-71437698
-            act_s.notes = activity.notes.clone();
+            act_s.notes.clone_from(&activity.notes);
 
             for lap in &activity.laps {
                 act_s.num_laps = Some(act_s.num_laps.unwrap_or(0) + 1);
@@ -543,12 +543,12 @@ mod tests {
         assert_eq!(act.maximum_cadence.unwrap(), 101);
     }
 
-    #[assay(include = ["/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx"])]
+    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/running.tcx"])]
     // TODO: Figure out relative paths.
     fn test_from_activities() {
         // Create an empty summary struct and load data into it.
         let mut act = TCXActivity::new();
-        let filename = "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx";
+        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx";
         let tcdb = tcx::read_file(filename).unwrap();
 
         if let Some(activities) = tcdb.activities {
@@ -582,7 +582,7 @@ mod tests {
         // Verify the actual data - note that the act.notes section is missing since it's None.
         assert_eq!(
             act.filename.unwrap(),
-            "/Users/evensolberg/Documents/Source/Rust/fitutils/data/running.tcx".to_string()
+            "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx".to_string()
         );
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());

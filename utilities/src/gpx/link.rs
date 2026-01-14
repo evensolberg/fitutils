@@ -15,5 +15,5 @@ pub struct GPXLink {
     pub text: Option<String>,
 
     /// Mime type of content (image/jpeg)
-    pub _type: Option<String>,
+    _type: Option<String>,
 }

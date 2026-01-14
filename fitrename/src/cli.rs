@@ -32,6 +32,7 @@ pub fn build() -> Command {
                 .long("move")
                 .help("Move the file to the directory specified (patterns allowed).")
                 .num_args(1)
+                .value_name("target_directory")
                 .action(ArgAction::Set)
                 .required(false)
                 .hide(false),

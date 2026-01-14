@@ -31,9 +31,9 @@ use crate::GPXMetadata;
 #[allow(clippy::module_name_repetitions)]
 pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;
-    log::debug!("process_gpx::gpx = {:?}", gpx);
+    log::debug!("process_gpx::gpx = {gpx:?}");
     let gpxmeta = GPXMetadata::from_header(&gpx, filename);
-    log::debug!("process_gpx::gpxmeta = {:?}", gpxmeta);
+    log::debug!("process_gpx::gpxmeta = {gpxmeta:?}");
 
     let mut values = HashMap::<String, String>::new();
     let mf = gpxmeta

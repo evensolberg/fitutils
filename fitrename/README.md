@@ -22,7 +22,13 @@ Wildcards and multiple file names are supported, eg.
 
 |Flag|Required|Description |
 |:---|:------:|:----------|
-`-p`|Yes|File rename pattern, as described in the next section.
+`-p`/`--pattern`|Yes|File rename pattern, as described in the next section.
+`-m`/`--move <dir_pattern>`|No|Move the file according to the pattern. This will move the file to a new location, if the pattern specifies a new directory. This is useful for moving files to a new location based on the metadata. Directory names are specified using the same tokens as file names.
+`-q`/`--quiet`|No|Quiet mode. This will suppress all output except for errors. This is useful for running the application in a script or cron job.
+`-s`/`--print-summary`|No|Print a summary of the number of files processed, errors, etc.
+`-r`/`--dry-run`|No|Dry run. This will show what the rename would be, but not actually do it. This is useful for testing your pattern.
+`-h`/`--help`|No|Show help.
+`-V`/`--version`|No|Show version information.
 
 ## Rename Tokens
 

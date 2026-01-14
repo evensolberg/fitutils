@@ -105,7 +105,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                         }
                     }
                     Err(err) => {
-                        log::error!("Unable to rename {filename} : {}", err.to_string());
+                        log::error!("Unable to rename {filename} : {err}");
                         skipped_files += 1;
                         continue;
                     }
@@ -126,14 +126,14 @@ fn run() -> Result<(), Box<dyn Error>> {
                             processed_files += 1;
                         }
                         Err(err) => {
-                            log::error!("Unable to move {new_filename} : {}", err.to_string());
+                            log::error!("Unable to move {new_filename} : {err}");
                             skipped_files += 1;
                         }
                     }
                 }
             }
             // Problem reading metadata - let the user know.
-            Err(err) => log::error!("Unable to process {filename} : {}", err.to_string()),
+            Err(err) => log::error!("Unable to process {filename} : {err}"),
         }
         total_files += 1;
     }

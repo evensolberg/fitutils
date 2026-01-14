@@ -81,7 +81,7 @@ impl TCXTrackpointList {
 
                         // Extract a new Trackpoint
                         let mut tp = TCXTrackpoint::default();
-                        tp.sport = activity.sport.clone();
+                        tp.sport.clone_from(&activity.sport);
                         tp.start_time = DateTime::parse_from_rfc3339(&activity.id)
                             .unwrap_or_else(|_| Local.timestamp_opt(0, 0).unwrap().into())
                             .into();

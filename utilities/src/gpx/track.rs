@@ -179,9 +179,9 @@ fn set_times(dest: &mut GPXTrack) {
 /// - `dest: &mut GPXTrack` -- The destination `GPXTrack` struct.
 fn get_links(src: &gpx::Track, dest: &mut GPXTrack) {
     if !src.links.is_empty() {
-        dest.links_href = Some(src.links[0].href.to_string());
+        dest.links_href = Some(src.links[0].href.clone());
         if let Some(text) = &src.links[0].text {
-            dest.links_text = Some(text.to_string());
+            dest.links_text = Some(text.clone());
         }
     }
 }

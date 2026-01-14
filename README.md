@@ -4,12 +4,12 @@ This is a project consisting of several sub-modules:
 
 |Directory|Description|
 |:--------|:----------|
-**fit2csv**|Dumps FIT files to CSV, exporting session, lap and records information in separate files
-**fit2json**|Dumps a FIT file to JSON. This is mostly meant for debugging and digging out information for use in *fit2csv*
-**gpx2csv**|Dumps GPX files to CSV, exporting metadata, tracks and segments, routes, and waypoints into separate files.
-**tcx2csv**|Dumps TCX files to CSV, exporting activities summaries and laps into separate files.
-**fitrename**|Renames FIT, GPX and TCX files based on metadata information in the files.
-**fitshow**|Displays the (activity) metadata contents of FIT, GPX and TCX files.
+|**fit2csv**|Dumps FIT files to CSV, exporting session, lap and records information in separate files|
+|**fit2json**|Dumps a FIT file to JSON. This is mostly meant for debugging and digging out information for use in *fit2csv*.|
+|**gpx2csv**|Dumps GPX files to CSV, exporting metadata, tracks and segments, routes, and waypoints into separate files.|
+|**tcx2csv**|Dumps TCX files to CSV, exporting activities summaries and laps into separate files.|
+|**fitrename**|Renames FIT, GPX and TCX files based on metadata information in the files.|
+|**fitshow**|Displays the (activity) metadata contents of FIT, GPX and TCX files.|
 
 More files may come in the future.
 
@@ -29,5 +29,6 @@ NOTE: This repository uses [Conventional Commits](https://www.conventionalcommit
 
 To process the output from these utilities, the following tools may be of use:
 
+- [xan](https://github.com/medialab/xan) - The CSV magician
 - [QSV](https://github.com/jqnatividad/qsv) - slice and dice CSV files
 - [jq](https://stedolan.github.io/jq/) - slice and dice JSON files
