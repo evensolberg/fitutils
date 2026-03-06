@@ -1,7 +1,7 @@
 ---
 id: fit-fah
 title: Read GPX start time from first track if missing from activity info
-status: open
+status: closed
 type: feature
 priority: 1
 tags:

@@ -1,7 +1,7 @@
 ---
 id: fit-q0b
 title: Use HashMap::with_capacity() in fitrename
-status: open
+status: closed
 type: task
 priority: 3
 tags:

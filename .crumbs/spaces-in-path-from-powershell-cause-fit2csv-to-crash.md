@@ -1,7 +1,7 @@
 ---
 id: fit-xtk
 title: Spaces in path from PowerShell cause fit2csv to crash
-status: open
+status: closed
 type: bug
 priority: 2
 tags:

@@ -24,7 +24,7 @@ use convert_case::{Case, Casing};
 /// None.
 #[allow(clippy::module_name_repetitions, clippy::unwrap_used)]
 pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut values = HashMap::<String, String>::new();
+    let mut values = HashMap::<String, String>::with_capacity(32);
 
     // Make sure we can open the file correctly
     let tcdb = match tcx::read_file(filename) {

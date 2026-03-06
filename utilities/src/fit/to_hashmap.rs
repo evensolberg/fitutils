@@ -23,7 +23,7 @@ use std::{collections::HashMap, error::Error, fs::File};
 /// None.
 #[allow(clippy::module_name_repetitions, clippy::too_many_lines)]
 pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut values = HashMap::<String, String>::new();
+    let mut values = HashMap::<String, String>::with_capacity(32);
 
     // open the file and deserialize it - return error if unable.
     let mut fp = File::open(filename)?;

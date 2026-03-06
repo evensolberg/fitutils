@@ -35,7 +35,7 @@ pub fn gpx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
     let gpxmeta = GPXMetadata::from_header(&gpx, filename);
     log::debug!("process_gpx::gpxmeta = {gpxmeta:?}");
 
-    let mut values = HashMap::<String, String>::new();
+    let mut values = HashMap::<String, String>::with_capacity(32);
     let mf = gpxmeta
         .creator
         .unwrap_or_else(|| "unknown".to_string())

@@ -1,7 +1,7 @@
 ---
 id: fit-3ze
 title: Enable move on rename
-status: open
+status: closed
 type: feature
 priority: 1
 tags:

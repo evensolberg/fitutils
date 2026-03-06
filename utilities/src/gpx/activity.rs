@@ -87,6 +87,13 @@ impl GPXActivity {
             activity.tracks.push(track);
         }
 
+        // If metadata time is missing, fall back to the first track's start time
+        if activity.metadata.time.is_none() {
+            if let Some(first_track) = activity.tracks.first() {
+                activity.metadata.time = first_track.start_time;
+            }
+        }
+
         // Set the total duration to be the sum of the track durations
         activity.set_duration();
 

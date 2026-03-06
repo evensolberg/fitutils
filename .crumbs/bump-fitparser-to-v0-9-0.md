@@ -1,7 +1,7 @@
 ---
 id: fit-dpo
 title: Bump Fitparser to v0.9.0
-status: open
+status: closed
 type: task
 priority: 1
 tags:
