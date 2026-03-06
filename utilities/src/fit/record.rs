@@ -104,13 +104,14 @@ impl FITRecord {
             record.timestamp = None;
         }
 
+        let epoch = Local.timestamp_opt(0, 0).unwrap();
         let duration = record.timestamp.as_ref().map(|start_time| {
             Duration::between(
                 start_time,
                 session
                     .time_created
                     .as_ref()
-                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap()),
+                    .unwrap_or(&epoch),
             )
         });
         record.duration = duration;

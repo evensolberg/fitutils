@@ -56,7 +56,7 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
     // Create the new filename
     let mut new_path =
         parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
-    log::debug!("new_path = {new_path:?}");
+    log::debug!("new_path = {}", new_path.display());
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
     let base_filename = new_filename.clone();

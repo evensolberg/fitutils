@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "assay",
  "clap",
@@ -358,7 +358,7 @@ dependencies = [
 
 [[package]]
 name = "fitview"
-version = "0.4.6"
+version = "0.4.7"
 dependencies = [
  "assay",
  "clap",
@@ -980,7 +980,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
 name = "utilities"
-version = "0.4.9"
+version = "0.4.10"
 dependencies = [
  "assay",
  "chrono",

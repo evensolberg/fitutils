@@ -50,10 +50,10 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
 
     // Move the file to the target direcctory
     let target_filename = Path::new(&filename).file_name().unwrap_or_default();
-    log::debug!("target_filename = {target_filename:?}");
+    log::debug!("target_filename = {}", target_filename.to_string_lossy());
 
     let mut target_file = target_path.join(target_filename);
-    log::debug!("target_file = {target_file:?}");
+    log::debug!("target_file = {}", target_file.display());
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
     let mut counter = unique_val;

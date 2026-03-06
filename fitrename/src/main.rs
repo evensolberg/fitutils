@@ -10,7 +10,7 @@ mod rename_file;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 // This #allow is needed for Clippy to shut up. There has to be a bug in Clippy for this one.
-#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::unnecessary_wraps, clippy::too_many_lines)]
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build().get_matches();

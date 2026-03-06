@@ -190,11 +190,12 @@ impl GPXActivity {
         }
 
         // Change the file extension
+        let default_path = PathBuf::from("export");
         let mut outfile = PathBuf::from(
             self.metadata
                 .filename
                 .as_ref()
-                .unwrap_or(&PathBuf::from("export")),
+                .unwrap_or(&default_path),
         );
         outfile.set_extension("tracks.csv");
 
@@ -236,11 +237,12 @@ impl GPXActivity {
         }
 
         // Change the file extension
+        let default_path = PathBuf::from("export");
         let mut outfile = PathBuf::from(
             self.metadata
                 .filename
                 .as_ref()
-                .unwrap_or(&PathBuf::from("export")),
+                .unwrap_or(&default_path),
         );
         outfile.set_extension("waypoints.csv");
 
@@ -263,13 +265,16 @@ impl GPXActivity {
     /// Prints the metadata information about the activity
     pub fn print(&self, detailed: bool) {
         let unknown = String::new();
+        let unknown_path = Path::new("unknown").to_path_buf();
+        let epoch = Local.timestamp_opt(0, 0).unwrap();
+        let zero_duration = Duration::default();
 
         println!(
             "\nFile:              {}",
             self.metadata
                 .filename
                 .as_ref()
-                .unwrap_or(&Path::new("unknown").to_path_buf())
+                .unwrap_or(&unknown_path)
                 .to_string_lossy()
         );
         println!(
@@ -289,14 +294,14 @@ impl GPXActivity {
             self.metadata
                 .time
                 .as_ref()
-                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                .unwrap_or(&epoch)
         );
         println!(
             "Duration:          {}",
             self.metadata
                 .duration
                 .as_ref()
-                .unwrap_or(&Duration::default())
+                .unwrap_or(&zero_duration)
         );
         println!(
             "Description:       {}",

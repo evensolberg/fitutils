@@ -219,12 +219,13 @@ impl FITActivity {
     /// Creating a buffer for the CSV may fail. Serializing may fail. Flushing may fail.
     pub fn export_records_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
+        let default_filename = String::from("export-records.csv");
         let mut outfile = PathBuf::from(
             &self
                 .session
                 .filename
                 .as_ref()
-                .unwrap_or(&String::from("export-records.csv")),
+                .unwrap_or(&default_filename),
         );
         outfile.set_extension("records.csv");
         log::trace!(
@@ -267,6 +268,7 @@ impl FITActivity {
     #[allow(clippy::too_many_lines)]
     pub fn print(&self, detailed: bool) {
         let unknown = String::new();
+        let epoch = Local.timestamp_opt(0, 0).unwrap();
 
         println!(
             "\nFile:                     {}",
@@ -289,7 +291,7 @@ impl FITActivity {
             self.session
                 .time_created
                 .as_ref()
-                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                .unwrap_or(&epoch)
         );
         println!(
             "Activity type:            {}",
@@ -411,14 +413,14 @@ impl FITActivity {
                 self.session
                     .start_time
                     .as_ref()
-                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                    .unwrap_or(&epoch)
             );
             println!(
                 "Finish time:                {}",
                 self.session
                     .finish_time
                     .as_ref()
-                    .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                    .unwrap_or(&epoch)
             );
             println!("Time in Zones:");
             println!(

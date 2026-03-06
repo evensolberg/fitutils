@@ -206,7 +206,7 @@ impl TCXActivity {
 
         act_s.ascent_meters =
             Some(act_s.max_altitude.unwrap_or(0.0) - act_s.start_altitude.unwrap_or(0.0));
-        let duration_secs = act_s.duration.unwrap_or_default().0.as_secs_f64();
+        let duration_secs = act_s.duration.unwrap_or_default().0;
         if duration_secs > 0.0 {
             act_s.average_speed = Some(act_s.distance_meters.unwrap_or(0.0) / duration_secs);
         }
@@ -247,10 +247,11 @@ impl TCXActivity {
             return Err("No filename specified in the ActivitySummary. Unable to export.".into());
         }
 
+        let default_filename = "tcx_activity".to_string();
         let out_file = set_extension(
             self.filename
                 .as_ref()
-                .unwrap_or(&"tcx_activity".to_string()),
+                .unwrap_or(&default_filename),
             "activity.json",
         );
         serde_json::to_writer_pretty(
@@ -280,6 +281,7 @@ impl TCXActivity {
     /// None.
     pub fn print(&self, _detailed: bool) {
         let unknown = String::new();
+        let zero_duration = Duration::default();
 
         println!(
             "\nFile:                  {}",
@@ -295,7 +297,7 @@ impl TCXActivity {
         );
         println!(
             "Duration:              {}",
-            self.duration.as_ref().unwrap_or(&Duration::default())
+            self.duration.as_ref().unwrap_or(&zero_duration)
         );
         println!(
             "Notes:                {}",
@@ -521,7 +523,7 @@ mod tests {
         assert_ne!(act_time, chrono::Local::now().to_string());
         assert_ne!(act_time, "Unknown".to_string());
 
-        assert_eq!(act.duration.unwrap().0.as_secs(), 1800);
+        assert_eq!(act.duration.unwrap().as_secs(), 1800);
         assert_eq!(
             act.notes.unwrap(),
             "Something about the activity.".to_string()
@@ -585,7 +587,7 @@ mod tests {
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());
         assert_eq!(act.start_time.unwrap(), "2018-06-15T13:35:49Z".to_string());
-        assert_eq!(act.duration.unwrap().0.as_micros(), 1_325_444_009);
+        assert!((act.duration.unwrap().0 - 1325.444_009).abs() < 0.001);
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);
         assert_eq!(act.num_trackpoints.unwrap(), 1325);

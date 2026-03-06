@@ -95,17 +95,18 @@ impl FITSession {
     /// Output details about the session
     pub fn print_summary(&self) {
         let unknown = String::from("Unknown");
+        let epoch = Local.timestamp_opt(0, 0).unwrap();
 
         println!(
             "\n{} summary:\n",
-            self.filename.as_ref().unwrap_or(&String::from(&unknown))
+            self.filename.as_ref().unwrap_or(&unknown)
         );
         println!(
             "Manufacturer: {}    Time created: {}",
             self.manufacturer.as_ref().unwrap_or(&unknown),
             self.time_created
                 .as_ref()
-                .unwrap_or(&Local.timestamp_opt(0, 0).unwrap())
+                .unwrap_or(&epoch)
         );
         println!(
             "Sessions: {}      Laps: {:2}      Records: {}",
@@ -186,18 +187,19 @@ impl FITSession {
             fields.iter().map(|x| (x.name(), x.value())).collect();
         log::trace!("Sparsers::parse_session() -- ession field_map = {field_map:?}");
 
+        let unknown_default = "unknown".to_string();
         self.activity_type = field_map.get("sport").and_then(map_string);
         self.activity_type = Some(
             self.activity_type
                 .as_ref()
-                .unwrap_or(&"unknown".to_string())
+                .unwrap_or(&unknown_default)
                 .to_case(Case::Title),
         );
         self.activity_detailed = field_map.get("sub_sport").and_then(map_string);
         self.activity_detailed = Some(
             self.activity_detailed
                 .as_ref()
-                .unwrap_or(&"unknown".to_string())
+                .unwrap_or(&unknown_default)
                 .to_case(Case::Title),
         );
 
@@ -282,7 +284,7 @@ impl FITSession {
             self.finish_time = Some(*ft);
         } else {
             let dur = self.duration.unwrap_or_default();
-            let c_dur = chrono::Duration::seconds(dur.0.as_secs() as i64);
+            let c_dur = chrono::Duration::seconds(dur.as_secs() as i64);
             let st = self.start_time.unwrap_or_default();
             let ft = st + c_dur;
             self.finish_time = Some(ft);
@@ -304,11 +306,12 @@ impl FITSession {
     /// Writing the JSON could fail.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
+        let default_filename = String::from("export-session.json");
         let mut export_path = PathBuf::from(
             &self
                 .filename
                 .as_ref()
-                .unwrap_or(&String::from("export-session.json")),
+                .unwrap_or(&default_filename),
         );
         export_path.set_extension("session.json");
         log::trace!(

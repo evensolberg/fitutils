@@ -8,6 +8,7 @@ mod cli;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
+#[allow(clippy::unnecessary_wraps)]
 fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build().get_matches();

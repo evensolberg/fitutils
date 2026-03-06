@@ -7,7 +7,7 @@ use chrono::{DateTime, Local};
 
 use crate::gpx::waypoint::GPXWaypoint;
 use crate::set_string_field; // from the macros crate
-use crate::Duration; // from the macros crate
+use crate::Duration;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the information about each track. Includes summary data and the details of each waypoint in the track.

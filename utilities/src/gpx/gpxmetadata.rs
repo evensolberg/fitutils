@@ -187,10 +187,11 @@ impl GPXMetadata {
     ///
     /// Writing the session data may fail.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
+        let default_path = PathBuf::from("export");
         let mut filename = self
             .filename
             .as_ref()
-            .unwrap_or(&PathBuf::from("export"))
+            .unwrap_or(&default_path)
             .clone();
         filename.set_extension("session.json");
         log::trace!(
@@ -212,7 +213,8 @@ fn set_copyright_year(dest: &mut GPXMetadata) {
     // Debatable if this is kosher, but I'm going with it for now.
     // If the copyright year is none, set it to the year the activity started.
     if dest.copyright_year.is_none() {
-        let year = dest.time.as_ref().unwrap_or(&Local::now()).year();
+        let now = Local::now();
+        let year = dest.time.as_ref().unwrap_or(&now).year();
         log::debug!("copyright_year = {year}");
         dest.copyright_year = Some(year);
     }
@@ -264,21 +266,25 @@ fn set_time(src_meta: &gpx::Metadata, dest: &mut GPXMetadata) {
 fn set_activity(src_meta: &gpx::Metadata, dest: &mut GPXMetadata, src: &gpx::Gpx) {
     if let Some(activity) = &src_meta.name {
         dest.activity = Some(activity.clone());
-    } else if src
-        .tracks
-        .first()
-        .unwrap_or(&gpx::Track::default())
-        .name
-        .is_some()
-    {
-        dest.activity = Some(
-            src.tracks
-                .first()
-                .unwrap_or(&gpx::Track::default())
-                .name
-                .as_ref()
-                .unwrap_or(&"Unknown".to_string())
-                .clone(),
-        );
+    } else {
+        let default_track = gpx::Track::default();
+        let unknown = "Unknown".to_string();
+        if src
+            .tracks
+            .first()
+            .unwrap_or(&default_track)
+            .name
+            .is_some()
+        {
+            dest.activity = Some(
+                src.tracks
+                    .first()
+                    .unwrap_or(&default_track)
+                    .name
+                    .as_ref()
+                    .unwrap_or(&unknown)
+                    .clone(),
+            );
+        }
     }
 }

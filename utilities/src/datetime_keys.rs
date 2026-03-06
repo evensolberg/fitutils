@@ -63,8 +63,8 @@ pub fn insert_datetime_keys<Tz: chrono::TimeZone>(
 /// Insert duration key/value pairs into a `HashMap`.
 pub fn insert_duration_keys(values: &mut HashMap<String, String>, duration: Option<Duration>) {
     if let Some(dur) = duration {
-        values.insert("%duration".into(), dur.0.as_secs().to_string());
-        values.insert("%du".into(), dur.0.as_secs().to_string());
+        values.insert("%duration".into(), dur.as_secs().to_string());
+        values.insert("%du".into(), dur.as_secs().to_string());
     } else {
         values.insert("%duration".into(), "0".into());
         values.insert("%du".into(), "0".into());

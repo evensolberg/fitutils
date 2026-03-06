@@ -106,32 +106,33 @@ impl FITHrZones {
 
 impl Serialize for FITHrZones {
     /// Serializes the `HrZones` struct so it can be exported to CSV or JSON formats.
+    #[allow(clippy::cast_possible_truncation)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("HrZones", 5)?;
-        let dur_zero = Duration::from_millis_u64(0);
+        let zero = Duration::default();
         state.serialize_field(
             "hr_zone_0_secs",
-            &self.hr_zone_0.unwrap_or(dur_zero).0.as_secs_f32(),
+            &(self.hr_zone_0.unwrap_or(zero).0 as f32),
         )?;
         state.serialize_field(
             "hr_zone_1_secs",
-            &self.hr_zone_1.unwrap_or(dur_zero).0.as_secs_f32(),
+            &(self.hr_zone_1.unwrap_or(zero).0 as f32),
         )?;
         state.serialize_field(
             "hr_zone_2_secs",
-            &self.hr_zone_2.unwrap_or(dur_zero).0.as_secs_f32(),
+            &(self.hr_zone_2.unwrap_or(zero).0 as f32),
         )?;
         state.serialize_field(
             "hr_zone_3_secs",
-            &self.hr_zone_3.unwrap_or(dur_zero).0.as_secs_f32(),
+            &(self.hr_zone_3.unwrap_or(zero).0 as f32),
         )?;
         state.serialize_field(
             "hr_zone_4_secs",
-            &self.hr_zone_4.unwrap_or(dur_zero).0.as_secs_f32(),
+            &(self.hr_zone_4.unwrap_or(zero).0 as f32),
         )?;
         state.end()
     }
