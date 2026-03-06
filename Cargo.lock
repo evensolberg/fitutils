@@ -194,7 +194,6 @@ dependencies = [
  "anstyle",
  "clap_lex",
  "strsim",
- "terminal_size",
 ]
 
 [[package]]
@@ -312,17 +311,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "658bd65b1cf4c852a3cc96f18a8ce7b5640f6b703f905c7d74532294c2a63984"
 
 [[package]]
-name = "fit2csv"
-version = "0.5.4"
-dependencies = [
- "assay",
- "clap",
- "env_logger",
- "log",
- "utilities",
-]
-
-[[package]]
 name = "fit2json"
 version = "0.1.6"
 dependencies = [
@@ -332,6 +320,18 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "fitexport"
+version = "0.1.0"
+dependencies = [
+ "assay",
+ "clap",
+ "env_logger",
+ "log",
+ "tcx",
+ "utilities",
 ]
 
 [[package]]
@@ -400,17 +400,6 @@ dependencies = [
  "thiserror",
  "time",
  "xml-rs",
-]
-
-[[package]]
-name = "gpx2csv"
-version = "0.4.5"
-dependencies = [
- "assay",
- "clap",
- "env_logger",
- "log",
- "utilities",
 ]
 
 [[package]]
@@ -498,12 +487,6 @@ name = "linux-raw-sys"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
-
-[[package]]
-name = "linux-raw-sys"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df1d3c3b53da64cf5760482273a98e575c651a67eec7f77df96b5b642de8f039"
 
 [[package]]
 name = "log"
@@ -714,21 +697,8 @@ dependencies = [
  "bitflags",
  "errno",
  "libc",
- "linux-raw-sys 0.4.13",
+ "linux-raw-sys",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "rustix"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd15f8a2c5551a84d56efdc1cd049089e409ac19a3072d5037a17fd70719ff3e"
-dependencies = [
- "bitflags",
- "errno",
- "libc",
- "linux-raw-sys 0.11.0",
- "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -846,18 +816,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tcx2csv"
-version = "0.3.14"
-dependencies = [
- "assay",
- "clap",
- "env_logger",
- "log",
- "tcx",
- "utilities",
-]
-
-[[package]]
 name = "tempfile"
 version = "3.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -865,18 +823,8 @@ checksum = "85b77fafb263dd9d05cbeac119526425676db3784113aa9295c88498cbf8bff1"
 dependencies = [
  "cfg-if",
  "fastrand",
- "rustix 0.38.34",
+ "rustix",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "terminal_size"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60b8cb979cb11c32ce1603f8137b22262a9d131aaa5c37b5678025f22b8becd0"
-dependencies = [
- "rustix 1.1.2",
- "windows-sys 0.60.2",
 ]
 
 [[package]]

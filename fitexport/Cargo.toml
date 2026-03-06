@@ -1,7 +1,7 @@
 [package]
-name = "fit2csv"
-version = "0.5.4"
-description = "Parses .FIT files to .JSON and .CSV"
+name = "fitexport"
+version = "0.1.0"
+description = "Exports FIT, GPX, and TCX activity files to JSON and CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
 edition = "2021"
@@ -11,6 +11,7 @@ include = ["src/**/*", "README.md"]
 clap = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
+tcx = { workspace = true }
 
 # Our own package
 utilities = { path = "../utilities" }
