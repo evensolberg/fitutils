@@ -7,5 +7,6 @@ pub mod constfunc;
 pub mod hrzones;
 pub mod lap;
 pub mod record;
+pub mod serde_helpers;
 pub mod session;
 pub mod to_hashmap;

@@ -114,26 +114,11 @@ impl Serialize for FITHrZones {
         // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("HrZones", 5)?;
         let zero = Duration::default();
-        state.serialize_field(
-            "hr_zone_0_secs",
-            &(self.hr_zone_0.unwrap_or(zero).0 as f32),
-        )?;
-        state.serialize_field(
-            "hr_zone_1_secs",
-            &(self.hr_zone_1.unwrap_or(zero).0 as f32),
-        )?;
-        state.serialize_field(
-            "hr_zone_2_secs",
-            &(self.hr_zone_2.unwrap_or(zero).0 as f32),
-        )?;
-        state.serialize_field(
-            "hr_zone_3_secs",
-            &(self.hr_zone_3.unwrap_or(zero).0 as f32),
-        )?;
-        state.serialize_field(
-            "hr_zone_4_secs",
-            &(self.hr_zone_4.unwrap_or(zero).0 as f32),
-        )?;
+        state.serialize_field("hr_zone_0_secs", &(self.hr_zone_0.unwrap_or(zero).0 as f32))?;
+        state.serialize_field("hr_zone_1_secs", &(self.hr_zone_1.unwrap_or(zero).0 as f32))?;
+        state.serialize_field("hr_zone_2_secs", &(self.hr_zone_2.unwrap_or(zero).0 as f32))?;
+        state.serialize_field("hr_zone_3_secs", &(self.hr_zone_3.unwrap_or(zero).0 as f32))?;
+        state.serialize_field("hr_zone_4_secs", &(self.hr_zone_4.unwrap_or(zero).0 as f32))?;
         state.end()
     }
 }

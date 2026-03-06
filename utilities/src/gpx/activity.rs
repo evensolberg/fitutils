@@ -191,12 +191,7 @@ impl GPXActivity {
 
         // Change the file extension
         let default_path = PathBuf::from("export");
-        let mut outfile = PathBuf::from(
-            self.metadata
-                .filename
-                .as_ref()
-                .unwrap_or(&default_path),
-        );
+        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap_or(&default_path));
         outfile.set_extension("tracks.csv");
 
         // Create a buffer for the CSV
@@ -238,12 +233,7 @@ impl GPXActivity {
 
         // Change the file extension
         let default_path = PathBuf::from("export");
-        let mut outfile = PathBuf::from(
-            self.metadata
-                .filename
-                .as_ref()
-                .unwrap_or(&default_path),
-        );
+        let mut outfile = PathBuf::from(self.metadata.filename.as_ref().unwrap_or(&default_path));
         outfile.set_extension("waypoints.csv");
 
         // Create a buffer for the CSV
@@ -291,17 +281,11 @@ impl GPXActivity {
         );
         println!(
             "Time:              {}",
-            self.metadata
-                .time
-                .as_ref()
-                .unwrap_or(&epoch)
+            self.metadata.time.as_ref().unwrap_or(&epoch)
         );
         println!(
             "Duration:          {}",
-            self.metadata
-                .duration
-                .as_ref()
-                .unwrap_or(&zero_duration)
+            self.metadata.duration.as_ref().unwrap_or(&zero_duration)
         );
         println!(
             "Description:       {}",

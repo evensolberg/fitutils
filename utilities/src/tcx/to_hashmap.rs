@@ -2,7 +2,6 @@ use std::{collections::HashMap, error::Error};
 
 use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use crate::TCXActivity;
-use chrono::DateTime;
 use convert_case::{Case, Casing};
 
 /// Iterates through a TCX file and saves the information to a `HashMap`
@@ -58,12 +57,7 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         values.insert("%activity_detailed".to_string(), unknown.clone());
         values.insert("%ad".to_string(), unknown);
 
-        let parsed_time = act
-            .start_time
-            .as_ref()
-            .and_then(|st| DateTime::parse_from_rfc3339(st).ok())
-            .map(|dt| dt.with_timezone(&chrono::Local));
-        insert_datetime_keys(&mut values, parsed_time.as_ref());
+        insert_datetime_keys(&mut values, act.start_time.as_ref());
         insert_duration_keys(&mut values, act.duration);
     }
 

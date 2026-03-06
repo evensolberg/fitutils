@@ -1,6 +1,9 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
 use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
+use crate::fit::serde_helpers::{
+    serialize_opt_length_f64, serialize_opt_length_u16, serialize_opt_velocity,
+};
 use crate::{Duration, FITHrZones, FITSession};
 
 use chrono::{DateTime, Local};
@@ -27,30 +30,45 @@ pub struct FITLap {
     pub lap_num: Option<u64>,
 
     /// Average cadence (running, walking, biking, ...).
+    #[serde(rename(serialize = "cadence_avg_bpm"))]
     pub cadence_avg: Option<u8>,
 
     /// Maximum cadence (running, walking, biking, ...).
+    #[serde(rename(serialize = "cadence_max_bpm"))]
     pub cadence_max: Option<u8>,
 
     /// Minimum heart rate (Beats per Minute).
+    #[serde(rename(serialize = "heartrate_min_bpm"))]
     pub heartrate_min: Option<u8>,
 
     /// Average heart rate (Beats per Minute).
+    #[serde(rename(serialize = "heartrate_avg_bpm"))]
     pub heartrate_avg: Option<u8>,
 
     /// Maximum heart rate (Beats per Minute).
+    #[serde(rename(serialize = "heartrate_max_bpm"))]
     pub heartrate_max: Option<u8>,
 
     /// Average speed (Meter per Second).
+    #[serde(
+        rename(serialize = "speed_avg_ms"),
+        serialize_with = "serialize_opt_velocity"
+    )]
     pub speed_avg: Option<Velocity>,
 
     /// Maximum speed (Meter per Second).
+    #[serde(
+        rename(serialize = "speed_max_ms"),
+        serialize_with = "serialize_opt_velocity"
+    )]
     pub speed_max: Option<Velocity>,
 
     /// Average power (Watt).
+    #[serde(rename(serialize = "power_avg_w"))]
     pub power_avg: Option<u16>,
 
     /// Maxmimum power (Watt).
+    #[serde(rename(serialize = "power_max_w"))]
     pub power_max: Option<u16>,
 
     /// Latitude of lap start.
@@ -66,30 +84,46 @@ pub struct FITLap {
     pub lon_end: Option<f64>,
 
     /// Average stance time.
+    #[serde(rename(serialize = "stance_time_avg_sec"))]
     pub stance_time_avg: Option<Duration>,
 
     /// Vertical oscillation.
     pub vertical_oscillation_avg: Option<f64>,
 
     /// Total ascent (Meter).
+    #[serde(
+        rename(serialize = "ascent_m"),
+        serialize_with = "serialize_opt_length_u16"
+    )]
     pub ascent: Option<Length_u16>,
 
     //l Total descent (Meter).
+    #[serde(
+        rename(serialize = "descent_m"),
+        serialize_with = "serialize_opt_length_u16"
+    )]
     pub descent: Option<Length_u16>,
 
     /// Calories burned.
     pub calories: Option<u16>,
 
     /// Distance covered (Meter).
+    #[serde(
+        rename(serialize = "distance_m"),
+        serialize_with = "serialize_opt_length_f64"
+    )]
     pub distance: Option<Length_f64>,
 
     /// Lap total duration including pauses.
+    #[serde(rename(serialize = "duration_secs"))]
     pub duration: Option<Duration>,
 
     /// Lap active duration without pauses.
+    #[serde(rename(serialize = "duration_active_sec"))]
     pub duration_active: Option<Duration>,
 
     /// Lap moving duration.
+    #[serde(rename(serialize = "duration_moving_sec"))]
     pub duration_moving: Option<Duration>,
 
     /// Lap start time.

@@ -188,11 +188,7 @@ impl GPXMetadata {
     /// Writing the session data may fail.
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
         let default_path = PathBuf::from("export");
-        let mut filename = self
-            .filename
-            .as_ref()
-            .unwrap_or(&default_path)
-            .clone();
+        let mut filename = self.filename.as_ref().unwrap_or(&default_path).clone();
         filename.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {:?}",
@@ -269,13 +265,7 @@ fn set_activity(src_meta: &gpx::Metadata, dest: &mut GPXMetadata, src: &gpx::Gpx
     } else {
         let default_track = gpx::Track::default();
         let unknown = "Unknown".to_string();
-        if src
-            .tracks
-            .first()
-            .unwrap_or(&default_track)
-            .name
-            .is_some()
-        {
+        if src.tracks.first().unwrap_or(&default_track).name.is_some() {
             dest.activity = Some(
                 src.tracks
                     .first()

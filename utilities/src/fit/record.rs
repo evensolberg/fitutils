@@ -1,6 +1,7 @@
 //! Defines the `Record` struct which contains detailed information about each record/data point in the workout session.
 
 use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
+use crate::fit::serde_helpers::{serialize_opt_length_f64, serialize_opt_velocity};
 use crate::fit::session::FITSession;
 use crate::Duration;
 
@@ -22,39 +23,58 @@ pub struct FITRecord {
     pub timestamp: Option<DateTime<Local>>,
 
     /// How far into the current session are we (Seconds)
+    #[serde(rename(serialize = "duration_sec"))]
     pub duration: Option<Duration>,
 
     /// Distance covered since last record entry (Meters).
+    #[serde(
+        rename(serialize = "distance_m"),
+        serialize_with = "serialize_opt_length_f64"
+    )]
     pub distance: Option<Length_f64>,
 
     /// Altiude (Meters).
+    #[serde(
+        rename(serialize = "altitude_m"),
+        serialize_with = "serialize_opt_length_f64"
+    )]
     pub altitude: Option<Length_f64>,
 
     /// Stance time (Seconds).
+    #[serde(rename(serialize = "stance_time_sec"))]
     pub stance_time: Option<Duration>,
 
     /// Vertical oscillation.
     pub vertical_oscillation: Option<f64>,
 
     /// Cadence in beats (or revolutions) per minute.
+    #[serde(rename(serialize = "cadence_bpm"))]
     pub cadence: Option<u8>,
 
     /// Speed (Meters per Second).
+    #[serde(
+        rename(serialize = "speed_ms"),
+        serialize_with = "serialize_opt_velocity"
+    )]
     pub speed: Option<Velocity>,
 
     /// Power (Watts).
+    #[serde(rename(serialize = "power_w"))]
     pub power: Option<u16>,
 
     /// Heart rate (Beats per Minute).
+    #[serde(rename(serialize = "heartrate_bpm"))]
     pub heartrate: Option<u8>,
 
     /// Calories burned/
     pub calories: Option<u16>,
 
     /// Latitude (Degrees).
+    #[serde(rename(serialize = "lat_deg"))]
     pub lat: Option<f64>,
 
     /// Longitude (Degrees).
+    #[serde(rename(serialize = "lon_deg"))]
     pub lon: Option<f64>,
 }
 
@@ -106,13 +126,7 @@ impl FITRecord {
 
         let epoch = Local.timestamp_opt(0, 0).unwrap();
         let duration = record.timestamp.as_ref().map(|start_time| {
-            Duration::between(
-                start_time,
-                session
-                    .time_created
-                    .as_ref()
-                    .unwrap_or(&epoch),
-            )
+            Duration::between(start_time, session.time_created.as_ref().unwrap_or(&epoch))
         });
         record.duration = duration;
 

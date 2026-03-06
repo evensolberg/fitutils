@@ -155,9 +155,10 @@ impl FITActivity {
         );
 
         // Create a buffer for the CSV
+        // Manual headers needed because FITHrZones uses a custom Serialize
+        // that the csv crate can't auto-generate headers for.
         let mut lap_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
 
-        // Write the header separately since types::Duration doesn't get serialized properly
         lap_writer.write_record([
             "filename",
             "lap_num",
@@ -185,14 +186,14 @@ impl FITActivity {
             "duration_moving_sec",
             "start_time",
             "finish_time",
-            "heart_rate_zone0_sec",
-            "heart_rate_zone1_sec",
-            "heart_rate_zone2_sec",
-            "heart_rate_zone3_sec",
-            "heart_rate_zone4_sec",
+            "hr_zone_0_secs",
+            "hr_zone_1_secs",
+            "hr_zone_2_secs",
+            "hr_zone_3_secs",
+            "hr_zone_4_secs",
         ])?;
 
-        // Now write the actual laps
+        // Write the laps
         for lap in &self.laps {
             lap_writer.serialize(lap)?;
         }
@@ -220,40 +221,18 @@ impl FITActivity {
     pub fn export_records_csv(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
         let default_filename = String::from("export-records.csv");
-        let mut outfile = PathBuf::from(
-            &self
-                .session
-                .filename
-                .as_ref()
-                .unwrap_or(&default_filename),
-        );
+        let mut outfile =
+            PathBuf::from(&self.session.filename.as_ref().unwrap_or(&default_filename));
         outfile.set_extension("records.csv");
         log::trace!(
             "exporter::export_records_csv() -- Writing records CSV file {}",
             &outfile.to_str().unwrap_or("<Unknown filename>")
         );
 
-        // Create a buffer for the CSV
-        let mut rec_writer = WriterBuilder::new().has_headers(false).from_path(outfile)?;
+        // Create a buffer for the CSV — headers auto-generated from serde field names
+        let mut rec_writer = WriterBuilder::new().has_headers(true).from_path(outfile)?;
 
-        // Write the header separately since types::Duration doesn't get serialized properly
-        rec_writer.write_record([
-            "timestamp",
-            "duration_sec",
-            "distance_m",
-            "altitude_m",
-            "stance_time_sec",
-            "vertical_oscillation",
-            "cadence_bpm",
-            "speed_ms",
-            "power_w",
-            "heartrate_bpm",
-            "calories",
-            "lat_deg",
-            "lon_deg",
-        ])?;
-
-        // Now write the actual laps
+        // Write the records
         for rec in &self.records {
             rec_writer.serialize(rec)?;
         }
@@ -288,10 +267,7 @@ impl FITActivity {
         );
         println!(
             "Time created:             {}",
-            self.session
-                .time_created
-                .as_ref()
-                .unwrap_or(&epoch)
+            self.session.time_created.as_ref().unwrap_or(&epoch)
         );
         println!(
             "Activity type:            {}",
@@ -410,17 +386,11 @@ impl FITActivity {
             );
             println!(
                 "Start time:                 {}",
-                self.session
-                    .start_time
-                    .as_ref()
-                    .unwrap_or(&epoch)
+                self.session.start_time.as_ref().unwrap_or(&epoch)
             );
             println!(
                 "Finish time:                {}",
-                self.session
-                    .finish_time
-                    .as_ref()
-                    .unwrap_or(&epoch)
+                self.session.finish_time.as_ref().unwrap_or(&epoch)
             );
             println!("Time in Zones:");
             println!(

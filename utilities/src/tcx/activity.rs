@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local};
 use csv::WriterBuilder;
 use serde::Serialize;
 use serde_json;
@@ -22,7 +23,7 @@ pub struct TCXActivity {
     pub sport: Option<String>,
 
     /// Activity ID - usually denoted by the start time for the activity
-    pub start_time: Option<String>,
+    pub start_time: Option<DateTime<Local>>,
 
     /// Total activity duration in seconds.
     pub duration: Option<Duration>,
@@ -145,7 +146,18 @@ impl TCXActivity {
         for activity in &activities.activities {
             act_s.num_activities = Some(act_s.num_activities.unwrap_or(0) + 1);
             act_s.sport = Some(activity.sport.clone());
-            act_s.start_time = Some(activity.id.clone()); // TODO: https://github.com/evensolberg/fitparser/projects/6#card-71437698
+            act_s.start_time = DateTime::parse_from_rfc3339(&activity.id)
+                .ok()
+                .map(|dt| dt.with_timezone(&Local));
+            // Fallback: use first trackpoint time if activity ID didn't parse
+            if act_s.start_time.is_none() {
+                act_s.start_time = activity
+                    .laps
+                    .first()
+                    .and_then(|l| l.tracks.first())
+                    .and_then(|t| t.trackpoints.first())
+                    .map(|tp| tp.time.with_timezone(&Local));
+            }
             act_s.notes.clone_from(&activity.notes);
 
             for lap in &activity.laps {
@@ -249,9 +261,7 @@ impl TCXActivity {
 
         let default_filename = "tcx_activity".to_string();
         let out_file = set_extension(
-            self.filename
-                .as_ref()
-                .unwrap_or(&default_filename),
+            self.filename.as_ref().unwrap_or(&default_filename),
             "activity.json",
         );
         serde_json::to_writer_pretty(
@@ -291,10 +301,11 @@ impl TCXActivity {
             "Sport:                 {}",
             self.sport.as_ref().unwrap_or(&unknown)
         );
-        println!(
-            "Start time:            {}",
-            self.start_time.as_ref().unwrap_or(&unknown)
-        );
+        if let Some(ref st) = self.start_time {
+            println!("Start time:            {st}");
+        } else {
+            println!("Start time:            ");
+        }
         println!(
             "Duration:              {}",
             self.duration.as_ref().unwrap_or(&zero_duration)
@@ -472,7 +483,7 @@ mod tests {
         act.filename = Some("2022-02-22 0700 cycling.fit".to_string());
         act.num_activities = Some(1);
         act.sport = Some("cycling".to_string());
-        act.start_time = Some(chrono::Local::now().to_string());
+        act.start_time = Some(chrono::Local::now());
         act.duration = Some(Duration::from_secs_f64(1800.0));
         act.notes = Some("Something about the activity.".to_string());
         act.num_laps = Some(2);
@@ -519,9 +530,8 @@ mod tests {
         assert_eq!(act.sport.unwrap(), "cycling".to_string());
 
         // Time will have passed, so these should not be the same.
-        let act_time = act.start_time.unwrap_or_else(|| "Unknown".to_string());
-        assert_ne!(act_time, chrono::Local::now().to_string());
-        assert_ne!(act_time, "Unknown".to_string());
+        let act_time = act.start_time.expect("start_time should be set");
+        assert_ne!(act_time, chrono::Local::now());
 
         assert_eq!(act.duration.unwrap().as_secs(), 1800);
         assert_eq!(
@@ -586,7 +596,10 @@ mod tests {
         );
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());
-        assert_eq!(act.start_time.unwrap(), "2018-06-15T13:35:49Z".to_string());
+        let expected_time = DateTime::parse_from_rfc3339("2018-06-15T13:35:49Z")
+            .unwrap()
+            .with_timezone(&Local);
+        assert_eq!(act.start_time.unwrap(), expected_time);
         assert!((act.duration.unwrap().0 - 1325.444_009).abs() < 0.001);
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);

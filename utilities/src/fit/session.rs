@@ -104,9 +104,7 @@ impl FITSession {
         println!(
             "Manufacturer: {}    Time created: {}",
             self.manufacturer.as_ref().unwrap_or(&unknown),
-            self.time_created
-                .as_ref()
-                .unwrap_or(&epoch)
+            self.time_created.as_ref().unwrap_or(&epoch)
         );
         println!(
             "Sessions: {}      Laps: {:2}      Records: {}",
@@ -307,12 +305,7 @@ impl FITSession {
     pub fn export_json(&self) -> Result<(), Box<dyn Error>> {
         // Change the file extension
         let default_filename = String::from("export-session.json");
-        let mut export_path = PathBuf::from(
-            &self
-                .filename
-                .as_ref()
-                .unwrap_or(&default_filename),
-        );
+        let mut export_path = PathBuf::from(&self.filename.as_ref().unwrap_or(&default_filename));
         export_path.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {}",

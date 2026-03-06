@@ -30,16 +30,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Determine summary file settings
-    let write_summary =
-        cli_args.value_source("summary-file") == Some(ValueSource::CommandLine);
+    let write_summary = cli_args.value_source("summary-file") == Some(ValueSource::CommandLine);
     let default_summary = String::from("activities.csv");
     let summary_base = cli_args
         .get_one::<String>("summary-file")
         .unwrap_or(&default_summary);
-    let detail_off =
-        cli_args.value_source("detail-off") == Some(ValueSource::CommandLine);
-    let print_summary =
-        cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
+    let detail_off = cli_args.value_source("detail-off") == Some(ValueSource::CommandLine);
+    let print_summary = cli_args.value_source("print-summary") == Some(ValueSource::CommandLine);
 
     if detail_off {
         log::info!("Writing summary file only.");
@@ -135,8 +132,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
                 // In debug mode, export the raw TCX database to JSON
                 if cli_args.value_source("debug") == Some(ValueSource::CommandLine)
-                    || cli_args.value_source("debug")
-                        == Some(ValueSource::EnvVariable)
+                    || cli_args.value_source("debug") == Some(ValueSource::EnvVariable)
                 {
                     let outfile = set_extension(filename, "json");
                     log::trace!(
@@ -154,8 +150,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                     continue;
                 };
 
-                let mut curr_activities =
-                    TCXActivity::from_activities(&activities);
+                let mut curr_activities = TCXActivity::from_activities(&activities);
                 curr_activities.filename = Some(filename.to_string());
 
                 if print_summary {
@@ -169,11 +164,9 @@ fn run() -> Result<(), Box<dyn Error>> {
                         continue;
                     }
 
-                    let tp_list =
-                        TCXTrackpointList::from_activities(&activities);
-                    if let Err(e) = tp_list.export_csv(
-                        &set_extension(filename, "trackpoints.csv"),
-                    ) {
+                    let tp_list = TCXTrackpointList::from_activities(&activities);
+                    if let Err(e) = tp_list.export_csv(&set_extension(filename, "trackpoints.csv"))
+                    {
                         log::error!("Error exporting trackpoints for {filename}: {e}");
                         skipped_files += 1;
                         continue;
