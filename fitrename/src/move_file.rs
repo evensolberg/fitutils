@@ -15,7 +15,10 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
 
     // Perform substitutions on the target path
     for (key, value) in values {
-        let fixed_value = value.clone().trim().to_string();
+        let fixed_value = value
+            .trim()
+            .replace(['/', '\\'], "-")
+            .replace("..", "_");
         log::debug!("key: {key}, fixed_value: {fixed_value}");
 
         // Do the actual target path replacement
@@ -43,8 +46,8 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
         }
     }
 
-    // Verify that the target is a directory
-    if !target_path.is_dir() {
+    // Verify that the target is a directory (skip during dry run since we didn't create it)
+    if !dry_run && !target_path.is_dir() {
         return Err(format!("Target path {target} is not a directory.").into());
     }
 
@@ -56,13 +59,22 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
     log::debug!("target_file = {target_file:?}");
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
-    if Path::new(&target_file).exists() {
+    let mut counter = unique_val;
+    while target_file.exists() {
         log::warn!(
             "{} already exists. Appending unique identifier.",
             target_file.to_string_lossy()
         );
-        let target_filename = format!("{} ({unique_val})", target_filename.to_string_lossy());
-        target_file = target_path.join(target_filename);
+        let name_lossy = target_filename.to_string_lossy();
+        let name_path = Path::new(name_lossy.as_ref());
+        let stem = name_path.file_stem().unwrap_or_default().to_string_lossy();
+        let ext = name_path
+            .extension()
+            .map(|e| format!(".{}", e.to_string_lossy()))
+            .unwrap_or_default();
+        let new_name = format!("{stem} ({counter}){ext}");
+        target_file = target_path.join(new_name);
+        counter += 1;
     }
 
     // Perform the actual move
@@ -70,8 +82,8 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
         log::debug!("dr: mv {filename} {}", target_file.to_string_lossy());
     } else {
         log::debug!("mv {filename} {}", target_file.to_string_lossy());
-        let _res =
-            fs::rename(filename, &target_file).map_err(|e| format!("Unable to move file: {e}",));
+        fs::rename(filename, &target_file)
+            .map_err(|e| format!("Unable to move file '{filename}' to '{}': {e}", target_file.display()))?;
     }
 
     Ok(target_file.to_string_lossy().to_string())

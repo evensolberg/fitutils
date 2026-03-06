@@ -13,6 +13,8 @@ use std::path::PathBuf;
 /// # Example
 ///
 /// ```
+/// use utilities::get_extension;
+///
 /// let extension = get_extension("running.gpx");
 /// assert_eq!(extension, "gpx".to_string());
 /// ```
@@ -41,6 +43,8 @@ pub fn get_extension(filename: &str) -> String {
 /// # Example
 ///
 /// ```
+/// use utilities::set_extension;
+///
 /// let new_filename = set_extension("running.gpx", "tcx");
 /// assert_eq!(new_filename, "running.tcx".to_string());
 /// ```

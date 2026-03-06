@@ -94,8 +94,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         act_list.export_json(&utilities::set_extension(summaryfile, "json"))?;
     }
 
-    log::info!("Exporting summary CSV file: {summaryfile}");
-    act_list.export_csv(summaryfile)?;
+    if cli_args.value_source("summary-file") == Some(ValueSource::CommandLine) {
+        log::info!("Exporting summary CSV file: {summaryfile}");
+        act_list.export_csv(summaryfile)?;
+    }
 
     // Everything is a-okay in the end
     Ok(())

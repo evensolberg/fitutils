@@ -125,8 +125,11 @@ impl FITLap {
     /// - Assume `my_session` has been parsed and filled already.
     /// - Assume `data` is a `FitDataField` with `data.kind() == MesgNum::Lap`.
     ///
-    /// ```
-    /// let lap = FITLap::from_fit_lap(data.fields(), &my_session)?;
+    /// ```no_run
+    /// # use utilities::{FITLap, FITSession};
+    /// # let fields = vec![];
+    /// # let my_session = FITSession::default();
+    /// let lap = FITLap::from_fit_lap(&fields, &my_session);
     /// ```
     /// # References
     ///

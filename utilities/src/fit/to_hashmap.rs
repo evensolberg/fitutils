@@ -1,5 +1,5 @@
+use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use crate::fit::session::FITSession;
-use chrono::{Datelike, Timelike};
 use convert_case::{Case, Casing};
 use fitparser::profile::field_types::MesgNum;
 use std::{collections::HashMap, error::Error, fs::File};
@@ -86,67 +86,8 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
     values.insert("%activity_detailed".to_string(), ad.clone());
     values.insert("%ad".to_string(), ad);
 
-    if let Some(tc) = my_session.time_created {
-        values.insert("%year".to_string(), format!("{:04}", tc.year()));
-        values.insert("%yr".to_string(), format!("{:04}", tc.year()));
-        values.insert("%month".to_string(), format!("{:02}", tc.month()));
-        values.insert("%mn".to_string(), format!("{:02}", tc.month()));
-        values.insert("%day".to_string(), format!("{:02}", tc.day()));
-        values.insert("%dy".to_string(), format!("{:02}", tc.day()));
-
-        values.insert("%hour".to_string(), format!("{:02}", tc.hour()));
-        values.insert("%hr".to_string(), format!("{:02}", tc.hour()));
-        values.insert("%24hour".to_string(), format!("{:02}", tc.hour()));
-        values.insert("%24".to_string(), format!("{:02}", tc.hour()));
-
-        let (am, hrs) = tc.hour12();
-        let hr = format!("{hrs:02}");
-        values.insert("%hour12".to_string(), hr.clone());
-        values.insert("%12".to_string(), hr);
-        if am {
-            values.insert("%ampm".to_string(), "pm".to_string());
-            values.insert("%ap".to_string(), "pm".to_string());
-        } else {
-            values.insert("%ampm".to_string(), "am".to_string());
-            values.insert("%ap".to_string(), "am".to_string());
-        }
-
-        values.insert("%minute".to_string(), format!("{:02}", tc.minute()));
-        values.insert("%mt".to_string(), format!("{:02}", tc.minute()));
-        values.insert("%second".to_string(), format!("{:02}", tc.second()));
-        values.insert("%sc".to_string(), format!("{:02}", tc.second()));
-        values.insert("%weekday".to_string(), tc.weekday().to_string());
-        values.insert("%wd".to_string(), tc.weekday().to_string());
-    } else {
-        values.insert("%year".to_string(), "0000".to_string());
-        values.insert("%yr".to_string(), "0000".to_string());
-        values.insert("%month".to_string(), "00".to_string());
-        values.insert("%mn".to_string(), "00".to_string());
-        values.insert("%day".to_string(), "00".to_string());
-        values.insert("%dy".to_string(), "00".to_string());
-        values.insert("%hour".to_string(), "00".to_string());
-        values.insert("%hr".to_string(), "00".to_string());
-        values.insert("%24hour".to_string(), "00".to_string());
-        values.insert("%24".to_string(), "00".to_string());
-        values.insert("%12hour".to_string(), "00".to_string());
-        values.insert("%12".to_string(), "00".to_string());
-        values.insert("%ampm".to_string(), "ampm".to_string());
-        values.insert("%ap".to_string(), "ampm".to_string());
-        values.insert("%minute".to_string(), "00".to_string());
-        values.insert("%mt".to_string(), "00".to_string());
-        values.insert("%second".to_string(), "00".to_string());
-        values.insert("%sc".to_string(), "00".to_string());
-        values.insert("%weekday".to_string(), "00".to_string());
-        values.insert("%wd".to_string(), "00".to_string());
-    }
-
-    if let Some(dur) = my_session.duration {
-        values.insert("%duration".to_string(), dur.to_string());
-        values.insert("%du".to_string(), dur.to_string());
-    } else {
-        values.insert("%duration".to_string(), "0".to_string());
-        values.insert("%du".to_string(), "0".to_string());
-    }
+    insert_datetime_keys(&mut values, my_session.time_created.as_ref());
+    insert_duration_keys(&mut values, my_session.duration);
 
     log::debug!("values = {values:?}");
 
@@ -162,7 +103,7 @@ mod tests {
     #[test]
     ///
     fn test_process_fit() {
-        let filename = "../data/test.fit";
+        let filename = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/rowing.fit");
         let fm = fit_to_hashmap(filename).unwrap();
 
         // File contents only get printed if run with cargo test -- --nocapture

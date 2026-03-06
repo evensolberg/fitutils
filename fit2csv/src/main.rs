@@ -45,15 +45,27 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Create an empty placeholder for all the activities
     let mut activities = FITActivities::default();
 
+    let mut total_files: usize = 0;
+    let mut processed_files: usize = 0;
+    let mut skipped_files: usize = 0;
+
     for filename in cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
         .map(std::string::String::as_str)
     {
+        total_files += 1;
         log::info!("Processing file: {filename}");
 
         // Parse the FIT file
-        let activity = FITActivity::from_file(filename)?;
+        let activity = match FITActivity::from_file(filename) {
+            Ok(a) => a,
+            Err(e) => {
+                log::error!("Error processing {filename}: {e}");
+                skipped_files += 1;
+                continue;
+            }
+        };
 
         // Output the files
         if cli_args.value_source("print-summary") == Some(ValueSource::CommandLine) {
@@ -67,7 +79,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Push the session onto the summary vector
         activities.activities_list.push(activity);
+        processed_files += 1;
     }
+
+    log::info!("Total files examined:        {total_files:6}");
+    log::info!("Files processed:             {processed_files:6}");
+    log::info!("Files skipped due to errors: {skipped_files:6}");
 
     // Export the summary information
     if cli_args.value_source("summary-file") == Some(ValueSource::CommandLine) {

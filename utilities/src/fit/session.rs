@@ -278,7 +278,7 @@ impl FITSession {
             self.start_time = None;
         }
 
-        if let Some(fitparser::Value::Timestamp(ft)) = field_map.get("DateTime<Local>") {
+        if let Some(fitparser::Value::Timestamp(ft)) = field_map.get("timestamp") {
             self.finish_time = Some(*ft);
         } else {
             let dur = self.duration.unwrap_or_default();

@@ -68,25 +68,22 @@ alias tp := testp
 
 # Documents the project, lints it, builds and installs the release version, and cleans up
 @release: format changelog
-    cargo lbuild --release  --color 'always'
-    -cp {{invocation_directory()}}/target/release/fit2csv /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/fit2json /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/fitrename /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/fitview /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/gpx2csv /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/tcx2csv /usr/local/bin/
+    cargo install --path {{invocation_directory()}}/fit2csv
+    cargo install --path {{invocation_directory()}}/fit2json
+    cargo install --path {{invocation_directory()}}/fitrename
+    cargo install --path {{invocation_directory()}}/fitview
+    cargo install --path {{invocation_directory()}}/gpx2csv
+    cargo install --path {{invocation_directory()}}/tcx2csv
     cargo clean
 
-# Documents the project, builds and installs the release version, and cleans up
+# Documents the project, builds and installs the release version for Apple ARM64, and cleans up
 @releasea: format changelog
-    cargo lbuild --release  --color 'always' --target aarch64-apple-darwin
-    cargo strip --target aarch64-apple-darwin
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/fit2csv /usr/local/bin/
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/fit2json /usr/local/bin/
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/fitrename /usr/local/bin/
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/fitview /usr/local/bin/
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/gpx2csv /usr/local/bin/
-    -cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/tcx2csv /usr/local/bin/
+    cargo install --path {{invocation_directory()}}/fit2csv --target aarch64-apple-darwin
+    cargo install --path {{invocation_directory()}}/fit2json --target aarch64-apple-darwin
+    cargo install --path {{invocation_directory()}}/fitrename --target aarch64-apple-darwin
+    cargo install --path {{invocation_directory()}}/fitview --target aarch64-apple-darwin
+    cargo install --path {{invocation_directory()}}/gpx2csv --target aarch64-apple-darwin
+    cargo install --path {{invocation_directory()}}/tcx2csv --target aarch64-apple-darwin
     cargo clean
 
 # Build the documentation

@@ -42,10 +42,10 @@ impl FITActivity {
     ///
     /// # Example
     ///
-    ///   ```rust
+    ///   ```no_run
     ///    use utilities::FITActivity;
     ///
-    ///    let my_activity = FITActivity::from_file("data/rowing.fit")?;
+    ///    let my_activity = FITActivity::from_file("data/rowing.fit").unwrap();
     ///   ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
         // open the file and deserialize it - return error if unable.
@@ -451,13 +451,12 @@ impl FITActivity {
 
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/rowing.fit"])]
+    #[test]
     /// test FITActivity::from_file()
     fn test_from_file() {
-        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/rowing.fit";
-        let act = FITActivity::from_file(filename)?;
+        let filename = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/rowing.fit");
+        let act = FITActivity::from_file(filename).unwrap();
 
         assert!(!act.laps.is_empty());
         assert!(!act.records.is_empty());

@@ -55,10 +55,10 @@ impl GPXActivity {
     ///
     /// # Example
     ///
-    /// ```
-    /// use crate::types::activity::Activity;
+    /// ```no_run
+    /// use utilities::GPXActivity;
     ///
-    /// let my_activity = Activity::from_file("running.gpx")?;
+    /// let my_activity = GPXActivity::from_file("running.gpx").unwrap();
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
         let gpx: Gpx = gpx::read(BufReader::new(File::open(filename)?))?;

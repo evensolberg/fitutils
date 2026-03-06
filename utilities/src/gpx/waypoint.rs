@@ -128,7 +128,6 @@ impl GPXWaypoint {
         set_string_field!(src, description, dest);
         set_string_field!(src, source, dest);
         set_string_field!(src, symbol, dest);
-        set_string_field!(src, symbol, dest);
 
         if let Some(w_type) = &src.type_ {
             dest.w_type = Some(w_type.clone());
@@ -173,13 +172,18 @@ impl GPXWaypoint {
 ///
 /// # Example
 ///
-/// ```rust
-/// use utilities::GPXFix;
+/// ```no_run
+/// use gpx::Fix;
 ///
-/// let src: = &gpx::Fix;
-///
-/// if let Some(fix) = &src.fix {
-///    dest.fix = Some(fix.to_string(&fix))
+/// fn fix_to_string(src: &Fix) -> String {
+///     match src {
+///         Fix::None => "None".to_string(),
+///         Fix::TwoDimensional => "TwoDimensional".to_string(),
+///         Fix::ThreeDimensional => "ThreeDimensional".to_string(),
+///         Fix::DGPS => "DGPS".to_string(),
+///         Fix::PPS => "PPS".to_string(),
+///         Fix::Other(s) => format!("Other({})", s),
+///     }
 /// }
 /// ```
 ///

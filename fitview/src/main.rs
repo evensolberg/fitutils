@@ -26,27 +26,42 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
-    let skipped_files: usize = 0;
+    let mut skipped_files: usize = 0;
 
     // The good stuff goes here
     for filename in filenames {
         log::debug!("Processing file: {filename}");
         match utilities::get_extension(filename).as_ref() {
-            "fit" => {
-                let act = FITActivity::from_file(filename)?;
-                act.print(detailed);
-                processed_files += 1;
-            }
-            "gpx" => {
-                let act = GPXActivity::from_file(filename)?;
-                act.print(detailed);
-                processed_files += 1;
-            }
-            "tcx" => {
-                let act = TCXActivity::from_file(filename)?;
-                act.print(detailed);
-                processed_files += 1;
-            }
+            "fit" => match FITActivity::from_file(filename) {
+                Ok(act) => {
+                    act.print(detailed);
+                    processed_files += 1;
+                }
+                Err(e) => {
+                    log::error!("Error processing {filename}: {e}");
+                    skipped_files += 1;
+                }
+            },
+            "gpx" => match GPXActivity::from_file(filename) {
+                Ok(act) => {
+                    act.print(detailed);
+                    processed_files += 1;
+                }
+                Err(e) => {
+                    log::error!("Error processing {filename}: {e}");
+                    skipped_files += 1;
+                }
+            },
+            "tcx" => match TCXActivity::from_file(filename) {
+                Ok(act) => {
+                    act.print(detailed);
+                    processed_files += 1;
+                }
+                Err(e) => {
+                    log::error!("Error processing {filename}: {e}");
+                    skipped_files += 1;
+                }
+            },
             _ => log::warn!("Unknown file type: {filename}."),
         }
         total_files += 1;

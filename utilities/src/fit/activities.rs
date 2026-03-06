@@ -31,8 +31,11 @@ impl FITActivities {
     ///
     /// # Example
     ///
-    /// ```
-    /// activities.export_summary_csv("session_summary.csv")?;
+    /// ```no_run
+    /// use utilities::FITActivities;
+    ///
+    /// let activities = FITActivities::default();
+    /// activities.export_summary_csv("session_summary.csv").unwrap();
     /// ```
     pub fn export_summary_csv(&self, sessionfile: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV

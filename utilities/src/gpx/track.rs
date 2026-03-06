@@ -69,7 +69,11 @@ impl GPXTrack {
     /// # Example
     ///
     /// ```
+    /// use utilities::GPXTrack;
+    ///
+    /// let mut track = GPXTrack::default();
     /// track.set_filename("running.gpx");
+    /// ```
     pub fn set_filename(&mut self, filename: &str) {
         self.filename = Some(PathBuf::from(filename));
     }

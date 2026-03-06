@@ -5,7 +5,6 @@ use std::{
     collections::BTreeMap,
     error::Error,
     fs::File,
-    io::prelude::*,
     path::{Path, PathBuf},
 };
 
@@ -77,7 +76,6 @@ impl OutputLocation {
     ) -> Result<(), Box<dyn Error>> {
         // convert data to a name: {value, units} map before serializing
         let data: Vec<FitDataMap> = data.into_iter().map(FitDataMap::new).collect();
-        let json = serde_json::to_string(&data)?;
 
         // Figure out where to send the output
         let outname = match self {
@@ -88,16 +86,15 @@ impl OutputLocation {
                 .with_extension("json"),
             Self::LocalFile(dest) => dest.clone(),
             Self::Stdout => {
-                println!("{json}");
+                serde_json::to_writer(std::io::stdout(), &data)?;
+                println!();
                 return Ok(());
             }
         };
 
         // Write the data to the selected output and return the result.
-        let mut fp = File::create(outname)?;
-        match fp.write_all(json.as_bytes()) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(Box::new(e)),
-        }
+        let fp = File::create(outname)?;
+        serde_json::to_writer(fp, &data)?;
+        Ok(())
     }
 }

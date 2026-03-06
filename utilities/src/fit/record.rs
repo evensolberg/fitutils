@@ -77,8 +77,11 @@ impl FITRecord {
     /// - Assume `my_session` has been parsed and filled already.
     /// - Assume `data` is a `FitDataField` with `data.kind() == MesgNum::Record`.
     ///
-    /// ```
-    /// let record = Record::from_fit_record(data.fields(), &my_session)?;
+    /// ```no_run
+    /// # use utilities::{FITRecord, FITSession};
+    /// # let fields = vec![];
+    /// # let my_session = FITSession::default();
+    /// let record = FITRecord::from_fit_record(&fields, &my_session);
     /// ```
     ///
     /// # References

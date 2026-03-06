@@ -1,7 +1,8 @@
 use std::{collections::HashMap, error::Error};
 
+use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use crate::TCXActivity;
-use chrono::{DateTime, Datelike, Timelike};
+use chrono::DateTime;
 use convert_case::{Case, Casing};
 
 /// Iterates through a TCX file and saves the information to a `HashMap`
@@ -57,70 +58,13 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         values.insert("%activity_detailed".to_string(), unknown.clone());
         values.insert("%ad".to_string(), unknown);
 
-        if let Some(st) = act.start_time {
-            // TODO: May want to switch to TimeStamp for consistency.
-            let tc = DateTime::parse_from_rfc3339(&st)?.with_timezone(&chrono::Local);
-
-            values.insert("%year".to_string(), format!("{:04}", tc.year()));
-            values.insert("%yr".to_string(), format!("{:04}", tc.year()));
-            values.insert("%month".to_string(), format!("{:02}", tc.month()));
-            values.insert("%mn".to_string(), format!("{:02}", tc.month()));
-            values.insert("%day".to_string(), format!("{:02}", tc.day()));
-            values.insert("%dy".to_string(), format!("{:02}", tc.day()));
-
-            values.insert("%hour".to_string(), format!("{:02}", tc.hour()));
-            values.insert("%hr".to_string(), format!("{:02}", tc.hour()));
-            values.insert("%24hour".to_string(), format!("{:02}", tc.hour()));
-            values.insert("%24".to_string(), format!("{:02}", tc.hour()));
-
-            let (am, hrs) = tc.hour12();
-            let hr = format!("{hrs:02}");
-            values.insert("%12hour".to_string(), hr.clone());
-            values.insert("%12".to_string(), hr);
-            if am {
-                values.insert("%ampm".to_string(), "pm".to_string());
-                values.insert("%ap".to_string(), "pm".to_string());
-            } else {
-                values.insert("%ampm".to_string(), "am".to_string());
-                values.insert("%ap".to_string(), "am".to_string());
-            }
-
-            values.insert("%minute".to_string(), format!("{:02}", tc.minute()));
-            values.insert("%mt".to_string(), format!("{:02}", tc.minute()));
-            values.insert("%second".to_string(), format!("{:02}", tc.second()));
-            values.insert("%sc".to_string(), format!("{:02}", tc.second()));
-            values.insert("%weekday".to_string(), tc.weekday().to_string());
-            values.insert("%wd".to_string(), tc.weekday().to_string());
-        } else {
-            values.insert("%year".to_string(), "0000".to_string());
-            values.insert("%yr".to_string(), "0000".to_string());
-            values.insert("%month".to_string(), "00".to_string());
-            values.insert("%mn".to_string(), "00".to_string());
-            values.insert("%day".to_string(), "00".to_string());
-            values.insert("%dy".to_string(), "00".to_string());
-            values.insert("%hour".to_string(), "00".to_string());
-            values.insert("%hr".to_string(), "00".to_string());
-            values.insert("%24hour".to_string(), "00".to_string());
-            values.insert("%24".to_string(), "00".to_string());
-            values.insert("%12hour".to_string(), "00".to_string());
-            values.insert("%12".to_string(), "00".to_string());
-            values.insert("%ampm".to_string(), "ampm".to_string());
-            values.insert("%ap".to_string(), "ampm".to_string());
-            values.insert("%minute".to_string(), "00".to_string());
-            values.insert("%mt".to_string(), "00".to_string());
-            values.insert("%second".to_string(), "00".to_string());
-            values.insert("%sc".to_string(), "00".to_string());
-            values.insert("%weekday".to_string(), "00".to_string());
-            values.insert("%wd".to_string(), "00".to_string());
-        }
-
-        if let Some(dur) = act.duration {
-            values.insert("%duration".to_string(), (dur.0.as_secs()).to_string());
-            values.insert("%du".to_string(), (dur.0.as_secs()).to_string());
-        } else {
-            values.insert("%duration".to_string(), "0".to_string());
-            values.insert("%du".to_string(), "0".to_string());
-        }
+        let parsed_time = act
+            .start_time
+            .as_ref()
+            .and_then(|st| DateTime::parse_from_rfc3339(st).ok())
+            .map(|dt| dt.with_timezone(&chrono::Local));
+        insert_datetime_keys(&mut values, parsed_time.as_ref());
+        insert_duration_keys(&mut values, act.duration);
     }
 
     // Return safely
@@ -131,15 +75,13 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
 ///
 mod tests {
     use super::*;
-    use assay::assay;
-
     /// Test the processing of a TCX file
-    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/running.tcx"])]
+    #[test]
     #[allow(clippy::unwrap_used)]
     fn test_process_tcx() {
         // Read the file
-        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx";
-        let tm = tcx_to_hashmap(filename)?;
+        let filename = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/running.tcx");
+        let tm = tcx_to_hashmap(filename).unwrap();
 
         // File contents only get printed if run with cargo test -- --nocapture
         println!("tm = {tm:?}");
@@ -176,7 +118,7 @@ mod tests {
         assert_eq!(tm.get("%minute").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%mt").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%month").unwrap().to_string(), "06".to_string());
-        assert_eq!(tm.get("%mn").unwrap().to_string(), "06".to_string());
+        assert_eq!(tm.get("%mo").unwrap().to_string(), "06".to_string());
         assert_eq!(tm.get("%pr").unwrap().to_string(), "Unknown".to_string());
         assert_eq!(
             tm.get("%product").unwrap().to_string(),

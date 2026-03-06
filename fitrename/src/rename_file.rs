@@ -35,11 +35,11 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
     log::debug!("rename_file() -- pattern: {pattern}");
 
     for (key, value) in values {
-        let fixed_value = value.clone().trim().to_string();
+        let fixed_value = value.trim().to_string();
         log::debug!("rename_file() -- key: {key}, fixed_value: {fixed_value}");
 
         // Do the actual filename replacement
-        let nf = new_filename.replace(key, &fixed_value).replace('/', "-");
+        let nf = new_filename.replace(key, &fixed_value).replace(['/', '\\'], "-");
         new_filename = nf;
         log::debug!("rename_file() -- new_filename: {new_filename}");
     }
@@ -57,10 +57,13 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
     log::debug!("new_path = {new_path:?}");
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
-    if Path::new(&new_path).exists() {
+    let base_filename = new_filename.clone();
+    let mut counter = unique_val;
+    while new_path.exists() {
         log::warn!("{new_filename} already exists. Appending unique identifier.");
-        new_filename = format!("{new_filename} ({unique_val})");
+        new_filename = format!("{base_filename} ({counter})");
         new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+        counter += 1;
     }
 
     // Perform the actual rename

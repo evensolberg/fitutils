@@ -1,7 +1,8 @@
 //! Read one or more FIT files and dump their contents as JSON
 
 use std::{error::Error, fs::File, path::PathBuf};
-use structopt::StructOpt;
+
+use clap::Parser;
 
 // Application-specific types
 mod types;
@@ -11,11 +12,10 @@ use env_logger::{Builder, Target};
 use log::LevelFilter;
 
 /// Command-line options
-#[derive(Debug, StructOpt)]
-#[structopt(name = "fit2json")]
+#[derive(Debug, Parser)]
+#[command(name = "fit2json")]
 struct Cli {
     /// FIT files to convert to JSON
-    #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
     /// Output location, if not provided, the JSON file will be output alongside the input file. If a
@@ -23,7 +23,7 @@ struct Cli {
     /// but with a '.json' extension. If multiple FIT files are provided and the output path isn't a
     /// directory, the JSON array will store all records present in the order they were read. Using
     /// a "-" as the output file name will result in all content being printed to STDOUT.
-    #[structopt(short, long, parse(from_os_str))]
+    #[arg(short, long)]
     output: Option<PathBuf>,
 }
 
@@ -35,7 +35,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         .target(Target::Stdout)
         .init();
 
-    let cli = Cli::from_args();
+    let cli = Cli::parse();
     let output_loc = cli
         .output
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
@@ -44,7 +44,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     // If no files have been provided, read from STDIN
     if cli.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
-        output_loc.write_json_file(
+        // Force Stdout mode when reading from STDIN with Inplace output
+        let effective_output = match &output_loc {
+            types::OutputLocation::Inplace => types::OutputLocation::Stdout,
+            other => other.clone(),
+        };
+        effective_output.write_json_file(
             &PathBuf::from("<stdin>"),
             fitparser::from_reader(&mut std::io::stdin())?,
         )?;
@@ -80,11 +85,7 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0,
         Err(err) => {
-            Builder::new()
-                .filter_level(LevelFilter::Error)
-                .target(Target::Stdout)
-                .init();
-            log::error!("{}", err.to_string().replace('\"', ""));
+            eprintln!("Error: {}", err.to_string().replace('\"', ""));
             1
         }
     });

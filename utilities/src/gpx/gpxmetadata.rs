@@ -83,8 +83,10 @@ impl GPXMetadata {
     /// # Example
     ///
     /// ```
-    /// let input_file = "running.gpx";
+    /// use utilities::GPXMetadata;
     ///
+    /// let mut gpx_meta = GPXMetadata::new();
+    /// let input_file = "running.gpx";
     /// gpx_meta.set_filename(input_file);
     /// ```
     pub fn set_filename(&mut self, filename: &str) {

@@ -39,8 +39,11 @@ impl GPXActivities {
     ///
     /// - Assumes one or more GPX file(s) already parsed.
     ///
-    /// ```
-    /// activities.export_csv("gpx-summary.csv")?;
+    /// ```no_run
+    /// use utilities::GPXActivities;
+    ///
+    /// let activities = GPXActivities::default();
+    /// activities.export_csv("gpx-summary.csv").unwrap();
     /// ```
     pub fn export_csv(&self, filename: &str) -> Result<(), Box<dyn Error>> {
         // Create a buffer for the CSV. Assume that the filename is valid.

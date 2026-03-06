@@ -55,6 +55,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     ///////////////////////////////////
     // Working section
     for filename in filenames {
+        total_files += 1;
         log::debug!("Processing file: {filename}");
 
         // Check if the target file exists, otherwise just continue
@@ -65,7 +66,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Read the metadata from files
         let value_res;
-        match utilities::get_extension(filename).to_lowercase().as_ref() {
+        match utilities::get_extension(filename).as_ref() {
             "fit" => {
                 value_res = utilities::fit_to_hashmap(filename);
                 log::debug!("FIT: {value_res:?}");
@@ -135,7 +136,6 @@ fn run() -> Result<(), Box<dyn Error>> {
             // Problem reading metadata - let the user know.
             Err(err) => log::error!("Unable to process {filename} : {err}"),
         }
-        total_files += 1;
     }
 
     if print_summary {

@@ -57,14 +57,14 @@ impl FITHrZones {
     ///
     /// # Example
     ///
-    ///   ```rust
+    ///   ```ignore
     ///   use std::collections::HashMap;
     ///   use utilities::FITHrZones;
     ///
     ///   let field_map: HashMap<&str, &fitparser::Value> =
     ///       fields.iter().map(|x| (x.name(), x.value())).collect();
     ///
-    ///   time_in_hr_zones = FITHzZones::from(field_map.get("time_in_hr_zone"));
+    ///   let time_in_hr_zones = FITHrZones::from(field_map.get("time_in_hr_zone"));
     ///   ```
     ///
     /// # Reference

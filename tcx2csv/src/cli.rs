@@ -11,7 +11,7 @@ pub fn build() -> Command {
     .arg(
         Arg::new("read")
             .value_name("FILE(S)")
-            .help("One or more .gpx file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.gpx 2020*.gpx) are supported.")
+            .help("One or more .tcx file(s) to process. Wildcards and multiple files (e.g. 2019*.tcx 2020*.tcx) are supported.")
             .num_args(1..)
             .required(true)
             .action(ArgAction::Append)

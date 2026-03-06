@@ -16,6 +16,9 @@ impl Duration {
     /// Get duration from seconds.
     #[must_use]
     pub fn from_secs_f64(secs: f64) -> Self {
+        if secs.is_nan() || secs.is_sign_negative() || secs.is_infinite() {
+            return Self::default();
+        }
         Self(std::time::Duration::from_secs_f64(secs))
     }
 
@@ -51,16 +54,14 @@ impl Duration {
     /// # Example
     ///
     /// ```
-    /// use chrono::{DateTime, Local};
-    /// use fit2json::types::Duration;
+    /// use chrono::Local;
+    /// use utilities::Duration;
     ///
     /// let t1 = Local::now();
-    /// std::thread::sleep(std::time::Duration::from_secs(1));
     /// let t2 = Local::now();
     /// let b1 = Duration::between(&t1, &t2);
     /// let b2 = Duration::between(&t2, &t1);
-    /// println!("b1 = {b1}, b2 = {b2}");
-    /// assert_eq(b1, b2);
+    /// assert_eq!(b1, b2);
     /// ```
     #[must_use]
     pub fn between(ts1: &DateTime<Local>, ts2: &DateTime<Local>) -> Self {
@@ -85,18 +86,14 @@ impl Add for Duration {
     type Output = Self;
     /// Implements the `+` operation for Duration.
     fn add(self, rhs: Self) -> Self::Output {
-        Self(
-            self.0
-                .checked_add(rhs.0)
-                .expect("overflow when adding durations."),
-        )
+        Self(self.0.saturating_add(rhs.0))
     }
 }
 
 impl AddAssign for Duration {
     /// Implements the `+=` operation for Duration.
     fn add_assign(&mut self, rhs: Self) {
-        self.0 = self.0 + rhs.0;
+        self.0 = self.0.saturating_add(rhs.0);
     }
 }
 
@@ -104,11 +101,7 @@ impl Sub for Duration {
     type Output = Self;
     /// Implements the `-` operation for Duration.
     fn sub(self, rhs: Self) -> Self {
-        Self(
-            self.0
-                .checked_sub(rhs.0)
-                .expect("overflow when subtracting durations"),
-        )
+        Self(self.0.saturating_sub(rhs.0))
     }
 }
 

@@ -31,13 +31,13 @@ pub struct TCXActivity {
     pub notes: Option<String>,
 
     /// Number of laps within the activity
-    pub num_laps: Option<u16>,
+    pub num_laps: Option<u32>,
 
     /// Total number of tracks within the activity
-    pub num_tracks: Option<u16>,
+    pub num_tracks: Option<u32>,
 
     /// Total number of trackpoints within the activity
-    pub num_trackpoints: Option<u16>,
+    pub num_trackpoints: Option<u32>,
 
     /// Total distance covered during the lap in meters.
     pub distance_meters: Option<f64>,
@@ -166,7 +166,9 @@ impl TCXActivity {
                 for track in &lap.tracks {
                     act_s.num_tracks = Some(act_s.num_tracks.unwrap_or(0) + 1);
                     act_s.num_trackpoints =
-                        Some(act_s.num_trackpoints.unwrap_or(0) + track.trackpoints.len() as u16);
+                        Some(act_s.num_trackpoints.unwrap_or(0).saturating_add(
+                            u32::try_from(track.trackpoints.len()).unwrap_or(u32::MAX),
+                        ));
                     // Check to see if max HR for the lap > current recorded max
                     if let Some(mhr) = lap.maximum_heart_rate {
                         if act_s.maximum_heart_rate.unwrap_or(0.0) < mhr {
@@ -204,11 +206,10 @@ impl TCXActivity {
 
         act_s.ascent_meters =
             Some(act_s.max_altitude.unwrap_or(0.0) - act_s.start_altitude.unwrap_or(0.0));
-        if act_s.duration.is_some() {
-            act_s.average_speed = Some(
-                act_s.distance_meters.unwrap_or(0.0)
-                    / act_s.duration.unwrap_or_default().0.as_secs() as f64,
-            );
+        let duration_secs = act_s.duration.unwrap_or_default().0.as_secs_f64();
+        if duration_secs > 0.0 {
+            act_s.average_speed =
+                Some(act_s.distance_meters.unwrap_or(0.0) / duration_secs);
         }
 
         // Calculate averages for the whole activity set
@@ -437,7 +438,6 @@ impl TCXActivitiesList {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
     // TODO: Refactor to conform with the `float_cmp` lint: https://rust-lang.github.io/rust-clippy/master/index.html#/float_cmp
 
@@ -543,12 +543,11 @@ mod tests {
         assert_eq!(act.maximum_cadence.unwrap(), 101);
     }
 
-    #[assay(include = ["/Users/evensolberg/Source/Rust/fitutils/data/running.tcx"])]
-    // TODO: Figure out relative paths.
+    #[test]
     fn test_from_activities() {
         // Create an empty summary struct and load data into it.
         let mut act = TCXActivity::new();
-        let filename = "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx";
+        let filename = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/running.tcx");
         let tcdb = tcx::read_file(filename).unwrap();
 
         if let Some(activities) = tcdb.activities {
@@ -582,7 +581,7 @@ mod tests {
         // Verify the actual data - note that the act.notes section is missing since it's None.
         assert_eq!(
             act.filename.unwrap(),
-            "/Users/evensolberg/Source/Rust/fitutils/data/running.tcx".to_string()
+            concat!(env!("CARGO_MANIFEST_DIR"), "/../data/running.tcx")
         );
         assert_eq!(act.num_activities.unwrap(), 1);
         assert_eq!(act.sport.unwrap(), "Running".to_string());
@@ -595,7 +594,7 @@ mod tests {
         assert_eq!(act.start_altitude.unwrap(), 107.041_348);
         assert_eq!(act.max_altitude.unwrap(), 133.028_357);
         assert_eq!(act.ascent_meters.unwrap(), 25.987_009);
-        assert_eq!(act.average_speed.unwrap(), 2.236_467_055_094_339_5);
+        assert_eq!(act.average_speed.unwrap(), 2.235_717_863_507_277);
         assert_eq!(act.maximum_speed.unwrap(), 4.656_036);
         assert_eq!(act.calories.unwrap(), 338);
         assert_eq!(act.average_heart_rate.unwrap(), 137.156_226_415_094_35);
