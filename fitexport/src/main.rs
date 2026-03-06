@@ -81,7 +81,11 @@ fn run() -> Result<(), Box<dyn Error>> {
                 }
 
                 if !detail_off {
-                    activity.export()?;
+                    if let Err(e) = activity.export() {
+                        log::error!("Error exporting {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
                 }
 
                 fit_activities.activities_list.push(activity);
@@ -101,21 +105,32 @@ fn run() -> Result<(), Box<dyn Error>> {
                 }
 
                 if !detail_off {
-                    activity.export()?;
+                    if let Err(e) = activity.export() {
+                        log::error!("Error exporting {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
                 }
 
                 gpx_activities.activities_list.push(activity);
             }
             "tcx" => {
-                let mut tcdb =
-                    match tcx::read(&mut BufReader::new(File::open(filename)?)) {
-                        Ok(t) => t,
-                        Err(e) => {
-                            log::error!("Error processing {filename}: {e}");
-                            skipped_files += 1;
-                            continue;
-                        }
-                    };
+                let file = match File::open(filename) {
+                    Ok(f) => f,
+                    Err(e) => {
+                        log::error!("Error opening {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
+                };
+                let mut tcdb = match tcx::read(&mut BufReader::new(file)) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        log::error!("Error parsing {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
+                };
                 tcdb.calc_heartrates();
 
                 // In debug mode, export the raw TCX database to JSON
@@ -128,30 +143,44 @@ fn run() -> Result<(), Box<dyn Error>> {
                         "Exporting {filename} to {} for debugging.",
                         outfile.as_str()
                     );
-                    tcdb.export_json(outfile.as_str())?;
+                    if let Err(e) = tcdb.export_json(outfile.as_str()) {
+                        log::error!("Error exporting debug JSON for {filename}: {e}");
+                    }
                 }
 
-                if let Some(activities) = tcdb.activities {
-                    let mut curr_activities =
-                        TCXActivity::from_activities(&activities);
-                    curr_activities.filename = Some(filename.to_string());
+                let Some(activities) = tcdb.activities else {
+                    log::warn!("No activities found in {filename}. Skipping.");
+                    skipped_files += 1;
+                    continue;
+                };
 
-                    if print_summary {
-                        curr_activities.print(false);
-                    }
+                let mut curr_activities =
+                    TCXActivity::from_activities(&activities);
+                curr_activities.filename = Some(filename.to_string());
 
-                    if !detail_off {
-                        curr_activities.export_json()?;
-
-                        let tp_list =
-                            TCXTrackpointList::from_activities(&activities);
-                        tp_list.export_csv(
-                            &set_extension(filename, "trackpoints.csv"),
-                        )?;
-                    }
-
-                    tcx_activities.activities.push(curr_activities);
+                if print_summary {
+                    curr_activities.print(false);
                 }
+
+                if !detail_off {
+                    if let Err(e) = curr_activities.export_json() {
+                        log::error!("Error exporting JSON for {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
+
+                    let tp_list =
+                        TCXTrackpointList::from_activities(&activities);
+                    if let Err(e) = tp_list.export_csv(
+                        &set_extension(filename, "trackpoints.csv"),
+                    ) {
+                        log::error!("Error exporting trackpoints for {filename}: {e}");
+                        skipped_files += 1;
+                        continue;
+                    }
+                }
+
+                tcx_activities.activities.push(curr_activities);
             }
             other => {
                 log::error!(

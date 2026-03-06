@@ -1,6 +1,6 @@
 [package]
 name = "fitexport"
-version = "0.1.0"
+version = "0.1.1"
 description = "Exports FIT, GPX, and TCX activity files to JSON and CSV"
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
