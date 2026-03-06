@@ -3,17 +3,14 @@
 This is a project consisting of several sub-modules:
 
 | Directory | Description |
-|:----------|:------------|
-| **fitexport** | Exports FIT, GPX, and TCX files to JSON metadata and CSV data files. Replaces the former `fit2csv`, `gpx2csv`, and `tcx2csv` binaries. |
-| **fit2json** | Dumps a FIT file to raw JSON. Mostly meant for debugging and digging out information. |
-| **fitrename** | Renames FIT, GPX and TCX files based on metadata information in the files. |
-| **fitview** | Displays the (activity) metadata contents of FIT, GPX and TCX files. |
-
-More files may come in the future.
+| --------- | ----------- |
+| [fitexport](fitexport/README.md) | Exports FIT, GPX, and TCX files to JSON metadata and CSV data files. |
+| [fit2json](fit2json/README.md) | Dumps a FIT file to raw JSON. Mostly meant for debugging and digging out information. |
+| [fitrename](fitrename/README.md) | Renames FIT, GPX and TCX files based on metadata information in the files. |
+| [fitview](fitview/README.md) | Displays the (activity) metadata contents of FIT, GPX and TCX files. |
+| [utilities](utilities/README.md) | Shared types and functions used by all the fitness applications. |
 
 Help for each utility can be found by running it with the `-h` or `--help` flag, e.g., `fitview --help`.
-
-See the [Kanban Boards](https://github.com/evensolberg/fit2csv/projects) for the overall roadmap and To Do lists.
 
 NOTE: This repository uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for PRs.
 

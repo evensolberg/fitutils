@@ -4,7 +4,6 @@ use std::{error::Error, path::Path};
 use clap::parser::ValueSource;
 
 mod cli;
-mod move_file;
 mod rename_file;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,55 +85,28 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         // Process the result of reading metadata
-        let new_filename;
-
-        // TODO: Refactor - move the file rename and file move code into a separate function
         match value_res {
-            // Metadata read OK - try to rename and move
             Ok(values) => {
-                let result =
-                    rename_file::rename_file(filename, pattern, &values, total_files, dry_run);
-                match result {
-                    // How did the rename go?
-                    Ok(result) => {
-                        new_filename = result.clone();
-                        log::info!("{filename} --> {new_filename}");
-                        if !move_files {
-                            // If we're not moving the file, we're done with this file.
-                            processed_files += 1;
-                            continue;
-                        }
+                let move_pat = if move_files { Some(move_pattern) } else { None };
+                match rename_file::rename_and_move(
+                    filename,
+                    pattern,
+                    move_pat,
+                    &values,
+                    total_files,
+                    dry_run,
+                ) {
+                    Ok(new_path) => {
+                        log::info!("{filename} --> {new_path}");
+                        processed_files += 1;
                     }
                     Err(err) => {
-                        log::error!("Unable to rename {filename} : {err}");
+                        log::error!("Unable to process {filename}: {err}");
                         skipped_files += 1;
-                        continue;
-                    }
-                }
-
-                if move_files {
-                    let result = move_file::move_file(
-                        &new_filename,
-                        move_pattern,
-                        &values,
-                        total_files,
-                        dry_run,
-                    );
-                    match result {
-                        // How did the move go?
-                        Ok(result) => {
-                            log::info!("{new_filename} --> {result}");
-                            processed_files += 1;
-                        }
-                        Err(err) => {
-                            log::error!("Unable to move {new_filename} : {err}");
-                            skipped_files += 1;
-                        }
                     }
                 }
             }
-            // Problem reading metadata - let the user know.
-            Err(err) => log::error!("Unable to process {filename} : {err}"),
+            Err(err) => log::error!("Unable to process {filename}: {err}"),
         }
     }
 

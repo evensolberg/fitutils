@@ -66,7 +66,6 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
 }
 
 #[cfg(test)]
-///
 mod tests {
     use super::*;
     /// Test the processing of a TCX file

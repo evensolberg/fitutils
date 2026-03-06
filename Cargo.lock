@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.5.3"
+version = "0.5.4"
 dependencies = [
  "assay",
  "clap",

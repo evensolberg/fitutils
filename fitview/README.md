@@ -1,6 +1,6 @@
 # fitview
 
-Lets you view the summary metadata for .fit, .gpx, and .tcx fles.
+Lets you view the summary metadata for .fit, .gpx, and .tcx files.
 
 ## Usage
 

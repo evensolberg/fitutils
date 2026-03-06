@@ -447,7 +447,6 @@ impl TCXActivitiesList {
 }
 
 #[cfg(test)]
-///
 mod tests {
     use super::*;
 
@@ -600,7 +599,7 @@ mod tests {
             .unwrap()
             .with_timezone(&Local);
         assert_eq!(act.start_time.unwrap(), expected_time);
-        assert!((act.duration.unwrap().0 - 1325.444_009).abs() < 0.001);
+        assert!((act.duration.unwrap().0 - 1325.444009).abs() < 0.001);
         assert_eq!(act.num_laps.unwrap(), 1);
         assert_eq!(act.num_tracks.unwrap(), 1);
         assert_eq!(act.num_trackpoints.unwrap(), 1325);

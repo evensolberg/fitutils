@@ -420,7 +420,6 @@ impl FITActivity {
 }
 
 #[cfg(test)]
-
 mod tests {
     use super::*;
 

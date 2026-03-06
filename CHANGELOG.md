@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Gpx time displayed incorrectly (#124)
+- Improve fitexport error handling robustness
 
 ### CICD
 
@@ -31,6 +32,8 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Quick wins — HashMap capacity and GPX time fallback
+- Merge export tools into unified fitexport binary
+- TCX DateTime type + FIT serde improvements
 
 ### Fix
 
@@ -45,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - Dependency updates
 - Dependency update
 - Add crumbs task tracker with project backlog
+- Update changelog and apply cargo fmt
 
 ### Refactor
 
@@ -53,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - Refactor all the things! (#128)
 - Fix lints and update dependencies
 - Fix robustness and security issues workspace-wide
+- Replace Duration wrapper with f64 newtype
 
 ### Security
 

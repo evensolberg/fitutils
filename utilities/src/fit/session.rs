@@ -83,7 +83,7 @@ impl FITSession {
     ///
     /// # Errors
     ///
-    ///
+    /// None.
     #[must_use]
     pub fn with_filename(filename: &str) -> Self {
         Self {

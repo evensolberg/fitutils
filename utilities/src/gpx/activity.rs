@@ -145,7 +145,6 @@ impl GPXActivity {
     /// # Panics
     ///
     /// None.
-    ///
     fn set_duration(&mut self) {
         let mut duration = Duration::from_secs_f64(0.0);
 

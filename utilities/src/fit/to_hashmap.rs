@@ -96,12 +96,10 @@ pub fn fit_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
 }
 
 #[cfg(test)]
-///
 mod tests {
     use super::*;
 
     #[test]
-    ///
     fn test_process_fit() {
         let filename = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/rowing.fit");
         let fm = fit_to_hashmap(filename).unwrap();

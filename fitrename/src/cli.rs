@@ -74,7 +74,6 @@ pub fn build() -> Command {
 }
 
 #[cfg(test)]
-///
 mod tests {
     use super::*;
 
