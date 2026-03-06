@@ -15,10 +15,7 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
 
     // Perform substitutions on the target path
     for (key, value) in values {
-        let fixed_value = value
-            .trim()
-            .replace(['/', '\\'], "-")
-            .replace("..", "_");
+        let fixed_value = value.trim().replace(['/', '\\'], "-").replace("..", "_");
         log::debug!("key: {key}, fixed_value: {fixed_value}");
 
         // Do the actual target path replacement
@@ -82,8 +79,12 @@ pub fn move_file<S: ::std::hash::BuildHasher>(
         log::debug!("dr: mv {filename} {}", target_file.to_string_lossy());
     } else {
         log::debug!("mv {filename} {}", target_file.to_string_lossy());
-        fs::rename(filename, &target_file)
-            .map_err(|e| format!("Unable to move file '{filename}' to '{}': {e}", target_file.display()))?;
+        fs::rename(filename, &target_file).map_err(|e| {
+            format!(
+                "Unable to move file '{filename}' to '{}': {e}",
+                target_file.display()
+            )
+        })?;
     }
 
     Ok(target_file.to_string_lossy().to_string())

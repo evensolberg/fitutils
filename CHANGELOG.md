@@ -28,6 +28,10 @@ All notable changes to this project will be documented in this file.
 
 - GPX doc reference update
 
+### Features
+
+- Quick wins — HashMap capacity and GPX time fallback
+
 ### Fix
 
 - Fitrename not working
@@ -40,12 +44,15 @@ All notable changes to this project will be documented in this file.
 - Changelog
 - Dependency updates
 - Dependency update
+- Add crumbs task tracker with project backlog
 
 ### Refactor
 
 - Lint cleanup
 - Clean up the Duration::between function
 - Refactor all the things! (#128)
+- Fix lints and update dependencies
+- Fix robustness and security issues workspace-wide
 
 ### Security
 
@@ -59,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - Update fitparser requirement in /fit2json (#125)
 - Bump rustix from 0.38.15 to 0.38.19 (#130)
 - Bump tokio from 1.37.0 to 1.44.2 (#134)
+- Bump time from 0.3.36 to 0.3.47 (#135)
 
 ## [0.4.0] - 2023-03-24
 

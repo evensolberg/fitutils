@@ -208,8 +208,7 @@ impl TCXActivity {
             Some(act_s.max_altitude.unwrap_or(0.0) - act_s.start_altitude.unwrap_or(0.0));
         let duration_secs = act_s.duration.unwrap_or_default().0.as_secs_f64();
         if duration_secs > 0.0 {
-            act_s.average_speed =
-                Some(act_s.distance_meters.unwrap_or(0.0) / duration_secs);
+            act_s.average_speed = Some(act_s.distance_meters.unwrap_or(0.0) / duration_secs);
         }
 
         // Calculate averages for the whole activity set

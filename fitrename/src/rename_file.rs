@@ -39,7 +39,9 @@ pub fn rename_file<S: ::std::hash::BuildHasher>(
         log::debug!("rename_file() -- key: {key}, fixed_value: {fixed_value}");
 
         // Do the actual filename replacement
-        let nf = new_filename.replace(key, &fixed_value).replace(['/', '\\'], "-");
+        let nf = new_filename
+            .replace(key, &fixed_value)
+            .replace(['/', '\\'], "-");
         new_filename = nf;
         log::debug!("rename_file() -- new_filename: {new_filename}");
     }
