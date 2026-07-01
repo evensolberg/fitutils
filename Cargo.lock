@@ -437,6 +437,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
+
+[[package]]
 name = "gpx"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1029,7 +1035,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "utilities"
-version = "0.4.12"
+version = "0.5.0"
 dependencies = [
  "assay",
  "chrono",
@@ -1038,6 +1044,7 @@ dependencies = [
  "csv",
  "env_logger",
  "fitparser",
+ "glob",
  "gpx",
  "log",
  "serde",

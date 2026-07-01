@@ -3,6 +3,7 @@ mod datetime_keys;
 mod duration;
 mod extensions;
 mod fit;
+mod glob_expand;
 mod gpx;
 mod macros;
 mod tcx;
@@ -27,4 +28,5 @@ pub use crate::{
     build_logs::build_log,
     duration::Duration,
     extensions::{get_extension, set_extension},
+    glob_expand::expand_globs,
 };
