@@ -1,3 +1,6 @@
+use glob::glob;
+use std::collections::BTreeSet;
+
 /// Expands a list of file-path strings and glob patterns into a sorted,
 /// deduplicated list of existing file paths.
 ///
@@ -16,9 +19,6 @@
 /// let files = expand_globs(&["*.fit".to_string()]);
 /// // returns sorted Vec<String> of matched paths
 /// ```
-use glob::glob;
-use std::collections::BTreeSet;
-
 #[must_use]
 pub fn expand_globs(patterns: &[String]) -> Vec<String> {
     let mut result: BTreeSet<String> = BTreeSet::new();

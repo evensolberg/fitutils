@@ -101,7 +101,11 @@ mod tests {
     #[test]
     fn expand_globs_empty_on_no_match() {
         // A pattern that matches nothing should return empty (warn is logged).
-        let result = utilities::expand_globs(&["/tmp/fitutils_nonexistent_*.fit".to_string()]);
+        let pattern = format!(
+            "{}/fitutils_nonexistent_*.fit",
+            std::env::temp_dir().to_string_lossy()
+        );
+        let result = utilities::expand_globs(&[pattern]);
         assert!(result.is_empty());
     }
 }
