@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
-- Migrate workspace to Rust 2024 edition and clean up lints
+- Update CHANGELOG and close fit-sdx crumb
 
 ## [0.5.1] - 2026-07-01
 

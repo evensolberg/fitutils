@@ -43,18 +43,30 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Expand any glob patterns in the file list.  On Unix the shell usually handles
     // this, but in-app expansion supports quoted globs, scripts, and Windows.
-    let files: Vec<std::path::PathBuf> = if cli.files.is_empty() {
+    //
+    // Paths with glob metacharacters are stringified for expand_globs().
+    // Literal paths are kept as PathBuf to avoid corrupting non-UTF-8 names
+    // via to_string_lossy() replacement characters.
+    let files: Vec<PathBuf> = if cli.files.is_empty() {
         Vec::new()
     } else {
-        let raw: Vec<String> = cli
-            .files
-            .iter()
-            .map(|p| p.to_string_lossy().into_owned())
-            .collect();
-        utilities::expand_globs(&raw)
-            .into_iter()
-            .map(std::path::PathBuf::from)
-            .collect()
+        let is_glob =
+            |p: &PathBuf| p.to_str().is_some_and(|s| s.contains(['*', '?', '[']));
+        let (glob_pats, literal_refs): (Vec<_>, Vec<_>) =
+            cli.files.iter().partition(|p| is_glob(p));
+        // Start with the literal (non-glob) paths, owned.
+        let mut result: Vec<PathBuf> = literal_refs.into_iter().cloned().collect();
+        // Expand each glob pattern and merge, then sort and dedup.
+        if !glob_pats.is_empty() {
+            let raw: Vec<String> = glob_pats
+                .iter()
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect();
+            result.extend(utilities::expand_globs(&raw).into_iter().map(PathBuf::from));
+            result.sort();
+            result.dedup();
+        }
+        result
     };
 
     // If no files have been provided, read from STDIN
@@ -107,10 +119,10 @@ mod tests {
     #[test]
     fn expand_globs_empty_on_no_match() {
         // A pattern that matches nothing should return empty (warn is logged).
-        let pattern = format!(
-            "{}/fitutils_nonexistent_*.fit",
-            std::env::temp_dir().to_string_lossy()
-        );
+        let pattern = std::env::temp_dir()
+            .join("fitutils_nonexistent_*.fit")
+            .to_string_lossy()
+            .into_owned();
         let result = utilities::expand_globs(&[pattern]);
         assert!(result.is_empty());
     }

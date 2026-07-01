@@ -236,10 +236,10 @@ fn main() {
 mod tests {
     #[test]
     fn expand_globs_empty_on_no_match() {
-        let pattern = format!(
-            "{}/fitutils_nonexistent_*.fit",
-            std::env::temp_dir().to_string_lossy()
-        );
+        let pattern = std::env::temp_dir()
+            .join("fitutils_nonexistent_*.fit")
+            .to_string_lossy()
+            .into_owned();
         let result = utilities::expand_globs(&[pattern]);
         assert!(result.is_empty());
     }
