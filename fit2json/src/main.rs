@@ -41,8 +41,24 @@ fn run() -> Result<(), Box<dyn Error>> {
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
-    // If no files have been provided, read from STDIN
-    if cli.files.is_empty() {
+    // Expand any glob patterns in the file list.  On Unix the shell usually handles
+    // this, but in-app expansion supports quoted globs, scripts, and Windows.
+    let files: Vec<std::path::PathBuf> = if cli.files.is_empty() {
+        Vec::new()
+    } else {
+        let raw: Vec<String> = cli
+            .files
+            .iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect();
+        utilities::expand_globs(&raw)
+            .into_iter()
+            .map(std::path::PathBuf::from)
+            .collect()
+    };
+
+    // If no files have been provided (or none matched globs), read from STDIN
+    if files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
         // Force Stdout mode when reading from STDIN with Inplace output
         let effective_output = match &output_loc {
@@ -58,7 +74,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Read each FIT file and output it
     let mut all_fit_data: Vec<fitparser::FitDataRecord> = Vec::new();
-    for file in cli.files {
+    for file in files {
         // open file and parse data
         log::info!("Processing file: {}", &file.to_str().unwrap_or_default());
         let mut fp = File::open(&file)?;
@@ -78,6 +94,16 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn expand_globs_empty_on_no_match() {
+        // A pattern that matches nothing should return empty (warn is logged).
+        let result = utilities::expand_globs(&["/tmp/fitutils_nonexistent_*.fit".to_string()]);
+        assert!(result.is_empty());
+    }
 }
 
 /// Main executable entry point. Hands off to the `run` function.
