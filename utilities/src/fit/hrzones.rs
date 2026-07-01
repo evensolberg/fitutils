@@ -69,7 +69,7 @@ impl FITHrZones {
     ///
     /// # Reference
     ///
-    /// Struct [`fitparser::Value`](https://docs.rs/fitparser/0.4.2/fitparser/enum.Value.html)
+    /// Struct [`fitparser::Value`](https://docs.rs/fitparser/latest/fitparser/enum.Value.html)
     pub fn from(src: Option<&&fitparser::Value>) -> Self {
         let mut hr_zones = Self::default();
 

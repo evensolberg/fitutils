@@ -145,7 +145,7 @@ impl FITSession {
     ///
     /// # Arguments
     ///
-    ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html><br>
+    ///    `fields: &[FitDataField]` -- See the fitparser crate for details: <https://docs.rs/fitparser/latest/fitparser/struct.FitDataField.html><br>
     ///
     /// # Returns
     ///
