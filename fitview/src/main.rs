@@ -19,10 +19,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    let filenames = cli_args
+    let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str);
+        .cloned()
+        .collect();
+    let filenames = utilities::expand_globs(&raw_inputs);
     log::trace!("main::run() -- Files: {filenames:?}");
 
     let mut total_files: usize = 0;
@@ -30,7 +32,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut skipped_files: usize = 0;
 
     // The good stuff goes here
-    for filename in filenames {
+    for filename in &filenames {
+        let filename = filename.as_str();
         log::debug!("Processing file: {filename}");
         match utilities::get_extension(filename).as_ref() {
             "fit" => match FITActivity::from_file(filename) {
@@ -88,4 +91,13 @@ fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn expand_globs_empty_on_no_match() {
+        let result = utilities::expand_globs(&["/tmp/fitutils_nonexistent_*.fit".to_string()]);
+        assert!(result.is_empty());
+    }
 }

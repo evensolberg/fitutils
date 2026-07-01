@@ -342,7 +342,7 @@ dependencies = [
 
 [[package]]
 name = "fitexport"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "assay",
  "clap",
@@ -376,7 +376,7 @@ dependencies = [
 
 [[package]]
 name = "fitview"
-version = "0.4.8"
+version = "0.5.0"
 dependencies = [
  "assay",
  "clap",

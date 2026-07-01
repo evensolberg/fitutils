@@ -20,7 +20,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    // Trace-log the input files
+    // Trace-log the input files (raw patterns, before glob expansion)
     for argument in cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
@@ -28,6 +28,14 @@ fn run() -> Result<(), Box<dyn Error>> {
     {
         log::trace!("run() -- Arguments: {argument:?}");
     }
+
+    // Expand glob patterns into concrete file paths
+    let raw_inputs: Vec<String> = cli_args
+        .get_many::<String>("read")
+        .unwrap_or_default()
+        .cloned()
+        .collect();
+    let filenames = utilities::expand_globs(&raw_inputs);
 
     // Determine summary file settings
     let write_summary = cli_args.value_source("summary-file") == Some(ValueSource::CommandLine);
@@ -53,11 +61,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
-    for filename in cli_args
-        .get_many::<String>("read")
-        .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
+    for filename in &filenames {
+        let filename = filename.as_str();
         total_files += 1;
         log::info!("Processing file: {filename}");
 
@@ -226,4 +231,13 @@ fn main() {
             1
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn expand_globs_empty_on_no_match() {
+        let result = utilities::expand_globs(&["/tmp/fitutils_nonexistent_*.fit".to_string()]);
+        assert!(result.is_empty());
+    }
 }

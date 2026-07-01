@@ -11,7 +11,7 @@ pub fn build() -> Command {
         .arg(
             Arg::new("read")
                 .value_name("FILE(S)")
-                .help("One or more .fit, .gpx or .tcx file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.gpx) are supported.")
+                .help("One or more .fit, .gpx or .tcx file(s) to process. Glob patterns (e.g. *.fit, 2024*.gpx) are expanded by the application.")
                 .num_args(1..)
                 .required(true)
                 .action(ArgAction::Append)
