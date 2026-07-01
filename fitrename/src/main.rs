@@ -59,8 +59,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     ///////////////////////////////////
     // Working section
-    for filename in &filenames {
-        let filename = filename.as_str();
+    for filename in filenames.iter().map(String::as_str) {
         total_files += 1;
         log::debug!("Processing file: {filename}");
 

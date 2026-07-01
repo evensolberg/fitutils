@@ -57,8 +57,8 @@ fn run() -> Result<(), Box<dyn Error>> {
             .collect()
     };
 
-    // If no files have been provided (or none matched globs), read from STDIN
-    if files.is_empty() {
+    // If no files have been provided, read from STDIN
+    if cli.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
         // Force Stdout mode when reading from STDIN with Inplace output
         let effective_output = match &output_loc {
@@ -70,6 +70,11 @@ fn run() -> Result<(), Box<dyn Error>> {
             fitparser::from_reader(&mut std::io::stdin())?,
         )?;
         return Ok(());
+    }
+
+    // If file args were supplied but none matched, warn and exit cleanly
+    if files.is_empty() {
+        return Err("No input files matched the supplied patterns".into());
     }
 
     // Read each FIT file and output it

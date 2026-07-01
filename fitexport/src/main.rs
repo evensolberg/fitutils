@@ -61,8 +61,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
-    for filename in &filenames {
-        let filename = filename.as_str();
+    for filename in filenames.iter().map(String::as_str) {
         total_files += 1;
         log::info!("Processing file: {filename}");
 

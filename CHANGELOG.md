@@ -11,7 +11,6 @@ All notable changes to this project will be documented in this file.
 
 - Add expand_globs() for in-app glob expansion
 - Expand glob patterns in-application
-- Expand glob patterns in-application
 - Add {%type}/{%ty} variable and --type-case flag
 
 ### Miscellaneous Tasks

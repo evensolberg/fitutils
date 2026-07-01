@@ -59,7 +59,7 @@ mod tests {
     }
 
     fn temp_dir(suffix: &str) -> std::path::PathBuf {
-        let d = std::env::temp_dir().join(format!("fitutils_glob_{suffix}"));
+        let d = std::env::temp_dir().join(format!("fitutils_glob_{}_{suffix}", std::process::id()));
         fs::create_dir_all(&d).expect("create temp dir");
         d
     }

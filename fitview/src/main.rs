@@ -32,8 +32,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut skipped_files: usize = 0;
 
     // The good stuff goes here
-    for filename in &filenames {
-        let filename = filename.as_str();
+    for filename in filenames.iter().map(String::as_str) {
         log::debug!("Processing file: {filename}");
         match utilities::get_extension(filename).as_ref() {
             "fit" => match FITActivity::from_file(filename) {
