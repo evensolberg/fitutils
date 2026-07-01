@@ -167,7 +167,7 @@ impl FITLap {
     /// ```
     /// # References
     ///
-    /// Struct [`fitparser::FitDataField`](https://docs.rs/fitparser/0.4.0/fitparser/struct.FitDataField.html)
+    /// Struct [`fitparser::FitDataField`](https://docs.rs/fitparser/latest/fitparser/struct.FitDataField.html)
     pub fn from_fit_lap(fields: &[FitDataField], session: &FITSession) -> Self {
         // Collect the fields into a HashMap which we can then dig details out of.
         // x.name is the key and x.value is the value
