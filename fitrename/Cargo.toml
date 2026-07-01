@@ -3,7 +3,7 @@
 [package]
 name = "fitrename"
 version = "0.5.5"
-edition = "2021"
+edition = "2024"
 description = "Renames .FIT, .GPX and .TCX files based on metadata."
 license = "Apache-2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]

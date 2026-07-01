@@ -1,6 +1,6 @@
 //! Defines the `Lap` struct which contains summary information per lap, and associated functions.
 
-use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
+use crate::fit::constfunc::{LATLON_MULTIPLIER, map_float64, map_sint32, map_uint8, map_uint16};
 use crate::fit::serde_helpers::{
     serialize_opt_length_f64, serialize_opt_length_u16, serialize_opt_velocity,
 };

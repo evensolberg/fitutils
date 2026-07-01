@@ -8,12 +8,11 @@ tags:
 - fitrename
 - backlog
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-17
 closed_reason: ''
 dependencies: []
-description: 'Use HashMap::with_capacity() instead of HashMap::new(). GH #87'
 ---
 
 # Use HashMap::with_capacity() in fitrename
 
-Use HashMap::with_capacity() instead of HashMap::new(). GH #87
+`Use HashMap::with_capacity()` instead of `HashMap::new()`.

@@ -329,7 +329,7 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "fit2json"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "clap",
  "env_logger",
@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "fitexport"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "assay",
  "clap",
@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "fitrename"
-version = "0.5.4"
+version = "0.5.5"
 dependencies = [
  "assay",
  "clap",
@@ -375,7 +375,7 @@ dependencies = [
 
 [[package]]
 name = "fitview"
-version = "0.4.7"
+version = "0.4.8"
 dependencies = [
  "assay",
  "clap",
@@ -1029,7 +1029,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "utilities"
-version = "0.4.11"
+version = "0.4.12"
 dependencies = [
  "assay",
  "chrono",

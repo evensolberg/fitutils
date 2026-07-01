@@ -2,10 +2,10 @@
 
 use crate::Duration;
 use crate::{
-    fit::constfunc::{
-        map_float64, map_sint32, map_string, map_uint16, map_uint8, LATLON_MULTIPLIER,
-    },
     FITHrZones,
+    fit::constfunc::{
+        LATLON_MULTIPLIER, map_float64, map_sint32, map_string, map_uint8, map_uint16,
+    },
 };
 
 use chrono::{DateTime, Local, TimeZone};

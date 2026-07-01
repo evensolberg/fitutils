@@ -1,9 +1,9 @@
 //! Defines the `Record` struct which contains detailed information about each record/data point in the workout session.
 
-use crate::fit::constfunc::{map_float64, map_sint32, map_uint16, map_uint8, LATLON_MULTIPLIER};
+use crate::Duration;
+use crate::fit::constfunc::{LATLON_MULTIPLIER, map_float64, map_sint32, map_uint8, map_uint16};
 use crate::fit::serde_helpers::{serialize_opt_length_f64, serialize_opt_velocity};
 use crate::fit::session::FITSession;
-use crate::Duration;
 
 use chrono::{DateTime, Local, TimeZone};
 

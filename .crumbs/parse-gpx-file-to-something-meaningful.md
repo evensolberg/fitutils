@@ -8,12 +8,11 @@ tags:
 - gpx2csv
 - blocked
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'GPX crate does not support extensions (heart rate, cadence, etc). SHOWSTOPPER. GH #92'
 ---
 
 # Parse GPX file to something meaningful
 
-GPX crate does not support extensions (heart rate, cadence, etc). SHOWSTOPPER. GH #92
+GPX crate does not support extensions (heart rate, cadence, etc). SHOWSTOPPER. May have to dig into this and submit a PR.

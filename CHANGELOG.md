@@ -1,11 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.5.1] - 2026-07-01
 
 ### Miscellaneous Tasks
 
 - Update all workspace dependencies to latest versions (#136)
+- Release v0.5.1
 
 ## [0.5.0] - 2026-03-06
 

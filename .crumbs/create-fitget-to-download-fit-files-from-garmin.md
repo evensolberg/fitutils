@@ -8,12 +8,11 @@ tags:
 - fitget
 - blocked
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'Need Garmin APIs, reqwest, config file (TOML/JSON/KDL), tokio. See wiki. GH #117'
 ---
 
 # Create fitget to download FIT files from Garmin
 
-Need Garmin APIs, reqwest, config file (TOML/JSON/KDL), tokio. See wiki. GH #117
+Need Garmin APIs, reqwest, config file (TOML/JSON/KDL), tokio. See wiki. See also ../ambient_tools.

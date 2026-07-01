@@ -1,7 +1,7 @@
 use std::{collections::HashMap, error::Error};
 
-use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use crate::TCXActivity;
+use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use convert_case::{Case, Casing};
 
 /// Iterates through a TCX file and saves the information to a `HashMap`

@@ -3,8 +3,8 @@ use std::{collections::HashMap, error::Error, fs::File, io::BufReader};
 
 use gpx::Gpx;
 
-use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 use crate::GPXMetadata;
+use crate::datetime_keys::{insert_datetime_keys, insert_duration_keys};
 
 /// Parses a GPX file and returns the relevant metadata
 ///

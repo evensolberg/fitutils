@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::{error::Error, io::BufReader};
 use tcx::{self};
 
-use crate::{set_extension, Duration};
+use crate::{Duration, set_extension};
 
 /// Holds a summary of the activities in the file
 #[derive(Serialize, Debug, Clone, Default)]
@@ -130,19 +130,15 @@ impl TCXActivity {
         let mut cad: f64 = 0.0;
 
         // Find the altitude of the very first TrackPoint
-        if let Some(act) = activities.activities.first() {
-            if let Some(lap) = act.laps.first() {
-                if let Some(track) = lap.tracks.first() {
-                    if let Some(tp) = track.trackpoints.first() {
-                        if let Some(num) = tp.altitude_meters {
-                            act_s.start_altitude = Some(num);
-                            act_s.max_altitude = Some(num);
-                        }
-                    }
-                }
-            }
+        if let Some(act) = activities.activities.first()
+            && let Some(lap) = act.laps.first()
+            && let Some(track) = lap.tracks.first()
+            && let Some(tp) = track.trackpoints.first()
+            && let Some(num) = tp.altitude_meters
+        {
+            act_s.start_altitude = Some(num);
+            act_s.max_altitude = Some(num);
         }
-
         for activity in &activities.activities {
             act_s.num_activities = Some(act_s.num_activities.unwrap_or(0) + 1);
             act_s.sport = Some(activity.sport.clone());
@@ -169,10 +165,10 @@ impl TCXActivity {
                 act_s.distance_meters =
                     Some(act_s.distance_meters.unwrap_or(0.0) + lap.distance_meters);
                 act_s.calories = Some(act_s.calories.unwrap_or(0) + lap.calories);
-                if let Some(max_speed) = lap.maximum_speed {
-                    if act_s.maximum_speed.unwrap_or(0.0) < max_speed {
-                        act_s.maximum_speed = Some(max_speed);
-                    }
+                if let Some(max_speed) = lap.maximum_speed
+                    && act_s.maximum_speed.unwrap_or(0.0) < max_speed
+                {
+                    act_s.maximum_speed = Some(max_speed);
                 }
 
                 for track in &lap.tracks {
@@ -182,10 +178,10 @@ impl TCXActivity {
                             u32::try_from(track.trackpoints.len()).unwrap_or(u32::MAX),
                         ));
                     // Check to see if max HR for the lap > current recorded max
-                    if let Some(mhr) = lap.maximum_heart_rate {
-                        if act_s.maximum_heart_rate.unwrap_or(0.0) < mhr {
-                            act_s.maximum_heart_rate = Some(mhr);
-                        }
+                    if let Some(mhr) = lap.maximum_heart_rate
+                        && act_s.maximum_heart_rate.unwrap_or(0.0) < mhr
+                    {
+                        act_s.maximum_heart_rate = Some(mhr);
                     }
 
                     for trackpoint in &track.trackpoints {
@@ -206,10 +202,10 @@ impl TCXActivity {
                         }
 
                         // Check if there is altitude data and calculate
-                        if let Some(altitude) = trackpoint.altitude_meters {
-                            if act_s.max_altitude.unwrap_or(0.0) < altitude {
-                                act_s.max_altitude = Some(altitude);
-                            }
+                        if let Some(altitude) = trackpoint.altitude_meters
+                            && act_s.max_altitude.unwrap_or(0.0) < altitude
+                        {
+                            act_s.max_altitude = Some(altitude);
                         }
                     }
                 }

@@ -5,8 +5,8 @@ use std::fs::File;
 use std::io::BufReader;
 
 use utilities::{
-    get_extension, set_extension, FITActivities, FITActivity, GPXActivities, GPXActivity,
-    TCXActivitiesList, TCXActivity, TCXTrackpointList,
+    FITActivities, FITActivity, GPXActivities, GPXActivity, TCXActivitiesList, TCXActivity,
+    TCXTrackpointList, get_extension, set_extension,
 };
 
 mod cli;
@@ -77,12 +77,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                     activity.print(false);
                 }
 
-                if !detail_off {
-                    if let Err(e) = activity.export() {
-                        log::error!("Error exporting {filename}: {e}");
-                        skipped_files += 1;
-                        continue;
-                    }
+                if !detail_off && let Err(e) = activity.export() {
+                    log::error!("Error exporting {filename}: {e}");
+                    skipped_files += 1;
+                    continue;
                 }
 
                 fit_activities.activities_list.push(activity);
@@ -101,12 +99,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                     activity.print(false);
                 }
 
-                if !detail_off {
-                    if let Err(e) = activity.export() {
-                        log::error!("Error exporting {filename}: {e}");
-                        skipped_files += 1;
-                        continue;
-                    }
+                if !detail_off && let Err(e) = activity.export() {
+                    log::error!("Error exporting {filename}: {e}");
+                    skipped_files += 1;
+                    continue;
                 }
 
                 gpx_activities.activities_list.push(activity);

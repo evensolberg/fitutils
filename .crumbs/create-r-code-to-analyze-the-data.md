@@ -8,12 +8,12 @@ tags:
 - overall
 - in-progress
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'FIT2CSV done. GPX2CSV and TCX2CSV remaining. GH #79'
 ---
 
 # Create R code to analyze the data
 
-FIT2CSV done. GPX2CSV and TCX2CSV remaining. GH #79
+FIT2CSV done. GPX2CSV and TCX2CSV remaining.
+This may need updating now that we have fitexport.

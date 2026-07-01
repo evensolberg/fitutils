@@ -8,12 +8,11 @@ tags:
 - overall
 - backlog
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'May require crate PRs. GH #90'
 ---
 
 # Dig out more information from GPX and TCX files about the activity
 
-May require crate PRs. GH #90
+May require crate PRs.

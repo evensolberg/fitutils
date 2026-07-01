@@ -1,8 +1,8 @@
 //! Defines the `HrZones` struct which contains heart rate zones information, and associated functions.
 
 use serde::{
-    ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
+    ser::{SerializeStruct, Serializer},
 };
 
 use crate::Duration;

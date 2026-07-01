@@ -8,12 +8,11 @@ tags:
 - fit2csv
 - backlog
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'More information needed. GH #106'
 ---
 
 # GPS log extraction
 
-More information needed. GH #106
+More information needed.

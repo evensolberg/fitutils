@@ -9,11 +9,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::Duration;
 use crate::gpx::gpxmetadata::GPXMetadata;
 use crate::gpx::route::GPXRoute;
 use crate::gpx::track::GPXTrack;
 use crate::gpx::waypoint::GPXWaypoint;
-use crate::Duration;
 
 /// High-level construct that contains the entirety of the GPX file
 #[derive(Debug)]
@@ -88,10 +88,10 @@ impl GPXActivity {
         }
 
         // If metadata time is missing, fall back to the first track's start time
-        if activity.metadata.time.is_none() {
-            if let Some(first_track) = activity.tracks.first() {
-                activity.metadata.time = first_track.start_time;
-            }
+        if activity.metadata.time.is_none()
+            && let Some(first_track) = activity.tracks.first()
+        {
+            activity.metadata.time = first_track.start_time;
         }
 
         // Set the total duration to be the sum of the track durations

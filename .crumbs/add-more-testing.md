@@ -8,12 +8,11 @@ tags:
 - overall
 - next
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-08
 closed_reason: ''
 dependencies: []
-description: 'Consider assay crate or standard #[test]. GH #80'
 ---
 
 # Add more testing
 
-Consider assay crate or standard #[test]. GH #80
+Consider assay crate or standard #[test].

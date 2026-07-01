@@ -8,12 +8,9 @@ tags:
 - fit2csv
 - backlog
 created: 2026-03-05
-updated: 2026-03-05
+updated: 2026-03-12
 closed_reason: ''
 dependencies: []
-description: 'GH #99'
 ---
 
 # Figure out distance and speed units and apply them accordingly
-
-GH #99

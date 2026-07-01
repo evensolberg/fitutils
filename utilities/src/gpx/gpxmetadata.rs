@@ -4,8 +4,8 @@ use gpx;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, fs::File, path::PathBuf};
 
-use crate::set_string_field; // From the macros crate.
 use crate::Duration;
+use crate::set_string_field; // From the macros crate.
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Holds the metadata information about the file and its contents
