@@ -72,9 +72,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    // If file args were supplied but none matched, warn and exit cleanly
+    // If file args were supplied but none matched, exit cleanly.
+    // expand_globs() already emitted a warn! for each unmatched pattern.
     if files.is_empty() {
-        return Err("No input files matched the supplied patterns".into());
+        return Ok(());
     }
 
     // Read each FIT file and output it

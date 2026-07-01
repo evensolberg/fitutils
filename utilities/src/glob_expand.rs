@@ -60,6 +60,11 @@ mod tests {
 
     fn temp_dir(suffix: &str) -> std::path::PathBuf {
         let d = std::env::temp_dir().join(format!("fitutils_glob_{}_{suffix}", std::process::id()));
+        // Remove any stale directory from a previous crashed run before creating
+        // a fresh one, so leftover files never influence test results.
+        if d.exists() {
+            fs::remove_dir_all(&d).expect("remove stale temp dir");
+        }
         fs::create_dir_all(&d).expect("create temp dir");
         d
     }
