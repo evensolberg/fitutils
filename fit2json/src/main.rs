@@ -41,36 +41,23 @@ fn run() -> Result<(), Box<dyn Error>> {
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
-    // Expand any glob patterns in the file list.  On Unix the shell usually handles
-    // this, but in-app expansion supports quoted globs, scripts, and Windows.
-    //
-    // Paths with glob metacharacters are stringified for expand_globs().
-    // Literal paths are kept as PathBuf to avoid corrupting non-UTF-8 names
-    // via to_string_lossy() replacement characters.
-    let files: Vec<PathBuf> = if cli.files.is_empty() {
-        Vec::new()
-    } else {
-        let is_glob =
-            |p: &PathBuf| p.to_str().is_some_and(|s| s.contains(['*', '?', '[']));
-        let (glob_pats, literal_refs): (Vec<_>, Vec<_>) =
-            cli.files.iter().partition(|p| is_glob(p));
-        // Start with the literal (non-glob) paths, owned.
-        let mut result: Vec<PathBuf> = literal_refs.into_iter().cloned().collect();
-        // Expand each glob pattern and merge, then sort and dedup.
-        if !glob_pats.is_empty() {
-            let raw: Vec<String> = glob_pats
-                .iter()
-                .map(|p| p.to_string_lossy().into_owned())
-                .collect();
-            result.extend(utilities::expand_globs(&raw).into_iter().map(PathBuf::from));
-            result.sort();
-            result.dedup();
-        }
-        result
-    };
+    // Expand glob patterns in-app so quoted globs work consistently across
+    // shells and on Windows.  All inputs (literal paths and patterns alike)
+    // are routed through expand_globs(), which skips non-existent paths and
+    // emits a warning for each unmatched pattern — consistent with the other
+    // fitutils binaries.
+    let raw: Vec<String> = cli
+        .files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
+    let files: Vec<PathBuf> = utilities::expand_globs(&raw)
+        .into_iter()
+        .map(PathBuf::from)
+        .collect();
 
     // If no files have been provided, read from STDIN
-    if cli.files.is_empty() {
+    if raw.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
         // Force Stdout mode when reading from STDIN with Inplace output
         let effective_output = match &output_loc {
@@ -84,8 +71,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    // If file args were supplied but none matched, exit cleanly.
-    // expand_globs() already emitted a warn! for each unmatched pattern.
+    // If file args were supplied but none matched (or all are missing),
+    // exit cleanly — expand_globs() already warned for each unmatched entry.
     if files.is_empty() {
         return Ok(());
     }
