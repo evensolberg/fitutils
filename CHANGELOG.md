@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Update all workspace dependencies to latest versions (#136)
+
+## [0.5.0] - 2026-03-06
+
 ### Bug Fixes
 
 - Gpx time displayed incorrectly (#124)
@@ -58,6 +64,7 @@ All notable changes to this project will be documented in this file.
 - Fix lints and update dependencies
 - Fix robustness and security issues workspace-wide
 - Replace Duration wrapper with f64 newtype
+- Unify fitrename rename+move, fix substitution ordering bug
 
 ### Security
 
