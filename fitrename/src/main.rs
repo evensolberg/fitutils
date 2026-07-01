@@ -20,10 +20,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    let filenames = cli_args
+    let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str);
+        .cloned()
+        .collect();
+    let filenames = utilities::expand_globs(&raw_inputs);
     log::trace!("main::run() -- Filenames: {filenames:?}");
 
     if dry_run {
@@ -47,13 +49,18 @@ fn run() -> Result<(), Box<dyn Error>> {
         ""
     };
 
+    let type_case_upper = cli_args
+        .get_one::<String>("type-case")
+        .map(String::as_str) == Some("upper");
+
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
     ///////////////////////////////////
     // Working section
-    for filename in filenames {
+    for filename in &filenames {
+        let filename = filename.as_str();
         total_files += 1;
         log::debug!("Processing file: {filename}");
 
@@ -86,7 +93,17 @@ fn run() -> Result<(), Box<dyn Error>> {
 
         // Process the result of reading metadata
         match value_res {
-            Ok(values) => {
+            Ok(mut values) => {
+                // Inject the file-type template variables ({%type}, {%ty})
+                let ext = utilities::get_extension(filename);
+                let type_val = if type_case_upper {
+                    ext.to_uppercase()
+                } else {
+                    ext
+                };
+                values.insert("%type".to_string(), type_val.clone());
+                values.insert("%ty".to_string(), type_val);
+
                 let move_pat = if move_files { Some(move_pattern) } else { None };
                 match rename_file::rename_and_move(
                     filename,
@@ -119,6 +136,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn get_extension_normalises_to_lowercase() {
+        // get_extension() always returns a lowercase string.
+        // The {%type} injection in run() depends on this — the `lower` case
+        // mode needs no transform, and `upper` always starts from lowercase.
+        assert_eq!(utilities::get_extension("workout.FIT"), "fit");
+        assert_eq!(utilities::get_extension("route.gpx"), "gpx");
+        assert_eq!(utilities::get_extension("activity.TCX"), "tcx");
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// The actual executable function that gets called when the program in invoked.
