@@ -32,14 +32,17 @@ This moves each file into a `fit/`, `gpx/`, or `tcx/` sub-directory. Use `--type
 
 | Flag | Required | Description |
 | ---- | -------- | ----------- |
-| `-p`/`--pattern` | Yes | File rename pattern, as described in the next section. |
+| `-p`/`--pattern` | Yes* | File rename pattern, as described in the next section. |
 | `-m`/`--move <dir_pattern>` | No | Move the file according to the pattern. This will move the file to a new location, if the pattern specifies a new directory. This is useful for moving files to a new location based on the metadata. Directory names are specified using the same tokens as file names. |
 | `-q`/`--quiet` | No | Quiet mode. This will suppress all output except for errors. This is useful for running the application in a script or cron job. |
 | `-s`/`--print-summary` | No | Print a summary of the number of files processed, errors, etc. |
 | `-r`/`--dry-run` | No | Dry run. This will show what the rename would be, but not actually do it. This is useful for testing your pattern. |
-| `--type-case <upper\|lower>` | No | Case for the `{%type}` and `{%ty}` tokens. `upper` produces `FIT`, `lower` (default) produces `fit`. |
+| `-t`/`--type-case <CASE>` | No | Case for the `{%type}` and `{%ty}` tokens. Accepts `upper`/`u`/`U` (produces `FIT`) or `lower`/`l`/`L` (default, produces `fit`). |
+| `-c`/`--print-codes` | No | Print all available pattern variable codes and exit. Does not require files or `--pattern`. |
 | `-h`/`--help` | No | Show help. |
 | `-V`/`--version` | No | Show version information. |
+
+\* Required in normal mode; not required when `--print-codes` / `-c` is given.
 
 ## Rename Tokens
 

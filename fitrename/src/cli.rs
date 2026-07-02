@@ -13,7 +13,7 @@ pub fn build() -> Command {
                 .value_name("FILE(S)")
                 .help("One or more .fit, .gpx or .tcx file(s) to process. Glob patterns (e.g. *.fit, 2024*.gpx) are expanded by the application.")
                 .num_args(1..)
-                .required(false)
+                .required_unless_present("print-codes")
                 .action(ArgAction::Append),
         )
         .arg( // Rename pattern}
@@ -23,7 +23,7 @@ pub fn build() -> Command {
                 .help("The pattern for new file names.")
                 .num_args(1)
                 .action(ArgAction::Set)
-                .required(false)
+                .required_unless_present("print-codes")
                 .hide(false),
         )
         .arg( // FIle move pattern}

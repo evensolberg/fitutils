@@ -23,12 +23,13 @@ fn print_codes() {
     println!("  {{%second}}  / {{%sc}}   Second (2 digits, e.g. 05)");
     println!("  {{%duration}}/ {{%du}}   Duration of activity in seconds");
     println!();
-    println!("Device & Activity  (FIT only unless noted)");
-    println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)");
-    println!("  {{%product}}      / {{%pr}}   Device product name");
-    println!("  {{%serial_number}}/ {{%sn}}   Device serial number");
-    println!("  {{%activity}}     / {{%at}}   Activity type (e.g. Running)");
-    println!("  {{%activity_detailed}} / {{%ad}}  Detailed activity subtype");
+    println!("Device & Activity");
+    println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)  [FIT/GPX]");
+    println!("  {{%product}}      / {{%pr}}   Device product name                [FIT/GPX/TCX]");
+    println!("  {{%serial_number}}/ {{%sn}}   Device serial number               [FIT; partial GPX]");
+    println!("  {{%activity}}     / {{%at}}   Activity type (e.g. Running)       [FIT/GPX/TCX]");
+    println!("  {{%activity_detailed}} / {{%ad}}  Detailed subtype               [FIT/GPX/TCX]");
+    println!("  Note: GPX and TCX populate these fields; device fields default to 'unknown'.");
     println!();
     println!("File");
     println!("  {{%type}} / {{%ty}}   File type extension (fit/gpx/tcx)");
@@ -57,14 +58,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    // Validate that the required positional/named args are present in normal mode
-    if !cli_args.contains_id("read") {
-        return Err("the following required arguments were not provided: <FILE(S)>...\n\nUsage: fitrename --pattern <pattern> <FILE(S)>...\n\nFor more information, try '--help'.".into());
-    }
-    if cli_args.get_one::<String>("pattern").is_none() {
-        return Err("the following required arguments were not provided: --pattern <pattern>\n\nUsage: fitrename --pattern <pattern> <FILE(S)>...\n\nFor more information, try '--help'.".into());
-    }
-
     let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
@@ -77,11 +70,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::info!("Dry-run. Will not perform actual rename or move.");
     }
 
-    let default_pattern = String::new();
     let pattern = cli_args
         .get_one::<String>("pattern")
-        .unwrap_or(&default_pattern)
+        .expect("clap requires --pattern unless --print-codes is given")
         .as_str();
+
+    let default_pattern = String::new();
 
     // Get the move pattern
     let move_files = cli_args.value_source("move") == Some(ValueSource::CommandLine);
