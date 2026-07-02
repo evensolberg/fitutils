@@ -12,6 +12,19 @@ This is a project consisting of several sub-modules:
 
 Help for each utility can be found by running it with the `-h` or `--help` flag, e.g., `fitview --help`.
 
+## Glob Expansion
+
+All four tools expand glob patterns themselves, so passing quoted globs works consistently across all shells and on Windows — no shell expansion required:
+
+```sh
+fitview "*.fit" "*.gpx"
+fitexport "2024*.fit" --summary-file activities
+fitrename "*.fit" "*.gpx" "*.tcx" -p "{%year}-{%month}-{%day} {%activity}"
+fit2json "*.fit" -o output/
+```
+
+Unquoted globs work too (the shell expands them first and the tools receive the expanded list). Quoting is only necessary when you want to prevent the shell from doing its own expansion — for example on Windows, or when you want consistent behaviour across environments.
+
 NOTE: This repository uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for PRs.
 
 ## Installation
