@@ -25,9 +25,9 @@ fn print_codes() {
     println!();
     println!("Device & Activity");
     println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)");
-    println!("                               FIT/GPX: real value | TCX: 'Unknown'");
-    println!("  {{%product}}      / {{%pr}}   Device product name");
-    println!("                               FIT/GPX: real value | TCX: 'Unknown'");
+    println!("                               FIT: real value | GPX: from creator field (may be 'unknown') | TCX: 'Unknown'");
+    println!("  {{%product}}      / {{%pr}}   Device product name (same as manufacturer for GPX)");
+    println!("                               FIT: real value | GPX: from creator field (may be 'unknown') | TCX: 'Unknown'");
     println!("  {{%serial_number}}/ {{%sn}}   Device serial number");
     println!("                               FIT: real value | GPX: from file notes | TCX: 'unknown'");
     println!("  {{%activity}}     / {{%at}}   Activity type (e.g. Running)  [FIT/GPX/TCX]");

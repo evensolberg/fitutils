@@ -65,12 +65,16 @@ Date and time values indicate the *start* of the activity.
 | `%activity` | `%at` | Y | Y | Y | The name of the activity, eg. "Running", "Walking" or "Rowing". |
 | `%activity_detailed` | `%ad` | Y | Y | Y | The detailed part of the activity, eg. "indoor_cycling", "spin" or "generic". |
 | `%duration` | `%du` | Y | Y | Y | The duration of the activity in seconds. |
-| `%manufacturer` | `%mf` | Y | Y | | The manufacturer of the product that created the file, eg. "Garmin", "Wahoo Fitness". |
-| `%product` | `%pr` | Y | Y | Y | The product that created the file, eg. "Fenix 7X". |
-| `%serial_number` | `%sn` | Y | P\* | | The serial number of the device. |
+| `%manufacturer` | `%mf` | Y | Y† | Y‡ | The manufacturer of the product that created the file, eg. "Garmin". |
+| `%product` | `%pr` | Y | Y† | Y‡ | The product that created the file, eg. "Fenix 7X". |
+| `%serial_number` | `%sn` | Y | P\* | Y‡ | The serial number of the device. |
 | `%type` | `%ty` | Y | Y | Y | The file format in lower case (`fit`, `gpx`, `tcx`). Use `--type-case upper` for `FIT`, `GPX`, `TCX`. |
 
-\* Note that for `%serial_number` some GPX files may have this in notes, and the application will attempt to extract a value.
+\* For `%serial_number`, some GPX files may have this in notes, and the application will attempt to extract a value.
+
+† For GPX, `%manufacturer` and `%product` are both derived from the GPX `creator` field and may be `unknown` if absent.
+
+‡ For TCX, these tokens always resolve to a placeholder value (`Unknown` / `unknown`) as the TCX format does not include device metadata.
 
 > **NOTE:** Not all file types contain all of this information. Notably, FIT tends to be the most data-rich. For GPX and TCX files, some tokens may resolve to "unknown" or "Unknown". You should do a dry run (`-r`) before attempting to rename files to ensure you get the expected result.
 
