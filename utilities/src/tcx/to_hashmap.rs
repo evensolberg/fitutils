@@ -40,10 +40,12 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         // Insert values into HashMap
         // Insert "unknown" into all the fields that don't have a corresponding field in the TCX.
         let unknown = "unknown".to_string();
-        values.insert("%manufacturer".to_string(), unknown.to_case(Case::Title));
+        let unknown_title = unknown.to_case(Case::Title);
+        values.insert("%manufacturer".to_string(), unknown_title.clone());
+        values.insert("%mf".to_string(), unknown_title.clone());
         values.insert("%unknown".to_string(), unknown.clone());
-        values.insert("%product".to_string(), unknown.to_case(Case::Title));
-        values.insert("%pr".to_string(), unknown.to_case(Case::Title));
+        values.insert("%product".to_string(), unknown_title.clone());
+        values.insert("%pr".to_string(), unknown_title);
         values.insert("%serial_number".to_string(), unknown.clone());
         values.insert("%sn".to_string(), unknown.clone());
 
@@ -81,7 +83,7 @@ mod tests {
         println!("tm.len() = {}", tm.len());
 
         // Perform the actual tests
-        assert_eq!(tm.len(), 32);
+        assert_eq!(tm.len(), 33);
         assert_eq!(
             tm.get("%activity").unwrap().to_string(),
             "Running".to_string()
@@ -108,6 +110,7 @@ mod tests {
             tm.get("%manufacturer").unwrap().to_string(),
             "Unknown".to_string()
         );
+        assert_eq!(tm.get("%mf").unwrap().to_string(), "Unknown".to_string());
         assert_eq!(tm.get("%minute").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%mt").unwrap().to_string(), "35".to_string());
         assert_eq!(tm.get("%month").unwrap().to_string(), "06".to_string());
