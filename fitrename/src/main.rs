@@ -109,6 +109,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         // Check if the target file exists, otherwise just continue
         if !Path::new(&filename).exists() {
             log::warn!("File not found: {filename}");
+            skipped_files += 1;
             continue;
         }
 
@@ -167,7 +168,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            Err(err) => log::error!("Unable to process {filename}: {err}"),
+            Err(err) => {
+                log::error!("Unable to process {filename}: {err}");
+                skipped_files += 1;
+            }
         }
     }
 
