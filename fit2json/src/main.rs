@@ -103,15 +103,19 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     #[test]
     fn expand_globs_empty_on_no_match() {
-        // A pattern that matches nothing should return empty (warn is logged).
-        let pattern = std::env::temp_dir()
-            .join(format!("fitutils_nonexistent_{}_*.fit", std::process::id()))
-            .to_string_lossy()
-            .into_owned();
+        // Use an isolated empty temp directory so the glob is guaranteed to
+        // match nothing, regardless of any stale files in the OS temp dir.
+        let tmp = std::env::temp_dir()
+            .join(format!("fitutils_f2j_nomatch_{}", std::process::id()));
+        fs::create_dir_all(&tmp).expect("create temp dir");
+        let pattern = tmp.join("*.fit").to_string_lossy().into_owned();
         let result = utilities::expand_globs(&[pattern]);
         assert!(result.is_empty());
+        fs::remove_dir(tmp).expect("clean up temp dir");
     }
 }
 

@@ -93,8 +93,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         // Process the result of reading metadata
         match value_res {
             Ok(mut values) => {
-                // Inject the file-type template variables ({%type}, {%ty})
-                let ext = utilities::get_extension(filename);
+                // Inject the file-type template variables ({%type}, {%ty}).
+                // Normalise an empty extension (e.g. "filename.") to "unknown"
+                // so downstream patterns like {%type} are never empty strings.
+                let raw_ext = utilities::get_extension(filename);
+                let ext = if raw_ext.is_empty() {
+                    String::from("unknown")
+                } else {
+                    raw_ext
+                };
                 let type_val = if type_case_upper {
                     ext.to_uppercase()
                 } else {
