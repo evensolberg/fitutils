@@ -25,7 +25,7 @@ fn print_codes() {
     println!();
     println!("Device & Activity");
     println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)");
-    println!("                               FIT/GPX: real value | TCX: 'Unknown' (no %mf alias)");
+    println!("                               FIT/GPX: real value | TCX: 'Unknown'");
     println!("  {{%product}}      / {{%pr}}   Device product name");
     println!("                               FIT/GPX: real value | TCX: 'Unknown'");
     println!("  {{%serial_number}}/ {{%sn}}   Device serial number");
