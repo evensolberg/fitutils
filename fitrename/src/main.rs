@@ -75,14 +75,12 @@ fn run() -> Result<(), Box<dyn Error>> {
         .expect("clap requires --pattern unless --print-codes is given")
         .as_str();
 
-    let default_pattern = String::new();
-
     // Get the move pattern
     let move_files = cli_args.value_source("move") == Some(ValueSource::CommandLine);
     let move_pattern = if move_files {
         cli_args
             .get_one::<String>("move")
-            .unwrap_or(&default_pattern)
+            .expect("clap provides a value for --move when it is supplied")
             .as_str()
     } else {
         ""
