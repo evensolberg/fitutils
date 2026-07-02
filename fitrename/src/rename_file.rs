@@ -3,6 +3,11 @@ use utilities::get_extension;
 
 /// Performs template substitution on a pattern string using the provided values.
 /// Replaces `{%key}` placeholders with metadata values and sanitizes path separators.
+///
+/// Slashes (`/`, `\`) that appear in *values* are replaced with `-` to prevent
+/// metadata values from injecting unexpected path components. Slashes that appear
+/// literally in the *pattern itself* (e.g. `"%type/%year"` as a move pattern) are
+/// preserved so callers can express directory hierarchies.
 fn substitute_pattern<S: ::std::hash::BuildHasher>(
     pattern: &str,
     values: &HashMap<String, String, S>,
@@ -13,14 +18,16 @@ fn substitute_pattern<S: ::std::hash::BuildHasher>(
 
     let mut result = pattern.to_string();
     for key in keys {
-        let fixed_value = values[key].trim().to_string();
+        // Sanitize slashes in the value so metadata cannot inject path separators.
+        // Slashes already present in the pattern (e.g. directory separators in a
+        // move pattern like "%type/%year") are intentional and must not be touched.
+        let fixed_value = values[key].trim().replace(['/', '\\'], "-");
         // Support both {%key} (braced) and %key (bare) syntax
         let braced_key = format!("{{{key}}}");
         log::debug!("substitute_pattern() -- key: {key}, fixed_value: {fixed_value}");
         result = result
             .replace(&braced_key, &fixed_value)
-            .replace(key.as_str(), &fixed_value)
-            .replace(['/', '\\'], "-");
+            .replace(key.as_str(), &fixed_value);
     }
     result
 }
@@ -134,10 +141,7 @@ mod tests {
         // Short alias produces the same result
         assert_eq!(substitute_pattern("{%ty}", &values), "fit");
         // Combined with other variables
-        assert_eq!(
-            substitute_pattern("{%year}-{%type}", &values),
-            "2024-fit"
-        );
+        assert_eq!(substitute_pattern("{%year}-{%type}", &values), "2024-fit");
     }
 
     #[test]
@@ -166,5 +170,31 @@ mod tests {
         values.insert("%ty".to_string(), "TCX".to_string());
 
         assert_eq!(substitute_pattern("{%type}", &values), "TCX");
+    }
+
+    #[test]
+    fn test_slash_in_pattern_preserved_for_move_patterns() {
+        // A slash in the *pattern* (directory separator) must survive substitution
+        // unchanged so that move patterns like "%type/%year" produce "fit/2024",
+        // not "fit-2024".
+        let mut values = HashMap::new();
+        values.insert("%type".to_string(), "fit".to_string());
+        values.insert("%ty".to_string(), "fit".to_string());
+        values.insert("%year".to_string(), "2024".to_string());
+        values.insert("%yr".to_string(), "2024".to_string());
+
+        assert_eq!(substitute_pattern("{%type}/{%year}", &values), "fit/2024");
+        assert_eq!(substitute_pattern("%ty/%yr", &values), "fit/2024");
+        assert_eq!(substitute_pattern("{%type}/{%year}/{%type}", &values), "fit/2024/fit");
+    }
+
+    #[test]
+    fn test_slash_in_value_is_sanitized() {
+        // A slash that comes from a *metadata value* must be replaced with "-"
+        // to prevent values from injecting unexpected path components.
+        let mut values = HashMap::new();
+        values.insert("%activity".to_string(), "Running/Walking".to_string());
+
+        assert_eq!(substitute_pattern("{%activity}", &values), "Running-Walking");
     }
 }
