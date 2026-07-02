@@ -42,22 +42,32 @@ fn run() -> Result<(), Box<dyn Error>> {
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
     // Expand glob patterns in-app so quoted globs work consistently across
-    // shells and on Windows.  All inputs (literal paths and patterns alike)
-    // are routed through expand_globs(), which skips non-existent paths and
-    // emits a warning for each unmatched pattern — consistent with the other
-    // fitutils binaries.
-    let raw: Vec<String> = cli
-        .files
-        .iter()
-        .map(|p| p.to_string_lossy().into_owned())
-        .collect();
-    let files: Vec<PathBuf> = utilities::expand_globs(&raw)
-        .into_iter()
-        .map(PathBuf::from)
-        .collect();
+    // shells and on Windows.
+    //
+    // fit2json receives PathBufs from clap, which can include non-UTF-8 paths
+    // on Unix.  Strategy:
+    //   • Path exists on disk   → add as-is (no string conversion, non-UTF-8 safe)
+    //   • Non-existent + UTF-8  → pass to expand_globs() as a glob pattern
+    //   • Non-existent + non-UTF-8 → warn and skip (cannot be a valid glob)
+    let mut files: Vec<PathBuf> = Vec::new();
+    for p in &cli.files {
+        if p.exists() {
+            files.push(p.clone());
+        } else if let Some(s) = p.to_str() {
+            files.extend(
+                utilities::expand_globs(&[s.to_owned()])
+                    .into_iter()
+                    .map(PathBuf::from),
+            );
+        } else {
+            log::warn!("Skipping non-UTF-8 path that does not exist: {}", p.to_string_lossy());
+        }
+    }
+    files.sort();
+    files.dedup();
 
     // If no files have been provided, read from STDIN
-    if raw.is_empty() {
+    if cli.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
         // Force Stdout mode when reading from STDIN with Inplace output
         let effective_output = match &output_loc {
