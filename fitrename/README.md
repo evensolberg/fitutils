@@ -20,6 +20,16 @@ Wildcards and multiple file names are supported, eg.
 
 `fitrename *.fit *.gpx -p "{%year}-{%month}-{%day} {%hour}.{%minute}.{%second} {%activity}"`
 
+Glob patterns are expanded by the application, so quoting them (to prevent shell expansion) works consistently across all shells and on Windows:
+
+`fitrename "*.fit" "*.gpx" -p "{%year}-{%month}-{%day} {%activity}"`
+
+Use `{%type}` to include the file format in the name or to organise files into sub-directories by format:
+
+`fitrename *.fit *.gpx *.tcx -p "{%year}-{%month}-{%day} {%activity}" --move "{%type}"`
+
+This moves each file into a `fit/`, `gpx/`, or `tcx/` sub-directory. Use `--type-case upper` to get `FIT/`, `GPX/`, or `TCX/` instead.
+
 | Flag | Required | Description |
 | ---- | -------- | ----------- |
 | `-p`/`--pattern` | Yes | File rename pattern, as described in the next section. |
@@ -27,6 +37,7 @@ Wildcards and multiple file names are supported, eg.
 | `-q`/`--quiet` | No | Quiet mode. This will suppress all output except for errors. This is useful for running the application in a script or cron job. |
 | `-s`/`--print-summary` | No | Print a summary of the number of files processed, errors, etc. |
 | `-r`/`--dry-run` | No | Dry run. This will show what the rename would be, but not actually do it. This is useful for testing your pattern. |
+| `--type-case <upper\|lower>` | No | Case for the `{%type}` and `{%ty}` tokens. `upper` produces `FIT`, `lower` (default) produces `fit`. |
 | `-h`/`--help` | No | Show help. |
 | `-V`/`--version` | No | Show version information. |
 
@@ -54,6 +65,7 @@ Date and time values indicate the *start* of the activity.
 | `%manufacturer` | `%mf` | Y | Y | | The manufacturer of the product that created the file, eg. "Garmin", "Wahoo Fitness". |
 | `%product` | `%pr` | Y | Y | Y | The product that created the file, eg. "Fenix 7X". |
 | `%serial_number` | `%sn` | Y | P\* | | The serial number of the device. |
+| `%type` | `%ty` | Y | Y | Y | The file format in lower case (`fit`, `gpx`, `tcx`). Use `--type-case upper` for `FIT`, `GPX`, `TCX`. |
 
 \* Note that for `%serial_number` some GPX files may have this in notes, and the application will attempt to extract a value.
 
