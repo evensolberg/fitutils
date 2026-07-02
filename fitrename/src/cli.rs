@@ -163,15 +163,7 @@ mod tests {
     /// Test that `--type-case` accepts the short aliases `u`/`U`/`l`/`L`
     #[test]
     fn test_type_case_short_aliases() {
-        for alias in &["u", "U"] {
-            let args = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "--type-case", alias]);
-            assert_eq!(
-                args.get_one::<String>("type-case").map(String::as_str),
-                Some(*alias),
-                "expected alias '{alias}' to be accepted",
-            );
-        }
-        for alias in &["l", "L"] {
+        for alias in &["u", "U", "l", "L"] {
             let args = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "--type-case", alias]);
             assert_eq!(
                 args.get_one::<String>("type-case").map(String::as_str),
