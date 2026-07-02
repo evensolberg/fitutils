@@ -37,17 +37,23 @@ pub fn expand_globs(patterns: &[String]) -> Vec<String> {
         match glob(pattern) {
             Err(e) => log::warn!("Invalid glob pattern '{pattern}': {e}"),
             Ok(entries) => {
-                let mut matched = false;
+                // `any_entry` tracks whether the iterator produced at least one
+                // candidate (success or permission error).  The "no match"
+                // warning must only fire when the glob found zero candidates;
+                // when entries exist but all error (e.g. permission denied) we
+                // have already warned per-entry and should not also claim the
+                // pattern matched nothing.
+                let mut any_entry = false;
                 for entry in entries {
+                    any_entry = true;
                     match entry {
                         Ok(path) => {
-                            matched = true;
                             result.insert(path.to_string_lossy().into_owned());
                         }
                         Err(e) => log::warn!("Glob error in '{pattern}': {e}"),
                     }
                 }
-                if !matched {
+                if !any_entry {
                     log::warn!("No files matched pattern: {pattern}");
                 }
             }
