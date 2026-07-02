@@ -15,22 +15,33 @@ use std::{collections::BTreeSet, path::Path};
 /// The result is sorted lexicographically and deduplicated so that processing
 /// order is deterministic regardless of filesystem iteration order.
 ///
+/// # Caveats
+///
+/// Paths returned by glob matches are converted with [`std::path::Path::to_string_lossy`],
+/// which replaces non-UTF-8 bytes with `U+FFFD`. If a glob pattern matches
+/// a file whose path is not valid UTF-8, the returned string will be lossy and
+/// may not round-trip back to the original path. Callers that need to open
+/// matched files should be aware of this limitation. Literal paths supplied
+/// directly (i.e. those that already exist on disk) bypass this conversion and
+/// are returned as-is.
+///
 /// # Examples
 ///
 /// ```no_run
 /// # use utilities::expand_globs;
-/// let files = expand_globs(&["*.fit".to_string()]);
+/// let files = expand_globs(&["*.fit"]);
 /// // returns sorted Vec<String> of matched paths
 /// ```
 #[must_use]
-pub fn expand_globs(patterns: &[String]) -> Vec<String> {
+pub fn expand_globs<S: AsRef<str>>(patterns: &[S]) -> Vec<String> {
     let mut result: BTreeSet<String> = BTreeSet::new();
 
     for pattern in patterns {
+        let pattern = pattern.as_ref();
         // If the path already exists on disk, include it as-is without glob
         // interpretation so that filenames containing metacharacters are safe.
         if Path::new(pattern).exists() {
-            result.insert(pattern.clone());
+            result.insert(pattern.to_owned());
             continue;
         }
 
