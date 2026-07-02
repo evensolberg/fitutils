@@ -1,13 +1,16 @@
 use glob::glob;
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, path::Path};
 
 /// Expands a list of file-path strings and glob patterns into a sorted,
 /// deduplicated list of existing file paths.
 ///
-/// Each element of `patterns` may be a literal path or a shell-style glob
-/// (`*`, `?`, `[a-z]`). If an element matches no files — whether because it
-/// is a glob that matches nothing or a literal path that does not exist — a
-/// `warn!` log is emitted and that element contributes nothing to the output.
+/// Each element of `patterns` is resolved as follows:
+/// 1. If the string names an existing file or directory on disk, it is included
+///    directly without glob interpretation. This preserves filenames that
+///    contain glob metacharacters (e.g. `"file[1].fit"` on Unix).
+/// 2. Otherwise the string is treated as a shell-style glob (`*`, `?`,
+///    `[a-z]`). If it matches nothing, a `warn!` is emitted and the element
+///    contributes nothing to the output.
 ///
 /// The result is sorted lexicographically and deduplicated so that processing
 /// order is deterministic regardless of filesystem iteration order.
@@ -24,6 +27,13 @@ pub fn expand_globs(patterns: &[String]) -> Vec<String> {
     let mut result: BTreeSet<String> = BTreeSet::new();
 
     for pattern in patterns {
+        // If the path already exists on disk, include it as-is without glob
+        // interpretation so that filenames containing metacharacters are safe.
+        if Path::new(pattern).exists() {
+            result.insert(pattern.clone());
+            continue;
+        }
+
         match glob(pattern) {
             Err(e) => log::warn!("Invalid glob pattern '{pattern}': {e}"),
             Ok(entries) => {
@@ -126,6 +136,22 @@ mod tests {
         let pattern = tmp.join("*.fit").to_string_lossy().into_owned();
         let result = expand_globs(&[pattern]);
         assert!(result.is_empty());
+        fs::remove_dir(tmp).unwrap();
+    }
+
+    #[test]
+    fn test_literal_with_metacharacters_not_interpreted_as_glob() {
+        // A filename that contains glob metacharacters must be treated as a
+        // literal path when the file exists, not expanded as a pattern.
+        let tmp = temp_dir("metachar");
+        let file = tmp.join("run[1].fit");
+        fs::write(&file, b"").unwrap();
+
+        let path_str = file.to_string_lossy().into_owned();
+        let result = expand_globs(&[path_str.clone()]);
+        assert_eq!(result, vec![path_str], "metacharacter filename must not be glob-expanded");
+
+        fs::remove_file(file).unwrap();
         fs::remove_dir(tmp).unwrap();
     }
 
