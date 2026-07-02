@@ -13,7 +13,7 @@ pub fn build() -> Command {
                 .value_name("FILE(S)")
                 .help("One or more .fit, .gpx or .tcx file(s) to process. Glob patterns (e.g. *.fit, 2024*.gpx) are expanded by the application.")
                 .num_args(1..)
-                .required(true)
+                .required(false)
                 .action(ArgAction::Append),
         )
         .arg( // Rename pattern}
@@ -23,7 +23,7 @@ pub fn build() -> Command {
                 .help("The pattern for new file names.")
                 .num_args(1)
                 .action(ArgAction::Set)
-                .required(true)
+                .required(false)
                 .hide(false),
         )
         .arg( // FIle move pattern}
@@ -73,17 +73,26 @@ pub fn build() -> Command {
         )
         .arg(
             Arg::new("type-case")
+                .short('t')
                 .long("type-case")
                 .help(
                     "Case for the {%type} and {%ty} pattern variables. \
-                     'upper' produces 'FIT', 'lower' (default) produces 'fit'.",
+                     'upper'/'u'/'U' produces 'FIT', 'lower'/'l'/'L' (default) produces 'fit'.",
                 )
                 .value_name("CASE")
-                .value_parser(["upper", "lower"])
+                .value_parser(["upper", "lower", "u", "U", "l", "L"])
                 .default_value("lower")
                 .num_args(1)
                 .action(ArgAction::Set)
                 .required(false),
+        )
+        .arg(
+            Arg::new("print-codes")
+                .short('c')
+                .long("print-codes")
+                .help("Print all variable codes available for use in patterns and exit.")
+                .num_args(0)
+                .action(ArgAction::SetTrue),
         )
 }
 
@@ -147,6 +156,76 @@ mod tests {
         assert_eq!(
             args2.get_one::<String>("type-case").map(String::as_str),
             Some("lower")
+        );
+    }
+
+    /// Test that `--type-case` accepts the short aliases `u`/`U`/`l`/`L`
+    #[test]
+    fn test_type_case_short_aliases() {
+        for alias in &["u", "U"] {
+            let args = build().get_matches_from(vec!["--read", "test.fit", "-p", "{%type}", "--type-case", alias]);
+            assert_eq!(
+                args.get_one::<String>("type-case").map(String::as_str),
+                Some(*alias),
+                "expected alias '{alias}' to be accepted",
+            );
+        }
+        for alias in &["l", "L"] {
+            let args = build().get_matches_from(vec!["--read", "test.fit", "-p", "{%type}", "--type-case", alias]);
+            assert_eq!(
+                args.get_one::<String>("type-case").map(String::as_str),
+                Some(*alias),
+                "expected alias '{alias}' to be accepted",
+            );
+        }
+    }
+
+    /// Test that `-t` is accepted as a short form of `--type-case`
+    #[test]
+    fn test_type_case_short_flag() {
+        let args = build().get_matches_from(vec!["--read", "test.fit", "-p", "{%type}", "-t", "upper"]);
+        assert_eq!(
+            args.get_one::<String>("type-case").map(String::as_str),
+            Some("upper"),
+        );
+
+        let args2 = build().get_matches_from(vec!["--read", "test.fit", "-p", "{%type}", "-t", "U"]);
+        assert_eq!(
+            args2.get_one::<String>("type-case").map(String::as_str),
+            Some("U"),
+        );
+    }
+
+    /// Test that `--print-codes` / `-c` works without requiring FILES or --pattern
+    #[test]
+    fn test_print_codes_flag() {
+        use clap::parser::ValueSource;
+
+        // First element is argv[0] (program name); the actual flag follows.
+        let args = build().get_matches_from(vec!["fitrename", "--print-codes"]);
+        assert_eq!(
+            args.value_source("print-codes"),
+            Some(ValueSource::CommandLine),
+            "--print-codes should be recognised as a command-line argument",
+        );
+
+        let args2 = build().get_matches_from(vec!["fitrename", "-c"]);
+        assert_eq!(
+            args2.value_source("print-codes"),
+            Some(ValueSource::CommandLine),
+            "-c should be recognised as a command-line argument",
+        );
+    }
+
+    /// Test that `--print-codes` also works alongside other args
+    #[test]
+    fn test_print_codes_with_pattern_args() {
+        use clap::parser::ValueSource;
+
+        let args = build().get_matches_from(vec!["--read", "test.fit", "-p", "{%type}", "--print-codes"]);
+        assert_eq!(
+            args.value_source("print-codes"),
+            Some(ValueSource::CommandLine),
         );
     }
 }

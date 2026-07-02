@@ -6,6 +6,37 @@ use clap::parser::ValueSource;
 mod cli;
 mod rename_file;
 
+/// Prints all variable codes available for use in rename/move patterns.
+fn print_codes() {
+    println!("Variable codes available for use in patterns:\n");
+
+    println!("Date/Time");
+    println!("  {{%year}}    / {{%yr}}   Year (4 digits, e.g. 2024)");
+    println!("  {{%month}}   / {{%mo}}   Month (2 digits, e.g. 07)");
+    println!("  {{%day}}     / {{%dy}}   Day of month (2 digits, e.g. 04)");
+    println!("  {{%weekday}} / {{%wd}}   Weekday name (e.g. Mon)");
+    println!("  {{%24hour}}  / {{%24}}   Hour in 24-hour format (2 digits, e.g. 14)");
+    println!("  {{%hour}}    / {{%hr}}   Same as {{%24hour}}");
+    println!("  {{%12hour}}  / {{%12}}   Hour in 12-hour format (2 digits, e.g. 02)");
+    println!("  {{%ampm}}    / {{%ap}}   AM/PM indicator (lowercase, e.g. pm)");
+    println!("  {{%minute}}  / {{%mt}}   Minute (2 digits, e.g. 30)");
+    println!("  {{%second}}  / {{%sc}}   Second (2 digits, e.g. 05)");
+    println!("  {{%duration}}/ {{%du}}   Duration of activity in seconds");
+    println!();
+    println!("Device & Activity  (FIT only unless noted)");
+    println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)");
+    println!("  {{%product}}      / {{%pr}}   Device product name");
+    println!("  {{%serial_number}}/ {{%sn}}   Device serial number");
+    println!("  {{%activity}}     / {{%at}}   Activity type (e.g. Running)");
+    println!("  {{%activity_detailed}} / {{%ad}}  Detailed activity subtype");
+    println!();
+    println!("File");
+    println!("  {{%type}} / {{%ty}}   File type extension (fit/gpx/tcx)");
+    println!("                   Case controlled by --type-case / -t");
+    println!();
+    println!("Both braced ({{%code}}) and bare (%code) syntax are supported in patterns.");
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 // This #allow is needed for Clippy to shut up. There has to be a bug in Clippy for this one.
@@ -19,6 +50,20 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Initialize logging
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
+
+    // Print variable codes and exit early if requested
+    if cli_args.value_source("print-codes") == Some(ValueSource::CommandLine) {
+        print_codes();
+        return Ok(());
+    }
+
+    // Validate that the required positional/named args are present in normal mode
+    if !cli_args.contains_id("read") {
+        return Err("the following required arguments were not provided: <FILE(S)>...\n\nUsage: fitrename --pattern <pattern> <FILE(S)>...\n\nFor more information, try '--help'.".into());
+    }
+    if cli_args.get_one::<String>("pattern").is_none() {
+        return Err("the following required arguments were not provided: --pattern <pattern>\n\nUsage: fitrename --pattern <pattern> <FILE(S)>...\n\nFor more information, try '--help'.".into());
+    }
 
     let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
@@ -49,9 +94,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         ""
     };
 
-    let type_case_upper = cli_args
-        .get_one::<String>("type-case")
-        .map(String::as_str) == Some("upper");
+    let type_case_upper = matches!(
+        cli_args.get_one::<String>("type-case").map(String::as_str),
+        Some("upper" | "u" | "U")
+    );
 
     let mut total_files: usize = 0;
     let mut processed_files: usize = 0;
@@ -140,6 +186,8 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn get_extension_normalises_to_lowercase() {
         // get_extension() always returns a lowercase string.
@@ -148,6 +196,29 @@ mod tests {
         assert_eq!(utilities::get_extension("workout.FIT"), "fit");
         assert_eq!(utilities::get_extension("route.gpx"), "gpx");
         assert_eq!(utilities::get_extension("activity.TCX"), "tcx");
+    }
+
+    /// Ensure the `matches!` expression used in `run()` treats all upper aliases correctly.
+    #[test]
+    fn type_case_upper_matches_all_aliases() {
+        for value in &["upper", "u", "U"] {
+            assert!(
+                matches!(Some(*value), Some("upper" | "u" | "U")),
+                "'{value}' should be treated as upper-case",
+            );
+        }
+        for value in &["lower", "l", "L"] {
+            assert!(
+                !matches!(Some(*value), Some("upper" | "u" | "U")),
+                "'{value}' should not be treated as upper-case",
+            );
+        }
+    }
+
+    /// Smoke-test that `print_codes` does not panic.
+    #[test]
+    fn print_codes_does_not_panic() {
+        print_codes();
     }
 }
 
