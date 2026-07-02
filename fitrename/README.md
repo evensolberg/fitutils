@@ -72,7 +72,7 @@ Date and time values indicate the *start* of the activity.
 
 \* For `%serial_number`, some GPX files may have this in notes, and the application will attempt to extract a value.
 
-† For GPX, `%manufacturer` and `%product` are both derived from the GPX `creator` field and may be `unknown` if absent.
+† For GPX, `%manufacturer` and `%product` are both derived from the GPX `creator` field and may be `Unknown` if absent.
 
 ‡ For TCX, these tokens always resolve to a placeholder value (`Unknown` / `unknown`) as the TCX format does not include device metadata.
 

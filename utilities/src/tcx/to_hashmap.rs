@@ -40,11 +40,12 @@ pub fn tcx_to_hashmap(filename: &str) -> Result<HashMap<String, String>, Box<dyn
         // Insert values into HashMap
         // Insert "unknown" into all the fields that don't have a corresponding field in the TCX.
         let unknown = "unknown".to_string();
-        values.insert("%manufacturer".to_string(), unknown.to_case(Case::Title));
-        values.insert("%mf".to_string(), unknown.to_case(Case::Title));
+        let unknown_title = unknown.to_case(Case::Title);
+        values.insert("%manufacturer".to_string(), unknown_title.clone());
+        values.insert("%mf".to_string(), unknown_title.clone());
         values.insert("%unknown".to_string(), unknown.clone());
-        values.insert("%product".to_string(), unknown.to_case(Case::Title));
-        values.insert("%pr".to_string(), unknown.to_case(Case::Title));
+        values.insert("%product".to_string(), unknown_title.clone());
+        values.insert("%pr".to_string(), unknown_title);
         values.insert("%serial_number".to_string(), unknown.clone());
         values.insert("%sn".to_string(), unknown.clone());
 
