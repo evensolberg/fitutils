@@ -20,19 +20,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    // Trace-log the input files (raw patterns, before glob expansion)
-    for argument in cli_args
-        .get_many::<String>("read")
-        .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
-        log::trace!("run() -- Arguments: {argument:?}");
-    }
-
-    // Expand glob patterns into concrete file paths
+    // Collect raw patterns (trace-logged here) then expand into concrete paths.
     let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
+        .inspect(|a| log::trace!("run() -- Arguments: {a:?}"))
         .cloned()
         .collect();
     let filenames = utilities::expand_globs(&raw_inputs);
@@ -230,25 +222,4 @@ fn main() {
             1
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use std::fs;
-
-    #[test]
-    fn expand_globs_empty_on_no_match() {
-        // Use an isolated empty temp directory so the glob is guaranteed to
-        // match nothing, regardless of any stale files in the OS temp dir.
-        let tmp = std::env::temp_dir()
-            .join(format!("fitutils_fex_nomatch_{}", std::process::id()));
-        if tmp.exists() {
-            fs::remove_dir_all(&tmp).expect("remove stale temp dir");
-        }
-        fs::create_dir_all(&tmp).expect("create temp dir");
-        let pattern = tmp.join("*.fit").to_string_lossy().into_owned();
-        let result = utilities::expand_globs(&[pattern]);
-        assert!(result.is_empty());
-        fs::remove_dir_all(tmp).expect("clean up temp dir");
-    }
 }

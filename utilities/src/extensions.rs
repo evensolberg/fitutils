@@ -20,13 +20,17 @@ use std::path::PathBuf;
 /// ```
 #[must_use]
 pub fn get_extension(filename: &str) -> String {
-    std::path::Path::new(&filename)
+    let ext = std::path::Path::new(&filename)
         .extension()
         .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
         .to_ascii_lowercase()
         .to_str()
-        .unwrap_or("")
-        .to_string()
+        .unwrap_or("unknown")
+        .to_string();
+    // `Path::extension()` returns `Some("")` for a trailing dot (e.g.
+    // "filename."), which would produce an empty string after the chain above.
+    // Normalise that to "unknown" so callers never receive an empty extension.
+    if ext.is_empty() { "unknown".to_string() } else { ext }
 }
 
 /// Change the file extension
@@ -66,7 +70,7 @@ mod tests {
     fn test_get_extension() {
         assert_eq!(get_extension("filename.txt"), "txt".to_string());
         assert_eq!(get_extension("filename"), "unknown".to_string());
-        assert_eq!(get_extension("filename."), String::new());
+        assert_eq!(get_extension("filename."), "unknown".to_string());
         assert_eq!(get_extension("filename.txt.txt"), "txt".to_string());
         assert_eq!(get_extension("filename.TXT"), "txt".to_string());
     }

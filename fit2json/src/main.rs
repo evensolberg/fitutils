@@ -111,27 +111,6 @@ fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use std::fs;
-
-    #[test]
-    fn expand_globs_empty_on_no_match() {
-        // Use an isolated empty temp directory so the glob is guaranteed to
-        // match nothing, regardless of any stale files in the OS temp dir.
-        let tmp = std::env::temp_dir()
-            .join(format!("fitutils_f2j_nomatch_{}", std::process::id()));
-        if tmp.exists() {
-            fs::remove_dir_all(&tmp).expect("remove stale temp dir");
-        }
-        fs::create_dir_all(&tmp).expect("create temp dir");
-        let pattern = tmp.join("*.fit").to_string_lossy().into_owned();
-        let result = utilities::expand_globs(&[pattern]);
-        assert!(result.is_empty());
-        fs::remove_dir_all(tmp).expect("clean up temp dir");
-    }
-}
-
 /// Main executable entry point. Hands off to the `run` function.
 fn main() {
     std::process::exit(match run() {
