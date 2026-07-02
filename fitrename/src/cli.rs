@@ -138,7 +138,7 @@ mod tests {
             "fitrename",
             "test.fit",
             "-p",
-            "{%yr}-{%mn}-{%dy} {%24}{%mt}{%sc}",
+            "{%yr}-{%mo}-{%dy} {%24}{%mt}{%sc}",
             "-m",
             "{%yr}",
             "-d",
