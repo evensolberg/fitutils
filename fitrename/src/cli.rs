@@ -11,7 +11,7 @@ pub fn build() -> Command {
         .arg(
             Arg::new("read")
                 .value_name("FILE(S)")
-                .help("One or more .fit, .gpx or .tcx file(s) to process. Wildcards and multiple_occurrences files (e.g. 2019*.fit 2020*.gpx) are supported.")
+                .help("One or more .fit, .gpx or .tcx file(s) to process. Glob patterns (e.g. *.fit, 2024*.gpx) are expanded by the application.")
                 .num_args(1..)
                 .required(true)
                 .action(ArgAction::Append),
@@ -30,7 +30,7 @@ pub fn build() -> Command {
             Arg::new("move")
                 .short('m')
                 .long("move")
-                .help("Move the file to the directory specified (patterns allowed).")
+                .help("Move the file to the directory specified by this pattern. Use {%type} or {%ty} to organize by file format (e.g. --move \"{%type}\").")
                 .num_args(1)
                 .value_name("target_directory")
                 .action(ArgAction::Set)
@@ -71,6 +71,20 @@ pub fn build() -> Command {
                 .num_args(0)
                 .action(ArgAction::SetTrue)
         )
+        .arg(
+            Arg::new("type-case")
+                .long("type-case")
+                .help(
+                    "Case for the {%type} and {%ty} pattern variables. \
+                     'upper' produces 'FIT', 'lower' (default) produces 'fit'.",
+                )
+                .value_name("CASE")
+                .value_parser(["upper", "lower"])
+                .default_value("lower")
+                .num_args(1)
+                .action(ArgAction::Set)
+                .required(false),
+        )
 }
 
 #[cfg(test)]
@@ -92,6 +106,8 @@ mod tests {
             "--quiet",
             "--print-summary",
             "--dry-run",
+            "--type-case",
+            "upper",
         ]);
 
         assert!(args.contains_id("read"));
@@ -101,6 +117,11 @@ mod tests {
         assert!(args.contains_id("quiet"));
         assert!(args.contains_id("print-summary"));
         assert!(args.contains_id("dry-run"));
+        assert!(args.contains_id("type-case"));
+        assert_eq!(
+            args.get_one::<String>("type-case").map(String::as_str),
+            Some("upper")
+        );
 
         // Test using short form arguments/flags.
         let args2 = build().get_matches_from(vec![
@@ -123,5 +144,9 @@ mod tests {
         assert!(args2.contains_id("quiet"));
         assert!(args2.contains_id("print-summary"));
         assert!(args2.contains_id("dry-run"));
+        assert_eq!(
+            args2.get_one::<String>("type-case").map(String::as_str),
+            Some("lower")
+        );
     }
 }

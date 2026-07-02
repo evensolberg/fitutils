@@ -15,8 +15,8 @@ pub fn build() -> Command {
             Arg::new("read")
                 .value_name("FILE(S)")
                 .help(
-                    "One or more .fit, .gpx, or .tcx files to process. \
-                     Wildcards and mixed formats are supported.",
+                    "One or more .fit, .gpx or .tcx file(s) to process. \
+                     Glob patterns (e.g. *.fit, 2024*.gpx) are expanded by the application.",
                 )
                 .num_args(1..)
                 .required(true)

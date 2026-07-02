@@ -1,6 +1,6 @@
 [package]
 name = "fitview"
-version = "0.4.8"
+version = "0.5.0"
 edition = "2024"
 description = "Shows the metadata from .FIT, .GPX and .TCX files."
 license = "Apache-2.0"

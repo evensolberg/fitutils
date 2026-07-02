@@ -116,3 +116,55 @@ pub fn rename_and_move<S: ::std::hash::BuildHasher>(
 
     Ok(final_path.to_string_lossy().to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_type_variable_substitution() {
+        let mut values = HashMap::new();
+        values.insert("%year".to_string(), "2024".to_string());
+        values.insert("%type".to_string(), "fit".to_string());
+        values.insert("%ty".to_string(), "fit".to_string());
+
+        // {%type} alone produces the file extension
+        assert_eq!(substitute_pattern("{%type}", &values), "fit");
+        // Short alias produces the same result
+        assert_eq!(substitute_pattern("{%ty}", &values), "fit");
+        // Combined with other variables
+        assert_eq!(
+            substitute_pattern("{%year}-{%type}", &values),
+            "2024-fit"
+        );
+    }
+
+    #[test]
+    fn test_type_variable_uppercase() {
+        let mut values = HashMap::new();
+        values.insert("%type".to_string(), "FIT".to_string());
+        values.insert("%ty".to_string(), "FIT".to_string());
+
+        assert_eq!(substitute_pattern("{%type}", &values), "FIT");
+        assert_eq!(substitute_pattern("{%ty}", &values), "FIT");
+    }
+
+    #[test]
+    fn test_type_variable_for_gpx() {
+        let mut values = HashMap::new();
+        values.insert("%type".to_string(), "gpx".to_string());
+        values.insert("%ty".to_string(), "gpx".to_string());
+
+        assert_eq!(substitute_pattern("{%type}", &values), "gpx");
+    }
+
+    #[test]
+    fn test_type_variable_for_tcx_uppercase() {
+        let mut values = HashMap::new();
+        values.insert("%type".to_string(), "TCX".to_string());
+        values.insert("%ty".to_string(), "TCX".to_string());
+
+        assert_eq!(substitute_pattern("{%type}", &values), "TCX");
+    }
+}

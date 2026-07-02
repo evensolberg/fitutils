@@ -19,10 +19,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    let filenames = cli_args
+    let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str);
+        .cloned()
+        .collect();
+    let filenames = utilities::expand_globs(&raw_inputs);
     log::trace!("main::run() -- Files: {filenames:?}");
 
     let mut total_files: usize = 0;
@@ -30,7 +32,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut skipped_files: usize = 0;
 
     // The good stuff goes here
-    for filename in filenames {
+    for filename in filenames.iter().map(String::as_str) {
         log::debug!("Processing file: {filename}");
         match utilities::get_extension(filename).as_ref() {
             "fit" => match FITActivity::from_file(filename) {

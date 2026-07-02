@@ -20,14 +20,14 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logbuilder = utilities::build_log(&cli_args);
     logbuilder.target(Target::Stdout).init();
 
-    // Trace-log the input files
-    for argument in cli_args
+    // Collect raw patterns (trace-logged here) then expand into concrete paths.
+    let raw_inputs: Vec<String> = cli_args
         .get_many::<String>("read")
         .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
-        log::trace!("run() -- Arguments: {argument:?}");
-    }
+        .inspect(|a| log::trace!("run() -- Arguments: {a:?}"))
+        .cloned()
+        .collect();
+    let filenames = utilities::expand_globs(&raw_inputs);
 
     // Determine summary file settings
     let write_summary = cli_args.value_source("summary-file") == Some(ValueSource::CommandLine);
@@ -53,11 +53,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut processed_files: usize = 0;
     let mut skipped_files: usize = 0;
 
-    for filename in cli_args
-        .get_many::<String>("read")
-        .unwrap_or_default()
-        .map(std::string::String::as_str)
-    {
+    for filename in filenames.iter().map(String::as_str) {
         total_files += 1;
         log::info!("Processing file: {filename}");
 

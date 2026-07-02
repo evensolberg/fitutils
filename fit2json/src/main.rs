@@ -41,6 +41,31 @@ fn run() -> Result<(), Box<dyn Error>> {
         .map_or(types::OutputLocation::Inplace, types::OutputLocation::new);
     let collect_all = matches!(output_loc, types::OutputLocation::LocalFile(_));
 
+    // Expand glob patterns in-app so quoted globs work consistently across
+    // shells and on Windows.
+    //
+    // fit2json receives PathBufs from clap, which can include non-UTF-8 paths
+    // on Unix.  Strategy:
+    //   • Path exists on disk   → add as-is (no string conversion, non-UTF-8 safe)
+    //   • Non-existent + UTF-8  → pass to expand_globs() as a glob pattern
+    //   • Non-existent + non-UTF-8 → warn and skip (cannot be a valid glob)
+    let mut files: Vec<PathBuf> = Vec::new();
+    for p in &cli.files {
+        if p.exists() {
+            files.push(p.clone());
+        } else if let Some(s) = p.to_str() {
+            files.extend(
+                utilities::expand_globs(&[s.to_owned()])
+                    .into_iter()
+                    .map(PathBuf::from),
+            );
+        } else {
+            log::warn!("Skipping non-UTF-8 path that does not exist: {}", p.to_string_lossy());
+        }
+    }
+    files.sort();
+    files.dedup();
+
     // If no files have been provided, read from STDIN
     if cli.files.is_empty() {
         log::info!("No files supplied. Reading from STDIN.");
@@ -56,11 +81,17 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
+    // If file args were supplied but none matched (or all are missing),
+    // exit cleanly — expand_globs() already warned for each unmatched entry.
+    if files.is_empty() {
+        return Ok(());
+    }
+
     // Read each FIT file and output it
     let mut all_fit_data: Vec<fitparser::FitDataRecord> = Vec::new();
-    for file in cli.files {
+    for file in files {
         // open file and parse data
-        log::info!("Processing file: {}", &file.to_str().unwrap_or_default());
+        log::info!("Processing file: {}", file.to_string_lossy());
         let mut fp = File::open(&file)?;
         let mut data = fitparser::from_reader(&mut fp)?;
 

@@ -1,6 +1,6 @@
 [package]
 name = "fit2json"
-version = "0.1.7"
+version = "0.2.0"
 authors = ["evensolberg <even.solberg@gmail.com>"]
 edition = "2024"
 license = "Apache-2.0"
@@ -15,3 +15,4 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 fitparser = { workspace = true }
+utilities = { path = "../utilities" }

@@ -1,6 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Documentation
+
+- Add fit-sdx implementation plan
+
+### Features
+
+- Add expand_globs() for in-app glob expansion
+- Expand glob patterns in-application
+- Add {%type}/{%ty} variable and --type-case flag
+
+### Miscellaneous Tasks
+
+- Update CHANGELOG and close fit-sdx crumb
+
 ## [0.5.1] - 2026-07-01
 
 ### Miscellaneous Tasks
