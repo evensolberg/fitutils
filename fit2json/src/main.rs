@@ -60,7 +60,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                     .map(PathBuf::from),
             );
         } else {
-            log::warn!("Skipping non-UTF-8 path that does not exist: {}", p.to_string_lossy());
+            log::warn!(
+                "Skipping non-UTF-8 path that does not exist: {}",
+                p.to_string_lossy()
+            );
         }
     }
     files.sort();

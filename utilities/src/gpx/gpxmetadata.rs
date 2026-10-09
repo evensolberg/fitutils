@@ -192,7 +192,7 @@ impl GPXMetadata {
         filename.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {:?}",
-            &filename.to_str()
+            filename.to_str()
         );
 
         // Write the session data to JSON

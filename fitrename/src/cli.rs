@@ -164,7 +164,14 @@ mod tests {
     #[test]
     fn test_type_case_short_aliases() {
         for alias in &["u", "U", "l", "L"] {
-            let args = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "--type-case", alias]);
+            let args = build().get_matches_from(vec![
+                "fitrename",
+                "test.fit",
+                "-p",
+                "{%type}",
+                "--type-case",
+                alias,
+            ]);
             assert_eq!(
                 args.get_one::<String>("type-case").map(String::as_str),
                 Some(*alias),
@@ -176,13 +183,21 @@ mod tests {
     /// Test that `-t` is accepted as a short form of `--type-case`
     #[test]
     fn test_type_case_short_flag() {
-        let args = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "-t", "upper"]);
+        let args = build().get_matches_from(vec![
+            "fitrename",
+            "test.fit",
+            "-p",
+            "{%type}",
+            "-t",
+            "upper",
+        ]);
         assert_eq!(
             args.get_one::<String>("type-case").map(String::as_str),
             Some("upper"),
         );
 
-        let args2 = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "-t", "U"]);
+        let args2 =
+            build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "-t", "U"]);
         assert_eq!(
             args2.get_one::<String>("type-case").map(String::as_str),
             Some("U"),
@@ -215,7 +230,13 @@ mod tests {
     fn test_print_codes_with_pattern_args() {
         use clap::parser::ValueSource;
 
-        let args = build().get_matches_from(vec!["fitrename", "test.fit", "-p", "{%type}", "--print-codes"]);
+        let args = build().get_matches_from(vec![
+            "fitrename",
+            "test.fit",
+            "-p",
+            "{%type}",
+            "--print-codes",
+        ]);
         assert_eq!(
             args.value_source("print-codes"),
             Some(ValueSource::CommandLine),

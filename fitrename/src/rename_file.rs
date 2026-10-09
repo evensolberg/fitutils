@@ -185,7 +185,10 @@ mod tests {
 
         assert_eq!(substitute_pattern("{%type}/{%year}", &values), "fit/2024");
         assert_eq!(substitute_pattern("%ty/%yr", &values), "fit/2024");
-        assert_eq!(substitute_pattern("{%type}/{%year}/{%type}", &values), "fit/2024/fit");
+        assert_eq!(
+            substitute_pattern("{%type}/{%year}/{%type}", &values),
+            "fit/2024/fit"
+        );
     }
 
     #[test]
@@ -195,6 +198,9 @@ mod tests {
         let mut values = HashMap::new();
         values.insert("%activity".to_string(), "Running/Walking".to_string());
 
-        assert_eq!(substitute_pattern("{%activity}", &values), "Running-Walking");
+        assert_eq!(
+            substitute_pattern("{%activity}", &values),
+            "Running-Walking"
+        );
     }
 }

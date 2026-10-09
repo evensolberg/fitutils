@@ -309,7 +309,7 @@ impl FITSession {
         export_path.set_extension("session.json");
         log::trace!(
             "exporter::export_session_json() -- Writing JSON file {}",
-            &export_path.to_str().unwrap_or("<Unknown filename>")
+            export_path.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Write the session data to JSON
