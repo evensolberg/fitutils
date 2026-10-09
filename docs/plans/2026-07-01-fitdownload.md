@@ -38,11 +38,13 @@ revision_history:
 
 **Goal:** Add a `fitdownload` CLI crate to the fitutils workspace that authenticates with Garmin Connect using browser-exported session cookies and downloads FIT activity files.
 
-**Architecture:** Two-subcommand CLI: `auth` imports a Netscape-format cookie file (exported from a real browser via the "Get cookies.txt" extension) into a persisted session at `~/.config/fitutils/garmin-session.json`; `download` uses that session to list activities via the unofficial Garmin Connect JSON API and stream FIT files to a local directory, with pagination, date/type filtering, exponential-backoff retry on 429s, and progress bars.
+**Architecture:** Two-subcommand CLI: `auth` establishes a Garmin Connect session (via WebDriver browser automation or a manually exported Netscape cookie file) and persists it to `~/.config/fitutils/garmin-session.json`; `download` uses that session to list activities via the unofficial Garmin Connect JSON API and stream FIT files to a local directory, with pagination, date/type filtering, exponential-backoff retry on 429s, and progress bars. The `download` command is always fully headless and cron-safe; `auth` only needs a browser on first run or when the session expires.
 
-**Why cookie-based auth:** As of March 2026 Garmin's SSO endpoints are protected by Cloudflare TLS fingerprinting. Direct `reqwest` / `curl` login is blocked with 403. The only reliable headless approach is to use cookies captured from a real browser session. This is a deliberate architectural choice, not a gap. The `garmin_client` Rust crate uses the old (now-blocked) OAuth SSO flow and should not be used.
+**Why WebDriver auth:** As of March 2026 Garmin's SSO endpoints are protected by Cloudflare TLS fingerprinting. A plain `reqwest` client is blocked with 403 before credentials are even submitted. Driving a real Chrome or Firefox binary via WebDriver produces a genuine browser TLS handshake that Cloudflare cannot distinguish from a human. The `garmin_client` Rust crate uses the old (now-blocked) mobile SSO flow and must not be used.
 
-**Tech Stack:** Rust 2024, `tokio` async runtime, `reqwest 0.12` (rustls-tls, cookies, stream), `reqwest_cookie_store`, `cookie_store`, `scraper` (CSRF HTML fallback), `serde`/`serde_json`, `clap 4`, `indicatif`, `anyhow`, `chrono`, `log`/`env_logger`, `zip` (FIT-in-zip handling), `mockito` (tests).
+**Cron support:** `download` is always unattended. `auth --headless` works unattended only for accounts with **no 2FA enabled**. Garmin supports email-code and SMS as its only 2FA options — neither is automatable. For accounts with 2FA, run `fitdownload auth` once interactively to get a fresh session; thereafter cron calls `download` until the session expires.
+
+**Tech Stack:** Rust 2024, `tokio` async runtime, `reqwest 0.12` (rustls-tls, cookies, stream), `reqwest_cookie_store`, `cookie_store`, `scraper` (CSRF HTML fallback), `serde`/`serde_json`, `clap 4`, `indicatif`, `anyhow`, `chrono`, `log`/`env_logger`, `zip` (FIT-in-zip handling), `fantoccini` (WebDriver client), `rpassword` (secure terminal password input), `mockito` (tests).
 
 ## Global Constraints
 
@@ -50,9 +52,11 @@ revision_history:
 - Use `anyhow::Result` throughout (per CLAUDE.md); `main()` calls `std::process::exit(1)` on error.
 - No hardcoded credentials or hostnames as literals — use named `const` in `client.rs`.
 - All network tests use a `mockito` mock server; never hit real Garmin servers.
+- WebDriver integration tests are skipped in CI (`#[ignore]`); they require a live `chromedriver` / `geckodriver` process.
 - Tests run via `cargo nextest run`; unit tests live in `#[cfg(test)]` modules in the same file.
 - Commit convention: `feat:`, `fix:`, `chore:`, etc. with `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - Run `git mit es` before every commit (skip silently if not installed).
+- **Runtime prerequisite for `auth --webdriver`:** `chromedriver` (Chrome) or `geckodriver` (Firefox) must be in `$PATH`. Install: `brew install chromedriver` or `brew install geckodriver`.
 
 ---
 
@@ -62,15 +66,16 @@ revision_history:
 
 - `fitdownload/Cargo.toml` — crate manifest
 - `fitdownload/src/main.rs` — async entry point, dispatch
-- `fitdownload/src/cli.rs` — clap subcommand definitions
+- `fitdownload/src/cli.rs` — clap subcommand definitions (`Browser` enum re-exported from `webdriver`)
 - `fitdownload/src/session.rs` — `Session` struct, Netscape cookie parsing, persistence
+- `fitdownload/src/webdriver.rs` — WebDriver login flow, credential prompting, driver subprocess management
 - `fitdownload/src/client.rs` — `GarminClient`, HTTP with cookie store and CSRF header
 - `fitdownload/src/activities.rs` — `ActivitySummary`, `list_activities()`, pagination
 - `fitdownload/src/download.rs` — `download_fit()`, filename generation, retry, zip handling
 
 **Modified:**
 
-- `Cargo.toml` (workspace root) — add `fitdownload` to `members`; add `anyhow`, `reqwest`, `tokio`, `scraper`, `indicatif`, `zip`, `reqwest_cookie_store`, `cookie_store` to `[workspace.dependencies]`
+- `Cargo.toml` (workspace root) — add `fitdownload` to `members`; add `anyhow`, `reqwest`, `tokio`, `scraper`, `indicatif`, `zip`, `reqwest_cookie_store`, `cookie_store`, `fantoccini`, `rpassword` to `[workspace.dependencies]`
 - `justfile` — add `fitdownload` to release install targets
 
 ---
@@ -183,6 +188,8 @@ tokio = { version = "1", features = ["full"] }
 scraper = "0.22"
 indicatif = "0.17"
 zip = "2"
+fantoccini = "0.21"
+rpassword = "7"
 ```
 
 > **Note on serde:** The existing entry `serde = "1"` has no `features`. Check each existing crate — if any uses `#[derive(Serialize, Deserialize)]` they must already pull in `derive` somehow. The safest fix is to add `features = ["derive"]` at the workspace level as shown above.
@@ -213,6 +220,8 @@ tokio = { workspace = true }
 scraper = { workspace = true }
 indicatif = { workspace = true }
 zip = { workspace = true }
+fantoccini = { workspace = true }
+rpassword = { workspace = true }
 
 [dev-dependencies]
 mockito = "1"
@@ -228,6 +237,7 @@ mod cli;
 mod client;
 mod download;
 mod session;
+mod webdriver;
 
 use anyhow::Result;
 use clap::Parser;
@@ -259,6 +269,7 @@ Create the following files, each containing just `// placeholder` (will be repla
 
 - `fitdownload/src/cli.rs`
 - `fitdownload/src/session.rs`
+- `fitdownload/src/webdriver.rs`
 - `fitdownload/src/client.rs`
 - `fitdownload/src/activities.rs`
 - `fitdownload/src/download.rs`
@@ -316,7 +327,7 @@ mod tests {
     use clap::Parser;
 
     #[test]
-    fn auth_long_flags_parse() {
+    fn auth_cookies_flag_parses() {
         let cli = Cli::try_parse_from([
             "fitdownload", "auth",
             "--cookies", "/tmp/cookies.txt",
@@ -327,6 +338,33 @@ mod tests {
         };
         assert_eq!(args.cookies, Some(std::path::PathBuf::from("/tmp/cookies.txt")));
         assert!(!args.status);
+        assert!(!args.webdriver);
+    }
+
+    #[test]
+    fn auth_webdriver_headless_parses() {
+        let cli = Cli::try_parse_from([
+            "fitdownload", "auth",
+            "--webdriver", "--headless", "--browser", "chrome",
+        ])
+        .expect("should parse");
+        let Command::Auth(args) = cli.command else {
+            panic!("expected Auth");
+        };
+        assert!(args.webdriver);
+        assert!(args.headless);
+        assert!(!args.status);
+        assert!(args.cookies.is_none());
+    }
+
+    #[test]
+    fn auth_cookies_and_webdriver_conflict() {
+        let result = Cli::try_parse_from([
+            "fitdownload", "auth",
+            "--cookies", "/tmp/cookies.txt",
+            "--webdriver",
+        ]);
+        assert!(result.is_err(), "conflicting flags should fail to parse");
     }
 
     #[test]
@@ -391,11 +429,30 @@ pub enum Command {
 #[derive(Debug, clap::Args)]
 pub struct AuthArgs {
     /// Path to a Netscape-format cookies.txt file exported from your browser.
-    #[arg(short, long, value_name = "FILE")]
+    /// Mutually exclusive with --webdriver.
+    #[arg(short, long, value_name = "FILE", conflicts_with = "webdriver")]
     pub cookies: Option<PathBuf>,
 
+    /// Authenticate via WebDriver (drives a real browser). Default when --cookies
+    /// is not given. Requires chromedriver or geckodriver in PATH.
+    #[arg(long, conflicts_with = "cookies")]
+    pub webdriver: bool,
+
+    /// Run the browser without a visible window. Only valid with --webdriver.
+    /// Works for cron/unattended use when 2FA is disabled on the account.
+    #[arg(long, requires = "webdriver")]
+    pub headless: bool,
+
+    /// Browser to drive. Only valid with --webdriver.
+    #[arg(long, default_value = "chrome", requires = "webdriver", value_enum)]
+    pub browser: crate::webdriver::Browser,
+
+    /// Garmin email address. Falls back to $GARMIN_EMAIL, then interactive prompt.
+    #[arg(long, value_name = "EMAIL", env = "GARMIN_EMAIL")]
+    pub email: Option<String>,
+
     /// Show current session status (validity, expiry).
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with_all = ["cookies", "webdriver"])]
     pub status: bool,
 }
 
@@ -748,6 +805,311 @@ feat(fitdownload): add session module for browser cookie import
 
 Parses Netscape-format cookies.txt, extracts CSRF header value from
 cookie store, and persists session to ~/.config/fitutils/garmin-session.json.
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+## Task 3b: WebDriver authentication module
+
+**Files:**
+- Create: `fitdownload/src/webdriver.rs`
+
+**Interfaces:**
+- Consumes: `session::{Session, ParsedCookie}`
+- Produces:
+  - `Browser` enum — `Chrome | Firefox` (implements `clap::ValueEnum`)
+  - `WebDriverOpts \{ headless: bool, browser: Browser \}`
+  - `garmin_login(email: &str, password: &str, opts: &WebDriverOpts) -> Result<Session>`
+  - `read_credentials(email_arg: Option<&str>) -> Result<(String, String)>`
+
+**How it works:**
+1. Spawns `chromedriver`/`geckodriver` as a subprocess on a random free port (manages its own lifecycle via a `DriverProcess` RAII guard).
+2. Connects `fantoccini` client to that port.
+3. Navigates to `https://connect.garmin.com/signin`, fills email + password, and submits.
+4. If a 2FA prompt appears (email or SMS), the login stalls and times out — the browser window must be visible so the user can complete the code manually. Use `--headless` only for accounts with 2FA disabled.
+5. Waits for the post-login redirect, extracts all cookies, builds and returns a `Session`.
+6. `DriverProcess` drop kills the subprocess regardless of success or failure.
+
+- [ ] **Step 3b.1: Write failing tests**
+
+At the bottom of `fitdownload/src/webdriver.rs`, add:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // WebDriver integration test — requires a live chromedriver in PATH and real credentials.
+    // Run manually: cargo nextest run -p fitdownload -- webdriver::tests::login_flow --ignored
+    #[tokio::test]
+    #[ignore = "requires live chromedriver and valid credentials in env"]
+    async fn login_flow_produces_session() {
+        let email = std::env::var("GARMIN_EMAIL").expect("GARMIN_EMAIL not set");
+        let password = std::env::var("GARMIN_PASSWORD").expect("GARMIN_PASSWORD not set");
+        let session = garmin_login(&email, &password, &WebDriverOpts {
+            headless: false,
+            browser: Browser::Chrome,
+        }).await.expect("login should succeed");
+        assert!(!session.cookies.is_empty(), "should have cookies after login");
+        assert!(session.is_valid(), "session should be valid");
+    }
+}
+```
+
+- [ ] **Step 3b.2: Run to verify the module compiles and the integration test is skipped**
+
+```bash
+cargo nextest run -p fitdownload
+```
+
+Expected: `login_flow_produces_session` is listed but skipped (ignored). No unit tests in this module.
+
+- [ ] **Step 3b.3: Implement webdriver.rs**
+
+```rust
+use anyhow::{Context, Result};
+use fantoccini::{Client, ClientBuilder, Locator};
+use std::time::Duration;
+
+use crate::session::{ParsedCookie, Session};
+
+const SIGNIN_URL: &str = "https://connect.garmin.com/signin";
+/// URL fragment present after a successful login redirect.
+const POST_LOGIN_FRAGMENT: &str = "/modern/";
+const WAIT_ELEMENT_SECS: u64 = 15;
+const WAIT_LOGIN_SECS: u64 = 30;
+
+/// Browser to drive via WebDriver.
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum Browser {
+    Chrome,
+    Firefox,
+}
+
+/// Options for the WebDriver login flow.
+pub struct WebDriverOpts {
+    pub headless: bool,
+    pub browser: Browser,
+}
+
+// ── Driver subprocess management ──────────────────────────────────────────────
+
+struct DriverProcess {
+    process: std::process::Child,
+    pub port: u16,
+}
+
+impl DriverProcess {
+    fn spawn(browser: &Browser) -> Result<Self> {
+        let port = free_port()?;
+        let binary = match browser {
+            Browser::Chrome => "chromedriver",
+            Browser::Firefox => "geckodriver",
+        };
+        let process = std::process::Command::new(binary)
+            .arg(format!("--port={port}"))
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .with_context(|| {
+                format!(
+                    "could not start {binary} — install with: brew install {}",
+                    match browser {
+                        Browser::Chrome => "chromedriver",
+                        Browser::Firefox => "geckodriver",
+                    }
+                )
+            })?;
+        // Give the driver a moment to bind its port.
+        std::thread::sleep(Duration::from_millis(800));
+        Ok(Self { process, port })
+    }
+}
+
+impl Drop for DriverProcess {
+    fn drop(&mut self) {
+        self.process.kill().ok();
+    }
+}
+
+fn free_port() -> Result<u16> {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0")
+        .context("finding a free TCP port")?;
+    Ok(listener.local_addr()?.port())
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/// Drive a real browser to log in to Garmin Connect and return a populated session.
+pub async fn garmin_login(email: &str, password: &str, opts: &WebDriverOpts) -> Result<Session> {
+    let driver = DriverProcess::spawn(&opts.browser)?;
+    let client = build_client(opts, driver.port).await?;
+
+    // Always close the browser, whether login succeeds or fails.
+    let result = do_login(&client, email, password, opts).await;
+    client.close().await.ok();
+    result
+    // `driver` is dropped here, killing the chromedriver/geckodriver subprocess.
+}
+
+/// Prompt for credentials, falling back to env vars then interactive input.
+///
+/// Password is never accepted on the command line; use `$GARMIN_PASSWORD` for
+/// unattended use or leave unset for a secure terminal prompt.
+pub fn read_credentials(email_arg: Option<&str>) -> Result<(String, String)> {
+    let email = match email_arg {
+        Some(e) if !e.is_empty() => e.to_owned(),
+        _ => match std::env::var("GARMIN_EMAIL") {
+            Ok(e) => e,
+            Err(_) => {
+                eprint!("Garmin email: ");
+                let mut buf = String::new();
+                std::io::stdin().read_line(&mut buf).context("reading email")?;
+                buf.trim().to_owned()
+            }
+        },
+    };
+    let password = match std::env::var("GARMIN_PASSWORD") {
+        Ok(p) => p,
+        Err(_) => rpassword::prompt_password("Garmin password: ")
+            .context("reading password from terminal")?,
+    };
+    Ok((email, password))
+}
+
+// ── Internals ─────────────────────────────────────────────────────────────────
+
+async fn build_client(opts: &WebDriverOpts, port: u16) -> Result<Client> {
+    let mut caps = serde_json::map::Map::new();
+    match opts.browser {
+        Browser::Chrome => {
+            let mut args = vec!["--no-sandbox", "--disable-dev-shm-usage"];
+            if opts.headless {
+                args.push("--headless=new");
+            }
+            caps.insert("goog:chromeOptions".into(), serde_json::json!({ "args": args }));
+        }
+        Browser::Firefox => {
+            if opts.headless {
+                caps.insert(
+                    "moz:firefoxOptions".into(),
+                    serde_json::json!({ "args": ["-headless"] }),
+                );
+            }
+        }
+    }
+    ClientBuilder::native()
+        .capabilities(caps)
+        .connect(&format!("http://127.0.0.1:{port}"))
+        .await
+        .context("connecting to WebDriver — driver may not have started in time")
+}
+
+async fn do_login(client: &Client, email: &str, password: &str, opts: &WebDriverOpts) -> Result<Session> {
+    client.goto(SIGNIN_URL).await.context("navigating to Garmin sign-in page")?;
+
+    // Email field
+    let email_el = client
+        .wait()
+        .at_most(Duration::from_secs(WAIT_ELEMENT_SECS))
+        .for_element(Locator::Css("input[type='email'], input#email, input#username"))
+        .await
+        .context("email field not found — Garmin login page structure may have changed")?;
+    email_el.send_keys(email).await?;
+
+    // Some Garmin flows have a two-step form (email first, then password on next screen).
+    // Try clicking a "Next" button; if none, proceed directly to password.
+    if let Ok(next) = client.find(Locator::Css("button#next, button[data-testid='next']")).await {
+        next.click().await.ok();
+        tokio::time::sleep(Duration::from_millis(600)).await;
+    }
+
+    // Password field
+    let pass_el = client
+        .wait()
+        .at_most(Duration::from_secs(WAIT_ELEMENT_SECS))
+        .for_element(Locator::Css("input[type='password'], input#password"))
+        .await
+        .context("password field not found")?;
+    pass_el.send_keys(password).await?;
+
+    // Submit
+    client
+        .find(Locator::Css("button[type='submit']"))
+        .await
+        .context("submit button not found")?
+        .click()
+        .await?;
+
+    // Wait for post-login redirect.
+    // If 2FA is enabled the browser will show a code prompt — the user must complete it
+    // manually. With --headless the prompt is invisible and login times out; only use
+    // --headless for accounts with 2FA disabled.
+    client
+        .wait()
+        .at_most(Duration::from_secs(WAIT_LOGIN_SECS))
+        .for_url(|url| url.contains(POST_LOGIN_FRAGMENT) || url.contains("dashboard"))
+        .await
+        .context(
+            "login did not complete within 30 s — if 2FA is enabled on your account, \
+             re-run without --headless so you can complete the code prompt in the browser window",
+        )?;
+
+    // Extract cookies and build session
+    let raw = client.get_all_cookies().await.context("extracting cookies from browser")?;
+    let cookies: Vec<ParsedCookie> = raw
+        .into_iter()
+        .map(|c| ParsedCookie {
+            domain:      c.domain().unwrap_or("").to_owned(),
+            path:        c.path().unwrap_or("/").to_owned(),
+            secure:      c.secure().unwrap_or(false),
+            expires_secs: c.expiry().map(|t| t.as_secs()).unwrap_or(0),
+            name:        c.name().to_owned(),
+            value:       c.value().to_owned(),
+        })
+        .collect();
+
+    let csrf = cookies
+        .iter()
+        .find(|c| c.name.eq_ignore_ascii_case("connect-csrf-token"))
+        .map(|c| c.value.clone());
+
+    Ok(Session {
+        cookies,
+        csrf_header_value: csrf,
+        imported_at: chrono::Utc::now().to_rfc3339(),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    // paste tests from Step 3b.1 here
+}
+```
+
+- [ ] **Step 3b.4: Run tests**
+
+```bash
+cargo nextest run -p fitdownload
+```
+
+Expected: module compiles, `login_flow_produces_session` is listed but skipped (ignored).
+
+- [ ] **Step 3b.5: Commit**
+
+```bash
+git add fitdownload/src/webdriver.rs fitdownload/Cargo.toml
+git commit -m "$(cat <<'EOF'
+feat(fitdownload): add WebDriver auth module
+
+Drives Chrome or Firefox via fantoccini to log in to Garmin Connect.
+Spawns and cleans up the driver subprocess via a RAII guard. Note:
+Garmin only offers email/SMS 2FA (no TOTP) so 2FA accounts require a
+visible browser window for the auth step.
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
@@ -1540,6 +1902,7 @@ EOF
 ```rust
 pub async fn cmd_auth(args: AuthArgs) -> anyhow::Result<()> {
     use crate::session::{session_path, Session};
+    use crate::webdriver::{garmin_login, read_credentials, WebDriverOpts};
 
     if args.status {
         let path = session_path();
@@ -1556,42 +1919,56 @@ pub async fn cmd_auth(args: AuthArgs) -> anyhow::Result<()> {
                 println!("Valid        : {valid}");
                 if !valid {
                     anyhow::bail!(
-                        "session is expired — re-import cookies with:\n  \
-                         fitdownload auth --cookies /path/to/cookies.txt"
+                        "session is expired — re-authenticate with:\n  \
+                         fitdownload auth            (WebDriver, interactive)\n  \
+                         fitdownload auth --headless (WebDriver, headless/cron)\n  \
+                         fitdownload auth --cookies /path/to/cookies.txt  (manual fallback)"
                     );
                 }
             }
             Err(e) => {
                 println!("No session found ({e})");
                 println!();
-                println!("To create one:");
-                println!("  1. Log in to connect.garmin.com in Chrome or Firefox.");
-                println!("  2. Export cookies with the 'Get cookies.txt LOCALLY' extension.");
-                println!("  3. Run: fitdownload auth --cookies /path/to/cookies.txt");
+                println!("To authenticate:");
+                println!("  fitdownload auth                  # browser window (default)");
+                println!("  fitdownload auth --headless       # headless, for cron (no 2FA only)");
+                println!("  fitdownload auth --cookies <file> # manual Netscape cookie export");
             }
         }
         return Ok(());
     }
 
-    let cookies_path = args.cookies.ok_or_else(|| {
-        anyhow::anyhow!(
-            "provide --cookies <FILE> with a Netscape cookies.txt exported from your browser.\n\
-             Tip: use the 'Get cookies.txt LOCALLY' Chrome/Firefox extension on connect.garmin.com"
-        )
-    })?;
-
-    let session = Session::from_cookies_file(&cookies_path)
-        .with_context(|| format!("reading {}", cookies_path.display()))?;
+    let session = if let Some(cookies_path) = args.cookies {
+        // ── Manual cookie-file import ────────────────────────────────────────
+        Session::from_cookies_file(&cookies_path)
+            .with_context(|| format!("reading cookies file {}", cookies_path.display()))?
+    } else {
+        // ── WebDriver authentication (default) ───────────────────────────────
+        let (email, password) = read_credentials(args.email.as_deref())?;
+        let opts = WebDriverOpts {
+            headless: args.headless,
+            browser: args.browser,
+        };
+        let browser_name = match opts.browser {
+            crate::webdriver::Browser::Chrome => "Chrome",
+            crate::webdriver::Browser::Firefox => "Firefox",
+        };
+        log::info!(
+            "launching {} via WebDriver{}…",
+            browser_name,
+            if opts.headless { " (headless)" } else { " (visible window)" }
+        );
+        garmin_login(&email, &password, &opts).await?
+    };
 
     let count = session.cookies.len();
     session.save().context("saving session")?;
-
     println!("Imported {count} cookies");
     match &session.csrf_header_value {
-        Some(v) => println!("CSRF value found in cookies: {}...", &v[..v.len().min(8)]),
+        Some(v) => println!("CSRF value found: {}…", &v[..v.len().min(8)]),
         None => println!("No CSRF value in cookies — will be fetched from Garmin Connect on first use"),
     }
-    println!("Session saved to {}", crate::session::session_path().display());
+    println!("Session saved to {}", session_path().display());
     Ok(())
 }
 ```
@@ -1608,12 +1985,13 @@ pub async fn cmd_download(args: DownloadArgs) -> anyhow::Result<()> {
     use indicatif::{ProgressBar, ProgressStyle};
 
     let session = Session::load().context(
-        "no session found — run: fitdownload auth --cookies /path/to/cookies.txt",
+        "no session found — run: fitdownload auth",
     )?;
     if !session.is_valid() {
         anyhow::bail!(
-            "session is expired — re-import cookies with:\n  \
-             fitdownload auth --cookies /path/to/cookies.txt"
+            "session is expired — re-authenticate with:\n  \
+             fitdownload auth            (browser window)\n  \
+             fitdownload auth --headless (headless, for cron)"
         );
     }
 
@@ -1817,13 +2195,14 @@ All tests pass. No real Garmin servers are contacted.
 
 | Limitation | Notes |
 | --- | --- |
-| **Session expiry** | Browser cookies last a few hours to days. When expired, `auth --status` reports `Valid: false`. Re-export and re-import. |
-| **MFA** | Handled naturally — user completes MFA in the real browser before exporting cookies. |
-| **Cloudflare changes** | Garmin's blocking rules evolve. If downloads start returning 403, check the `python-garminconnect` GitHub issues for updated endpoint paths. |
-| **CSRF HTML fallback** | `refresh_csrf()` is only called when no CSRF value is in the session. If the cookie-extracted value stops working, call it unconditionally. |
+| **Session expiry** | Browser cookies last a few hours to days. When expired, `auth --status` reports `Valid: false`. Re-run `fitdownload auth`. |
+| **Email / SMS 2FA** | Garmin only offers email-code and SMS as 2FA options — neither is automatable. Run `fitdownload auth` interactively (visible browser window) to complete the prompt, then cron can call `download` until the session expires. Use `--headless` only for accounts with 2FA disabled. |
+| **chromedriver / geckodriver** | Must be in `$PATH` for WebDriver auth. Install: `brew install chromedriver` (Chrome) or `brew install geckodriver` (Firefox). Not required for `--cookies` fallback or for `download`. |
+| **Cloudflare changes** | Garmin's bot-detection rules evolve. If `auth --webdriver` starts failing, check `python-garminconnect` GitHub issues for updated login page selectors or flow changes. |
+| **CSRF HTML fallback** | `refresh_csrf()` is only called when no CSRF value is in the session. If the cookie-extracted value stops working, call it unconditionally before every download. |
 | **Incremental sync** | Future `--since-last` flag: scan the output directory for the newest `*_<id>.fit`, derive the activity ID, and only fetch activities newer than it. |
-| **garmin_client crate** | Not used — it relies on the pre-March-2026 SSO flow which is now blocked by Cloudflare TLS fingerprinting. |
-| **Official Activity API** | If you gain access to the Garmin Connect Developer Program, the official Activity API at `developer.garmin.com/gc-developer-program/activity-api/` includes FIT/GPX/TCX downloads via OAuth2 PKCE. Migrate `client.rs` to use `GET /wellness-api/rest/activities` with a `Bearer` header. The session and cookie modules become unnecessary. |
+| **garmin_client crate** | Not used — it relies on the pre-March-2026 mobile SSO flow now blocked by Cloudflare TLS fingerprinting. |
+| **Official Activity API** | If accepted into the Garmin Connect Developer Program, the Activity API includes FIT downloads via OAuth2 PKCE. Only `client.rs` needs to change (swap cookie-store reqwest for `Authorization: Bearer`). The WebDriver and session modules become unnecessary. |
 
 ---
 
