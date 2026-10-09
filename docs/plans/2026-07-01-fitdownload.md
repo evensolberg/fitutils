@@ -85,7 +85,7 @@ cp /Users/evensolberg/.claude/plans/i-would-like-to-imperative-stream.md \
    /Volumes/SSD/Source/Rust/fitutils/docs/plans/2026-07-01-fitdownload.md
 ```
 
-- [ ] **Step 0.2: Populate docs/_Frontmatter.md**
+- [x] **Step 0.2: Populate docs/_Frontmatter.md** — superseded: `docs/_Frontmatter.md` now points to the shared standard in `/Volumes/SSD/Source/_Common/Frontmatter.md`. Do not overwrite it; put this frontmatter on the plan's own document instead.
 
 Replace the contents of `/Volumes/SSD/Source/Rust/fitutils/docs/_Frontmatter.md` with:
 
