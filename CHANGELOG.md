@@ -1,21 +1,29 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.6.0] - 2026-10-09
+
+### Bug Fixes
+
+- Preserve pattern slashes in substitute_pattern
 
 ### Documentation
 
-- Add fit-sdx implementation plan
+- Document {%type}/{%ty}, --type-case, and in-app globs
+- Document in-app glob expansion in root README
+- Point frontmatter standard at the shared _Common template (#139)
+- Add CLAUDE.md, chrono/jiff investigation, fitdownload auth plan (#141)
 
 ### Features
 
-- Add expand_globs() for in-app glob expansion
-- Expand glob patterns in-application
-- Add {%type}/{%ty} variable and --type-case flag
+- In-app glob expansion and {%type}/{%ty} template variable (#137)
+- Print-codes flag, -t short form, type-case aliases (v0.7.0) (#138)
 
 ### Miscellaneous Tasks
 
-- Update CHANGELOG and close fit-sdx crumb
+- Migrate workspace to Rust 2024 edition and clean up lints
+- Bump version to 0.6.1
+- Apply rustfmt, sync Cargo.lock, fix Rust 1.99 clippy lints (#140)
 
 ## [0.5.1] - 2026-07-01
 
