@@ -151,7 +151,7 @@ impl FITActivity {
         outfile.set_extension("laps.csv");
         log::trace!(
             "exporter::export_laps_csv() -- Writing lap CSV file {}",
-            &outfile.to_str().unwrap_or("<Unknown filename>")
+            outfile.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Create a buffer for the CSV
@@ -226,7 +226,7 @@ impl FITActivity {
         outfile.set_extension("records.csv");
         log::trace!(
             "exporter::export_records_csv() -- Writing records CSV file {}",
-            &outfile.to_str().unwrap_or("<Unknown filename>")
+            outfile.to_str().unwrap_or("<Unknown filename>")
         );
 
         // Create a buffer for the CSV — headers auto-generated from serde field names

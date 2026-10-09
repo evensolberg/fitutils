@@ -30,7 +30,11 @@ pub fn get_extension(filename: &str) -> String {
     // `Path::extension()` returns `Some("")` for a trailing dot (e.g.
     // "filename."), which would produce an empty string after the chain above.
     // Normalise that to "unknown" so callers never receive an empty extension.
-    if ext.is_empty() { "unknown".to_string() } else { ext }
+    if ext.is_empty() {
+        "unknown".to_string()
+    } else {
+        ext
+    }
 }
 
 /// Change the file extension

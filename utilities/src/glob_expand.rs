@@ -102,7 +102,7 @@ mod tests {
         fs::write(&file, b"").unwrap();
 
         let path_str = file.to_string_lossy().into_owned();
-        let result = expand_globs(&[path_str.clone()]);
+        let result = expand_globs(std::slice::from_ref(&path_str));
         assert_eq!(result, vec![path_str]);
 
         fs::remove_file(file).unwrap();
@@ -164,8 +164,12 @@ mod tests {
         fs::write(&file, b"").unwrap();
 
         let path_str = file.to_string_lossy().into_owned();
-        let result = expand_globs(&[path_str.clone()]);
-        assert_eq!(result, vec![path_str], "metacharacter filename must not be glob-expanded");
+        let result = expand_globs(std::slice::from_ref(&path_str));
+        assert_eq!(
+            result,
+            vec![path_str],
+            "metacharacter filename must not be glob-expanded"
+        );
 
         fs::remove_file(file).unwrap();
         fs::remove_dir(tmp).unwrap();

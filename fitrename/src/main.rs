@@ -25,11 +25,17 @@ fn print_codes() {
     println!();
     println!("Device & Activity");
     println!("  {{%manufacturer}} / {{%mf}}   Device manufacturer (e.g. Garmin)");
-    println!("                               FIT: real value | GPX: from creator field (may be 'Unknown') | TCX: 'Unknown'");
+    println!(
+        "                               FIT: real value | GPX: from creator field (may be 'Unknown') | TCX: 'Unknown'"
+    );
     println!("  {{%product}}      / {{%pr}}   Device product name (same as manufacturer for GPX)");
-    println!("                               FIT: real value | GPX: from creator field (may be 'Unknown') | TCX: 'Unknown'");
+    println!(
+        "                               FIT: real value | GPX: from creator field (may be 'Unknown') | TCX: 'Unknown'"
+    );
     println!("  {{%serial_number}}/ {{%sn}}   Device serial number");
-    println!("                               FIT: real value | GPX: from file notes (may be 'Unknown') | TCX: 'unknown'");
+    println!(
+        "                               FIT: real value | GPX: from file notes (may be 'Unknown') | TCX: 'unknown'"
+    );
     println!("  {{%activity}}     / {{%at}}   Activity type (e.g. Running)  [FIT/GPX/TCX]");
     println!("  {{%activity_detailed}} / {{%ad}}  Detailed subtype");
     println!("                               FIT: real value | GPX: 'Unknown' | TCX: 'unknown'");
@@ -185,6 +191,18 @@ fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 } // fn run()
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// The actual executable function that gets called when the program in invoked.
+fn main() {
+    std::process::exit(match run() {
+        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
+        Err(err) => {
+            log::error!("{}", err.to_string().replace('\"', ""));
+            1 // exit with a non-zero return code, indicating a problem
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -221,16 +239,4 @@ mod tests {
     fn print_codes_does_not_panic() {
         print_codes();
     }
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// The actual executable function that gets called when the program in invoked.
-fn main() {
-    std::process::exit(match run() {
-        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
-        Err(err) => {
-            log::error!("{}", err.to_string().replace('\"', ""));
-            1 // exit with a non-zero return code, indicating a problem
-        }
-    });
 }
