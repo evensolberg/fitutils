@@ -2,7 +2,15 @@
 id: fit-5c8
 title: "fit2json: align logging with other tools"
 status: open
-tags: [fit2json, tech-debt, logging]
+type: task
+priority: 3
+tags:
+- fit2json
+- tech-debt
+- logging
+created: 2026-07-02
+updated: 2026-07-02
+phase: ''
 ---
 
 # fit2json: align logging with other tools
