@@ -9,7 +9,7 @@ aliases:
   - garmin-download
 doc_id: PLAN-2026-001
 doc_name: fitdownload-plan
-crumb_id:
+crumb_id: fit-tw6
 document_title: "fitdownload — Garmin Connect FIT File Downloader"
 created_date: 2026-07-01
 synopsis: >

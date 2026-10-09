@@ -60,6 +60,11 @@ Follow the **Pragmatic Rust Guidelines** at `/Volumes/SSD/Source/Rust/pragmatic 
   `Result<(), Box<dyn Error>>`
 - Good test coverage over observable behavior
 
+## Backlog
+
+Work is tracked with crumbs in `.crumbs/` (`index.csv` is gitignored). Start with
+`crumbs next` or `crumbs list`. Plans in `docs/plans/` name their crumb in `crumb_id`.
+
 ## Commit Style
 
 - Subject line: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, etc.)
