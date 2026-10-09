@@ -1,27 +1,17 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# Dependabot version updates.
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# fitutils is a Cargo workspace, so a single entry at the root covers every
+# member crate. Per-crate entries fail: Dependabot cannot load the workspace
+# from inside a member directory.
 
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/fit2csv" # Location of package manifests
+    directory: "/"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "cargo"
-    directory: "/fit2json" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "cargo"
-    directory: "/gpx2csv" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "cargo"
-    directory: "/fitview" # Location of package manifests
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "cargo"
-    directory: "/fitrename" # Location of package manifests
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
