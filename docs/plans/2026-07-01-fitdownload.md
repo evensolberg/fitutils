@@ -1,9 +1,9 @@
 ---
 tags:
+  - plan
   - fitutils
   - garmin
   - download
-  - planning
 aliases:
   - fitdownload
   - garmin-download
@@ -14,29 +14,25 @@ document_title: "fitdownload — Garmin Connect FIT File Downloader"
 created_date: 2026-07-01
 synopsis: >
   Implementation plan for a new fitutils workspace member that authenticates
-  with Garmin Connect using browser-exported session cookies and downloads FIT
-  files for activities. Direct OAuth login is blocked by Cloudflare TLS
-  fingerprinting since March 2026; the cookie-import approach is the current
-  reliable method. The official Garmin Activity API would be preferable but
+  with Garmin Connect by driving a real browser over WebDriver (with
+  browser-exported session cookies as the fallback) and downloads FIT files
+  for activities. Direct OAuth login is blocked by Cloudflare TLS
+  fingerprinting since March 2026, so a genuine browser handshake is needed. The official Garmin Activity API would be preferable but
   requires developer programme approval, which is not currently being granted.
 status: draft
-type: plan
-revision: 1
+type: Plan
+revision: "1.1"
 review_date:
 reviewed_by: []
 completed_date:
 comments:
-revision_history:
-  - date: 2026-07-01
-    author: even.solberg@gmail.com
-    change: Initial creation
 ---
 
 # fitdownload — Garmin Connect FIT Downloader Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `fitdownload` CLI crate to the fitutils workspace that authenticates with Garmin Connect using browser-exported session cookies and downloads FIT activity files.
+**Goal:** Add a `fitdownload` CLI crate to the fitutils workspace that authenticates with Garmin Connect through WebDriver browser automation (falling back to browser-exported session cookies) and downloads FIT activity files.
 
 **Architecture:** Two-subcommand CLI: `auth` establishes a Garmin Connect session (via WebDriver browser automation or a manually exported Netscape cookie file) and persists it to `~/.config/fitutils/garmin-session.json`; `download` uses that session to list activities via the unofficial Garmin Connect JSON API and stream FIT files to a local directory, with pagination, date/type filtering, exponential-backoff retry on 429s, and progress bars. The `download` command is always fully headless and cron-safe; `auth` only needs a browser on first run or when the session expires.
 
@@ -90,44 +86,7 @@ cp /Users/evensolberg/.claude/plans/i-would-like-to-imperative-stream.md \
    /Volumes/SSD/Source/Rust/fitutils/docs/plans/2026-07-01-fitdownload.md
 ```
 
-- [x] **Step 0.2: Populate docs/_Frontmatter.md** — superseded: `docs/_Frontmatter.md` now points to the shared standard in `/Volumes/SSD/Source/_Common/Frontmatter.md`. Do not overwrite it; put this frontmatter on the plan's own document instead.
-
-Replace the contents of `/Volumes/SSD/Source/Rust/fitutils/docs/_Frontmatter.md` with:
-
-```markdown
----
-tags:
-  - fitutils
-  - garmin
-  - download
-  - planning
-aliases:
-  - fitdownload
-  - garmin-download
-doc_id: PLAN-2026-001
-doc_name: fitdownload-plan
-crumb_id:
-document_title: "fitdownload — Garmin Connect FIT File Downloader"
-created_date: 2026-07-01
-synopsis: >
-  Implementation plan for a new fitutils workspace member that
-  authenticates with Garmin Connect using browser-exported session
-  cookies and downloads FIT files for activities. Direct OAuth login is
-  blocked by Cloudflare TLS fingerprinting (since March 2026); the
-  cookie-import approach is the current reliable method.
-status: draft
-type: plan
-revision: 1
-review_date:
-reviewed_by: []
-completed_date:
-comments: "See docs/plans/2026-07-01-fitdownload.md for the full implementation plan."
-revision_history:
-  - date: 2026-07-01
-    author: even.solberg@gmail.com
-    change: Initial creation
----
-```
+- [x] **Step 0.2: Populate docs/_Frontmatter.md** — superseded: `docs/_Frontmatter.md` now points to the shared standard in `/Volumes/SSD/Source/_Common/Frontmatter.md`. Do not overwrite it; this plan carries its own frontmatter.
 
 ---
 
@@ -2219,3 +2178,10 @@ If you are accepted into the **Garmin Connect Developer Program** (`developer.ga
 The `client.rs` module is the only file that needs to change — swap the cookie-store reqwest setup for a standard `Authorization: Bearer` header. All other modules (`activities.rs`, `download.rs`, `session.rs`, `cli.rs`) remain valid.
 
 To apply for the developer program: visit `developer.garmin.com/gc-developer-program/` and use their contact/application form. As of July 2026 the program shows "stay tuned for more updates" so approval timelines are unknown.
+
+## Revisions
+
+| Revision | Date | Notes |
+| --- | --- | --- |
+| 1.0 | 2026-07-01 | Initial plan: cookie-import authentication |
+| 1.1 | 2026-10-09 | WebDriver authentication with cookie import as fallback; cron and 2FA notes |

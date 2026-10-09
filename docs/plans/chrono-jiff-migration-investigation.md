@@ -17,14 +17,14 @@ synopsis: >
   Track via crumb fit-ce6.
 status: complete
 type: Note
-revision: "1.0"
+revision: "1.1"
 review_date:
 reviewed_by: []
 completed_date: 2026-07-04
 comments:
 ---
 
-# Investigation: chrono → time/jiff migration for fitutils
+# Investigation: chrono → time/jiff migration and fitparser switch
 
 ## Context
 
@@ -111,16 +111,18 @@ Target: **jiff** (not `time`). Reasons:
 | `Datelike::day()` (u32) | `.date().day() as u32` (returns `i8`) |
 | `Datelike::weekday()` | `.date().weekday()` |
 | `Timelike::hour()` | `.time().hour() as u32` |
-| `Timelike::hour12()` | `let h = z.time().hour(); (h % 12, h >= 12)` |
+| `Timelike::hour12()` | `let h = z.time().hour(); (h >= 12, if h % 12 == 0 { 12 } else { h % 12 })` (chrono returns `(is_pm, 1..=12)`) |
 | `Timelike::minute()` | `.time().minute() as u32` |
 | `Timelike::second()` | `.time().second() as u32` |
 | `chrono::Duration::seconds(n)` | `jiff::Span::new().seconds(n)` |
 | `dt.signed_duration_since(other)` | `other.duration_until(&dt)` → `jiff::SignedDuration` |
 | `dt + chrono::Duration` | `dt.checked_add(jiff::Span::...)` |
-| Serde on `DateTime<Local>` field | `#[serde(with = "jiff::fmt::serde")]` on `jiff::Zoned` field |
+| Serde on `DateTime<Local>` field | Enable jiff's `serde` feature; `jiff::Zoned` implements `Serialize`/`Deserialize` directly, so no attribute is needed |
 
-Serde output format (RFC 3339) is identical between chrono and jiff, so JSON output is
-unchanged. At the fitparser boundary, convert once:
+JSON output changes unless handled: chrono's `DateTime<Local>` serialises as RFC 3339
+(`2024-01-01T10:00:00+01:00`), while jiff's `Zoned` uses RFC 9557 with an IANA zone
+annotation (`2024-01-01T10:00:00+01:00[Europe/Oslo]`). To keep the output identical,
+serialise a `jiff::Timestamp` or an offset-only representation instead. At the fitparser boundary, convert once:
 
 ```rust
 // fitparser::Value::Timestamp(chrono_dt) → jiff::Zoned
@@ -193,3 +195,4 @@ trigger is fitparser dropping chrono — not a parser switch.
 | Revision | Date | Notes |
 | --- | --- | --- |
 | 1.0 | 2026-07-04 | Initial investigation |
+| 1.1 | 2026-10-09 | Corrected the hour12 and serde rows and the JSON output claim; H1 matches title |
