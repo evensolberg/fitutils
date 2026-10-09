@@ -23,7 +23,7 @@ fitparser = "0.11"
 gpx = "0.10"
 tcx = "0.9"
 assay = "0.1"
-convert_case = "0.11"
+convert_case = "0.12"
 glob = "0.3"
 serde_json = "1"
 uom = { version = "0.38", default-features = false }
